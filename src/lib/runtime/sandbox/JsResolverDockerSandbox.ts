@@ -56,10 +56,15 @@ export class JsResolverDockerSandbox extends JsResolverAbstractSandbox {
     containerStream.setEncoding("utf8");
     containerStream.on("data", this._onStdoutData.bind(this));
     containerStream.on("end", async () => {
-      // Container has stopped
-      const status = await this._container?.wait();
-      processExitCodeResolver(status.StatusCode);
-      this._log(`Container exited with code=${status.StatusCode}`);
+      try {
+        // Container has stopped
+        const status = await this._container?.wait();
+        processExitCodeResolver(status.StatusCode);
+        this._log(`Container exited with code=${status.StatusCode}`);
+      } catch (err) {
+        processExitCodeResolver(1);
+        this._log(`Unable to get container exit code, error: ${err.message}`);
+      }
     });
     await this._container.start({});
   }

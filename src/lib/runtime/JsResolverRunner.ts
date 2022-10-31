@@ -9,7 +9,7 @@ import { JsResolverDockerSandbox } from "./sandbox/JsResolverDockerSandbox";
 import { JsResolverThreadSandbox } from "./sandbox/JsResolverThreadSandbox";
 import { JsResolverRunnerOptions } from "../types/JsResolverRunnerOptions";
 
-const START_TIMEOUT = 5_000;
+const START_TIMEOUT = 10_000;
 const EXEC_TIMEOUT = 30_000;
 const MEMORY_LIMIT = 128;
 
@@ -147,7 +147,7 @@ export class JsResolverRunner {
       } catch (err) {
         // Ignore
       }
-    }, 10);
+    }, 100);
   }
 
   private async _getAvailablePort(): Promise<number> {
