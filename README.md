@@ -107,6 +107,26 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
   ```
 
 
+
+## Benchmark / Load testing
+
+- Use `yarn benchmark FILENAME` command to run a test load
+
+- Options:
+  - all `test` command options
+  - `--load=100` configure the number of resolver you want to run for your load test (default: `10`)
+  - `--pool=10` configure the pool size, ie max number of concurrent worker (default: `10`)
+
+- Example: `yarn benchmark src/resolvers/index.ts --load=100 --pool=10`
+- Output:
+  ```  
+  Benchmark result:
+  - nb success: 100/100
+  - duration: 64s
+  ```
+
+
+
 ## Failure tests
 Some example failing file to test error handling
 - Syntax error in the resolver:
