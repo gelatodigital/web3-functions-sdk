@@ -17,11 +17,17 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
   });
 
   // Retrieve Last oracle update time
-  const oracleAddress =
-    userArgs.oracleAddress ?? "0x6a3c82330164822A8a39C7C0224D20DB35DD030a";
-  const oracle = new Contract(oracleAddress, ORACLE_ABI, rpcProvider);
-  const lastUpdated = parseInt(await oracle.lastUpdated());
-  console.log(`Last oracle update: ${lastUpdated}`);
+  let lastUpdated;
+  let oracle;
+  try {
+    const oracleAddress =
+      userArgs.oracleAddress ?? "0x6a3c82330164822A8a39C7C0224D20DB35DD030a";
+    oracle = new Contract(oracleAddress, ORACLE_ABI, rpcProvider);
+    lastUpdated = parseInt(await oracle.lastUpdated());
+    console.log(`Last oracle update: ${lastUpdated}`);
+  } catch (err) {
+    return { canExec: false, message: `Rpc call failed` };
+  }
 
   // Check if it's ready for a new update
   const nextUpdateTime = lastUpdated + 300; // 5 min
@@ -33,10 +39,16 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
 
   // Get current price on coingecko
   const currency = userArgs.currency ?? "ethereum";
-  const priceData = await axios.get(
-    `https://api.coingecko.com/api/v3/simple/price?ids=${currency}&vs_currencies=usd`
-  );
-  const price = Math.floor(priceData.data[currency].usd);
+  let price = 0;
+  try {
+    const priceData = await axios.get(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${currency}&vs_currencies=usd`,
+      { timeout: 5_000 }
+    );
+    price = Math.floor(priceData.data[currency].usd);
+  } catch (err) {
+    return { canExec: false, message: `Coingecko call failed` };
+  }
   console.log(`Updating price: ${price}`);
 
   // Return execution call data
