@@ -8,8 +8,8 @@
     "format": "prettier --write '*/**/*.{js,json,md,ts}'",
     "format:check": "prettier --check '*/**/*.{js,json,md,ts}'",
     "lint": "eslint --cache .",
-    "prepare": "yarn build && yarn format && yarn lint",
-    "test": "ts-node src/scripts/test.ts"
+    "test": "ts-node src/scripts/test.ts",
+    "benchmark": "ts-node src/scripts/benchmark.ts"
   },
   "keywords": [],
   "author": "",

@@ -3,9 +3,9 @@ import colors from "colors/safe";
 import { setTimeout as delay } from "timers/promises";
 import { JsResolverContextData } from "../lib";
 import { JsResolverBuilder } from "../lib/builder/JsResolverBuilder";
-import { JsResolverRunner } from "../lib/runtime/JsResolverRunner";
 import { JsResolverExec } from "../lib/types/JsResolverExecResult";
 import { performance } from "perf_hooks";
+import { JsResolverRunnerPool } from "../lib/runtime/JsResolverRunnerPool";
 
 const jsResolverSrcPath = process.argv[2] ?? "./src/resolvers/index.ts";
 
@@ -15,6 +15,7 @@ let showLogs = false;
 let memory = 128;
 let timeoutSec = 30;
 let load = 10;
+let pool = 10;
 if (process.argv.length > 2) {
   process.argv.slice(3).forEach((arg) => {
     if (arg.startsWith("--debug")) {
@@ -30,6 +31,8 @@ if (process.argv.length > 2) {
       timeoutSec = parseInt(arg.split("=")[1]) ?? timeoutSec;
     } else if (arg.startsWith("--load")) {
       load = parseInt(arg.split("=")[1]) ?? load;
+    } else if (arg.startsWith("--pool")) {
+      pool = parseInt(arg.split("=")[1]) ?? pool;
     }
   });
 }
@@ -47,7 +50,7 @@ async function test() {
   }
 
   // Prepare mock content for test
-  const mockContext: JsResolverContextData = {
+  const context: JsResolverContextData = {
     secrets: {},
     storage: {},
     gelatoArgs: {
@@ -62,17 +65,18 @@ async function test() {
   Object.keys(process.env)
     .filter((key) => key.startsWith("SECRETS_"))
     .forEach((key) => {
-      mockContext.secrets[key.replace("SECRETS_", "")] = process.env[key];
+      context.secrets[key.replace("SECRETS_", "")] = process.env[key];
     });
 
   // Run JsResolver
   const start = performance.now();
+  const runner = new JsResolverRunnerPool(pool, debug);
+  await runner.init();
   const promises: Promise<JsResolverExec>[] = [];
   for (let i = 0; i < load; i++) {
-    console.log(`#${i} Starting JsResolver`);
-    const runner = new JsResolverRunner(debug);
+    console.log(`#${i} Queuing JsResolver`);
     const options = { runtime, showLogs, memory, timeout };
-    promises.push(runner.run(buildRes.filePath, mockContext, options));
+    promises.push(runner.run({ script: buildRes.filePath, context, options }));
     await delay(100);
   }
 
