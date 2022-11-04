@@ -46,7 +46,7 @@ async function test() {
   }
 
   // Prepare mock content for test
-  const mockContext: JsResolverContextData = {
+  const context: JsResolverContextData = {
     secrets: {},
     storage: {},
     gelatoArgs: {
@@ -61,14 +61,14 @@ async function test() {
   Object.keys(process.env)
     .filter((key) => key.startsWith("SECRETS_"))
     .forEach((key) => {
-      mockContext.secrets[key.replace("SECRETS_", "")] = process.env[key];
+      context.secrets[key.replace("SECRETS_", "")] = process.env[key];
     });
 
   // Run JsResolver
   console.log(`\nJsResolver running${showLogs ? " logs:" : "..."}`);
   const runner = new JsResolverRunner(debug);
   const options = { runtime, showLogs, memory, timeout };
-  const res = await runner.run(buildRes.filePath, mockContext, options);
+  const res = await runner.run({ script: buildRes.filePath, context, options });
   console.log(`\nJsResolver Result:`);
   if (res.success) {
     console.log(` ${OK} Return value:`, res.result);

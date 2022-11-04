@@ -1,5 +1,5 @@
 import { performance } from "perf_hooks";
-import net from "net";
+import { JsResolverTcpHelper } from "../tcp/JsResolverTcpHelper";
 import { JsResolverTcpClient } from "../tcp/JsResolverTcpClient";
 import { JsResolverContextData } from "../types/JsResolverContext";
 import { JsResolverEvent } from "../types/JsResolverEvent";
@@ -7,7 +7,10 @@ import { JsResolverAbstractSandbox } from "./sandbox/JsResolverAbstractSandbox";
 import { JsResolverExec } from "../types/JsResolverExecResult";
 import { JsResolverDockerSandbox } from "./sandbox/JsResolverDockerSandbox";
 import { JsResolverThreadSandbox } from "./sandbox/JsResolverThreadSandbox";
-import { JsResolverRunnerOptions } from "../types/JsResolverRunnerOptions";
+import {
+  JsResolverRunnerPayload,
+  JsResolverRunnerOptions,
+} from "../types/JsResolverRunnerPayload";
 
 const START_TIMEOUT = 10_000;
 const EXEC_TIMEOUT = 30_000;
@@ -25,23 +28,20 @@ export class JsResolverRunner {
     this._debug = debug;
   }
 
-  public async run(
-    script: string,
-    context: JsResolverContextData,
-    options: JsResolverRunnerOptions
-  ): Promise<JsResolverExec> {
+  public async run(payload: JsResolverRunnerPayload): Promise<JsResolverExec> {
     const start = performance.now();
     let success;
     let result;
     let error;
     try {
+      const { script, context, options } = payload;
       result = await this._runInSandbox(script, context, options);
       success = true;
     } catch (err) {
       error = err;
       success = false;
     } finally {
-      this.stop();
+      await this.stop();
     }
 
     const logs = [];
@@ -71,7 +71,8 @@ export class JsResolverRunner {
       this._debug
     );
 
-    const serverPort = await this._getAvailablePort();
+    const serverPort =
+      options.serverPort ?? (await JsResolverTcpHelper.getAvailablePort());
     try {
       this._log(`Sarting sandbox: ${script}`);
       await this._sandbox.start(script, serverPort);
@@ -150,20 +151,9 @@ export class JsResolverRunner {
     }, 100);
   }
 
-  private async _getAvailablePort(): Promise<number> {
-    return new Promise((res, rej) => {
-      const srv = net.createServer();
-      srv.listen(0, () => {
-        const address = srv.address();
-        const port = address && typeof address === "object" ? address.port : -1;
-        srv.close(() => (port ? res(port) : rej()));
-      });
-    });
-  }
-
-  public stop() {
+  public async stop() {
     this._log("Stopping runtime environment...");
-    if (this._sandbox) this._sandbox.stop();
+    if (this._sandbox) await this._sandbox.stop();
     if (this._client) this._client.end();
     if (this._execTimeoutId) clearTimeout(this._execTimeoutId);
     if (this._memoryIntervalId) clearInterval(this._memoryIntervalId);
