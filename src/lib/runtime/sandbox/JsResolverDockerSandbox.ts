@@ -1,9 +1,11 @@
 /* eslint-disable no-empty */
-import Docker from "dockerode";
+import Docker, { ImageInfo } from "dockerode";
 import { JsResolverAbstractSandbox } from "./JsResolverAbstractSandbox";
 
 export class JsResolverDockerSandbox extends JsResolverAbstractSandbox {
   private _container?: Docker.Container;
+  private _docker = new Docker();
+  private _nodeImage = "node:18-alpine";
 
   protected async _stop(): Promise<void> {
     if (!this._container) return;
@@ -15,10 +17,35 @@ export class JsResolverDockerSandbox extends JsResolverAbstractSandbox {
     } catch (err) {}
   }
 
+  protected async _createImageIfMissing(image: string) {
+    let images: ImageInfo[] = [];
+    try {
+      images = await this._docker.listImages({
+        filters: JSON.stringify({ reference: [image] }),
+      });
+    } catch (err) {}
+
+    if (images.length === 0) {
+      this._log(`Creating docker image: ${image}`);
+      const created = await this._docker.createImage({ fromImage: image });
+      await new Promise((resolve) => {
+        created.on("data", (raw) => {
+          const lines = raw.toString().split("\r\n");
+          lines.forEach((line) => {
+            if (line === "") return;
+            const data = JSON.parse(line);
+            this._log(`${data.status} ${data.progress ?? ""}`);
+          });
+        });
+        created.once("end", resolve);
+      });
+      this._log(`Docker image created!`);
+    }
+  }
+
   protected async _start(script: string, serverPort: number): Promise<void> {
     const cmd = `node`;
     const resolverPath = process.cwd() + "/.tmp/";
-    const docker = new Docker({});
 
     // See docker create options:
     // https://docs.docker.com/engine/api/v1.37/#tag/Container/operation/ContainerCreate
@@ -39,7 +66,7 @@ export class JsResolverDockerSandbox extends JsResolverAbstractSandbox {
       Tty: true,
       //StopTimeout: 10,
       Cmd: [cmd, `/resolver/${script}`],
-      Image: "node:lts-alpine", // ToDo: chose better image
+      Image: this._nodeImage,
     };
 
     let processExitCodeResolver;
@@ -47,7 +74,8 @@ export class JsResolverDockerSandbox extends JsResolverAbstractSandbox {
       processExitCodeResolver = resolve;
     });
 
-    this._container = await docker.createContainer(createOptions);
+    await this._createImageIfMissing(this._nodeImage);
+    this._container = await this._docker.createContainer(createOptions);
     const containerStream = await this._container.attach({
       stream: true,
       stdout: true,
