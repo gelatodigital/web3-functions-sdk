@@ -34,10 +34,12 @@ const KO = colors.red("✗");
 async function test() {
   // Build JsResolver
   console.log(`JsResolver building...`);
+
   const buildRes = await JsResolverBuilder.build(jsResolverSrcPath, debug);
   console.log(`\nJsResolver Build result:`);
   if (buildRes.success) {
-    console.log(` ${OK} File: ${buildRes.filePath}`);
+    console.log(` ${OK} Schema: ${buildRes.schemaPath}`);
+    console.log(` ${OK} Built file: ${buildRes.filePath}`);
     console.log(` ${OK} File size: ${buildRes.fileSize.toFixed(2)}mb`);
     console.log(` ${OK} Build time: ${buildRes.buildTime.toFixed(2)}ms`);
   } else {

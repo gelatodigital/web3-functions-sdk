@@ -1,11 +1,16 @@
 import fs from "node:fs";
 import { performance } from "perf_hooks";
 import esbuild from "esbuild";
+import Ajv from "ajv";
+import * as jsResolverSchema from "./jsresolver.schema.json";
+const ajv = new Ajv({ messages: true });
+const jsResolverSchemaValidator = ajv.compile(jsResolverSchema);
 
 export type JsResolverBuildResult =
   | {
       success: true;
       filePath: string;
+      schemaPath: string;
       fileSize: number;
       buildTime: number;
     }
@@ -34,7 +39,11 @@ export class JsResolverBuilder {
       const stats = fs.statSync(filePath);
       const fileSize = stats.size / 1024 / 1024; // size in mb
 
-      return { success: true, filePath, fileSize, buildTime };
+      // ToDo: dynamically detect path of schema.json
+      const schemaPath = input.replace("index.ts", "schema.json");
+      await JsResolverBuilder._validateSchema(schemaPath, debug);
+
+      return { success: true, schemaPath, filePath, fileSize, buildTime };
     } catch (err) {
       if (debug) console.error(err);
       return {
@@ -42,5 +51,16 @@ export class JsResolverBuilder {
         error: err,
       };
     }
+  }
+
+  public static async _validateSchema(input: string, debug: boolean) {
+    const schemaContent = fs.readFileSync(input).toString();
+    if (debug) console.log("schemaContent:", schemaContent);
+    const schemaBody = JSON.parse(schemaContent);
+    if (debug) console.log("schemaBody:", schemaBody);
+    const res = jsResolverSchemaValidator(schemaBody);
+    if (debug) console.log("Validation res:", res);
+    // Todo get error message from validation
+    if (!res) throw new Error("Invalid js resolver schema.json");
   }
 }
