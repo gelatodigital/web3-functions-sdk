@@ -1,0 +1,32 @@
+{
+  "title": "Js Resolver Schema",
+  "description": "Js Resolver Schema",
+  "type": "object",
+  "properties": {
+    "jsresolverVersion": {
+      "enum": ["1.0.0"]
+    },
+    "runtime": {
+      "enum": ["node-18"]
+    },
+    "memory": {
+      "type": "number",
+      "minimum": 64,
+      "maximum": 512
+    },
+    "timeout": {
+      "type": "number",
+      "minimum": 5,
+      "maximum": 3600
+    },
+    "userArgs": {
+      "type": "object",
+      "patternProperties": {
+        "^[\\w\\-]+$": {
+          "enum": ["string", "number", "boolean"]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
