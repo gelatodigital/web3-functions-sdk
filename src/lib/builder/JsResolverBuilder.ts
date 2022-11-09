@@ -3,7 +3,7 @@ import { performance } from "perf_hooks";
 import esbuild from "esbuild";
 import Ajv from "ajv";
 import * as jsResolverSchema from "./jsresolver.schema.json";
-const ajv = new Ajv({ messages: true });
+const ajv = new Ajv({ messages: true, allErrors: true });
 const jsResolverSchemaValidator = ajv.compile(jsResolverSchema);
 
 export type JsResolverBuildResult =
@@ -59,8 +59,21 @@ export class JsResolverBuilder {
     const schemaBody = JSON.parse(schemaContent);
     if (debug) console.log("schemaBody:", schemaBody);
     const res = jsResolverSchemaValidator(schemaBody);
-    if (debug) console.log("Validation res:", res);
+    if (debug)
+      console.log("Validation res:", res, jsResolverSchemaValidator.errors);
     // Todo get error message from validation
-    if (!res) throw new Error("Invalid js resolver schema.json");
+    if (jsResolverSchemaValidator.errors) {
+      const errorParts = jsResolverSchemaValidator.errors.map(
+        (validationErr) => {
+          let msg = `\n - ${validationErr.instancePath} ${validationErr.message}`;
+          if (validationErr.params.allowedValues) {
+            msg += ` [${validationErr.params.allowedValues.join("|")}]`;
+          }
+          return msg;
+        }
+      );
+      throw new Error(`Invalid JsResolver schema.json:${errorParts.join()}`);
+    }
+    if (!res) throw new Error("Invalid JsResolver schema.json");
   }
 }
