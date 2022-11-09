@@ -10,7 +10,6 @@ export class JsResolverUploader {
     await this.compress(input);
 
     const cid = await this.ipfsUpload();
-
     return cid;
   }
 
@@ -18,24 +17,23 @@ export class JsResolverUploader {
     try {
       const { name, base } = path.parse(input);
 
-      // move to root directory
+      // move file to root directory
       await fsp.rename(input, base);
       const tarFileName = `${name}.tgz`;
 
-      tar
+      const stream = tar
         .c(
           {
             gzip: true,
           },
           [base]
         )
-        .pipe(fs.createWriteStream(tarFileName));
+        .pipe(fs.createWriteStream(`.tmp/${tarFileName}`));
 
-      await fsp.mkdir(".tmp", { recursive: true });
-
-      // move files back to .tmp file
-      await fsp.rename(tarFileName, `.tmp/${tarFileName}`);
-      await fsp.rename(base, `.tmp/${base}`);
+      // move file back to .tmp file
+      stream.once("finish", async () => {
+        await fsp.rename(base, `.tmp/${base}`);
+      });
     } catch (err) {
       console.error(`Error compressing JSResolver: `, err);
     }
