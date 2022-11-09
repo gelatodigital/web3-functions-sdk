@@ -112,8 +112,10 @@ async function test() {
   console.log(` ${memoryStatus} Memory: ${res.memory.toFixed(2)}mb`);
 
   // Compile & upload JsResolver
-  const cid = await JsResolverUploader.upload(buildRes.filePath);
-  if (cid) console.log(`\nJsResolver pinned on ipfs: ${cid}`);
+  if (upload) {
+    const cid = await JsResolverUploader.upload(buildRes.filePath);
+    if (cid) console.log(`\nJsResolver pinned on ipfs: ${cid}`);
+  }
 }
 
 test().catch((err) => console.error("Error running JsResolver:", err));
