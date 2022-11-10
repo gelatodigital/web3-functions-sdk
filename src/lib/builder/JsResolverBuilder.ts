@@ -41,7 +41,7 @@ export class JsResolverBuilder {
 
       // ToDo: dynamically detect path of schema.json
       const schemaPath = input.replace("index.ts", "schema.json");
-      await JsResolverBuilder._validateSchema(schemaPath, debug);
+      await JsResolverBuilder._validateSchema(schemaPath);
 
       return { success: true, schemaPath, filePath, fileSize, buildTime };
     } catch (err) {
@@ -53,27 +53,61 @@ export class JsResolverBuilder {
     }
   }
 
-  public static async _validateSchema(input: string, debug: boolean) {
-    const schemaContent = fs.readFileSync(input).toString();
-    if (debug) console.log("schemaContent:", schemaContent);
-    const schemaBody = JSON.parse(schemaContent);
-    if (debug) console.log("schemaBody:", schemaBody);
-    const res = jsResolverSchemaValidator(schemaBody);
-    if (debug)
-      console.log("Validation res:", res, jsResolverSchemaValidator.errors);
-    // Todo get error message from validation
-    if (jsResolverSchemaValidator.errors) {
-      const errorParts = jsResolverSchemaValidator.errors.map(
-        (validationErr) => {
-          let msg = `\n - ${validationErr.instancePath} ${validationErr.message}`;
-          if (validationErr.params.allowedValues) {
-            msg += ` [${validationErr.params.allowedValues.join("|")}]`;
-          }
-          return msg;
-        }
+  public static async _validateSchema(input: string) {
+    const hasSchema = fs.existsSync(input);
+    if (!hasSchema) {
+      throw new Error(
+        `JsResolverSchemaError: Missing JsResolver schema at '${input}'
+Please create 'schema.json', default: 
+{
+  "jsResolverVersion": "1.0.0",
+  "runtime": "node-18",
+  "memory": 128,
+  "timeout": 60,
+  "userArgs": {}
+}`
       );
-      throw new Error(`Invalid JsResolver schema.json:${errorParts.join()}`);
     }
-    if (!res) throw new Error("Invalid JsResolver schema.json");
+
+    let schemaContent;
+    try {
+      schemaContent = fs.readFileSync(input).toString();
+    } catch (err) {
+      throw new Error(
+        `JsResolverSchemaError: Unable to read JsResolver schema at '${input}', ${err.message}`
+      );
+    }
+
+    let schemaBody;
+    try {
+      schemaBody = JSON.parse(schemaContent);
+    } catch (err) {
+      throw new Error(
+        `JsResolverSchemaError: Invalid json schema at '${input}', ${err.message}`
+      );
+    }
+
+    const res = jsResolverSchemaValidator(schemaBody);
+    if (!res) {
+      let errorParts = "";
+      if (jsResolverSchemaValidator.errors) {
+        errorParts = jsResolverSchemaValidator.errors
+          .map((validationErr) => {
+            let msg = `\n - `;
+            if (validationErr.instancePath) {
+              msg += `'${validationErr.instancePath
+                .replace("/", ".")
+                .substring(1)}' `;
+            }
+            msg += `${validationErr.message}`;
+            if (validationErr.params.allowedValues) {
+              msg += ` [${validationErr.params.allowedValues.join("|")}]`;
+            }
+            return msg;
+          })
+          .join();
+      }
+      throw new Error(`JsResolverSchemaError: invalid ${input} ${errorParts}`);
+    }
   }
 }
