@@ -3,16 +3,14 @@
   "description": "Js Resolver Schema",
   "type": "object",
   "properties": {
-    "jsresolverVersion": {
+    "jsResolverVersion": {
       "enum": ["1.0.0"]
     },
     "runtime": {
       "enum": ["node-18"]
     },
     "memory": {
-      "type": "number",
-      "minimum": 64,
-      "maximum": 512
+      "enum": [128, 256, 512]
     },
     "timeout": {
       "type": "number",
@@ -28,5 +26,6 @@
       },
       "additionalProperties": false
     }
-  }
+  },
+  "required": ["jsResolverVersion", "runtime", "memory", "timeout"]
 }
