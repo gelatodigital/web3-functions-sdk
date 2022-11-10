@@ -68,6 +68,16 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
   };
 });
 ```
+- create your resolver `schema.json` to specify your runtime configuration:
+```json
+{
+  "jsResolverVersion": "1.0.0",
+  "runtime": "node-18",
+  "memory": 128, 
+  "timeout": 60,
+  "userArgs": {}
+}
+```
 
 
 ## Test your resolver
@@ -105,7 +115,6 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
   ✓ Duration: 5.41s
   ✓ Memory: 57.77mb
   ```
-
 
 
 ## Benchmark / Load testing
