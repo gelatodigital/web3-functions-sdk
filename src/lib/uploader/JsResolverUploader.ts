@@ -13,13 +13,14 @@ const OPS_USER_API = "http://localhost:3050"; // TODO: Replace with prod api
 export class JsResolverUploader {
   public static async uploadResolver(
     wallet: Wallet,
+    schemaPath = "src/resolvers/schema.json",
     input = ".tmp/resolver.cjs"
   ): Promise<string | null> {
     let cid: string | null = null;
 
     try {
       await fsp.access(input);
-      await this.compress(input);
+      await this.compress(input, schemaPath);
 
       const authToken = await this._signMessage(wallet);
       cid = await this._userApiUpload(wallet.address, authToken);
@@ -73,29 +74,39 @@ export class JsResolverUploader {
     return "";
   }
 
-  public static async compress(input: string): Promise<void> {
+  public static async compress(
+    input: string,
+    schemaPath: string
+  ): Promise<void> {
     try {
-      const { name, base } = path.parse(input);
+      const { base } = path.parse(input);
 
-      // move file to root directory
-      await fsp.rename(input, base);
-      const tarFileName = `${name}.tgz`;
+      // create directory with jsResolver.cjs & schema
+      const folderCompressedName = "jsResolver";
+      const folderCompressedTar = `${folderCompressedName}.tgz`;
+      if (!fs.existsSync(folderCompressedName)) {
+        fs.mkdirSync(folderCompressedName, { recursive: true });
+      }
+
+      // move files to directory
+      await fsp.rename(input, `${folderCompressedName}/${base}`);
+      await fsp.copyFile(schemaPath, `${folderCompressedName}/schema.json`);
 
       const stream = tar
         .c(
           {
             gzip: true,
           },
-          [base]
+          [folderCompressedName]
         )
-        .pipe(fs.createWriteStream(`.tmp/${tarFileName}`));
+        .pipe(fs.createWriteStream(`.tmp/${folderCompressedTar}`));
 
       await new Promise((fulfill) => {
         stream.once("finish", fulfill);
       });
 
-      // move file back to .tmp file
-      await fsp.rename(base, `.tmp/${base}`);
+      // delete directory after compression
+      await fsp.rm(folderCompressedName, { recursive: true });
     } catch (err) {
       console.error(`Error compressing JSResolver: `, err);
     }
@@ -118,7 +129,7 @@ export class JsResolverUploader {
     let cid: string | null = null;
     try {
       const form = new FormData();
-      const file = fs.createReadStream(".tmp/resolver.tgz");
+      const file = fs.createReadStream(".tmp/jsResolver.tgz");
 
       form.append("title", "JsResolver");
       form.append("file", file);
