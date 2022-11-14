@@ -3,7 +3,6 @@ import colors from "colors/safe";
 import { JsResolverContextData } from "../lib";
 import { JsResolverBuilder } from "../lib/builder/JsResolverBuilder";
 import { JsResolverRunner } from "../lib/runtime/JsResolverRunner";
-import { JsResolverUploader } from "../lib/uploader/JsResolverUploader";
 
 const jsResolverSrcPath = process.argv[2] ?? "./src/resolvers/index.ts";
 
@@ -110,12 +109,6 @@ async function test() {
   console.log(` ${durationStatus} Duration: ${res.duration.toFixed(2)}s`);
   const memoryStatus = res.memory < 0.9 * memory ? OK : KO;
   console.log(` ${memoryStatus} Memory: ${res.memory.toFixed(2)}mb`);
-
-  // Compile & upload JsResolver
-  if (upload) {
-    const cid = await JsResolverUploader.upload(buildRes.filePath);
-    if (cid) console.log(`\nJsResolver pinned on ipfs: ${cid}`);
-  }
 }
 
 test().catch((err) => console.error("Error running JsResolver:", err));
