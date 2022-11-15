@@ -13,8 +13,6 @@ import {
 } from "../types/JsResolverRunnerPayload";
 
 const START_TIMEOUT = 10_000;
-const EXEC_TIMEOUT = 30_000;
-const MEMORY_LIMIT = 128;
 
 export class JsResolverRunner {
   private _debug: boolean;
@@ -66,7 +64,7 @@ export class JsResolverRunner {
         ? JsResolverThreadSandbox
         : JsResolverDockerSandbox;
     this._sandbox = new SandBoxClass(
-      { memoryLimit: options.memory ?? MEMORY_LIMIT },
+      { memoryLimit: options.memory },
       options.showLogs ?? false,
       this._debug
     );
@@ -119,14 +117,13 @@ export class JsResolverRunner {
       });
 
       // Stop waiting for result after timeout expire
-      const execTimeout = options.timeout ?? EXEC_TIMEOUT;
       this._execTimeoutId = setTimeout(() => {
         reject(
           new Error(
-            `JsResolver exceed execution timeout (${execTimeout / 1000}s)`
+            `JsResolver exceed execution timeout (${options.timeout / 1000}s)`
           )
         );
-      }, execTimeout);
+      }, options.timeout);
 
       // Listen to sandbox exit status code to detect runtime error
       this._sandbox?.waitForProcessEnd().then((signal: number) => {

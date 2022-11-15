@@ -12,8 +12,6 @@ const jsResolverSrcPath = process.argv[2] ?? "./src/resolvers/index.ts";
 let runtime: "docker" | "thread" = "docker";
 let debug = false;
 let showLogs = false;
-let memory = 128;
-let timeoutSec = 30;
 let load = 10;
 let pool = 10;
 if (process.argv.length > 2) {
@@ -25,10 +23,6 @@ if (process.argv.length > 2) {
     } else if (arg.startsWith("--runtime=")) {
       const type = arg.split("=")[1];
       runtime = type === "thread" ? "thread" : "docker";
-    } else if (arg.startsWith("--memory=")) {
-      memory = parseInt(arg.split("=")[1]) ?? memory;
-    } else if (arg.startsWith("--timeout=")) {
-      timeoutSec = parseInt(arg.split("=")[1]) ?? timeoutSec;
     } else if (arg.startsWith("--load")) {
       load = parseInt(arg.split("=")[1]) ?? load;
     } else if (arg.startsWith("--pool")) {
@@ -36,8 +30,6 @@ if (process.argv.length > 2) {
     }
   });
 }
-const timeout = timeoutSec * 1000;
-
 const OK = colors.green("✓");
 const KO = colors.red("✗");
 async function test() {
@@ -70,12 +62,14 @@ async function test() {
 
   // Run JsResolver
   const start = performance.now();
+  const memory = buildRes.schema.memory;
+  const timeout = buildRes.schema.timeout * 1000;
+  const options = { runtime, showLogs, memory, timeout };
   const runner = new JsResolverRunnerPool(pool, debug);
   await runner.init();
   const promises: Promise<JsResolverExec>[] = [];
   for (let i = 0; i < load; i++) {
     console.log(`#${i} Queuing JsResolver`);
-    const options = { runtime, showLogs, memory, timeout };
     promises.push(runner.run({ script: buildRes.filePath, context, options }));
     await delay(100);
   }

@@ -9,8 +9,6 @@ const jsResolverSrcPath = process.argv[2] ?? "./src/resolvers/index.ts";
 let runtime: "docker" | "thread" = "docker";
 let debug = false;
 let showLogs = false;
-let memory = 128;
-let timeoutSec = 30;
 if (process.argv.length > 2) {
   process.argv.slice(3).forEach((arg) => {
     if (arg.startsWith("--debug")) {
@@ -20,14 +18,9 @@ if (process.argv.length > 2) {
     } else if (arg.startsWith("--runtime=")) {
       const type = arg.split("=")[1];
       runtime = type === "thread" ? "thread" : "docker";
-    } else if (arg.startsWith("--memory=")) {
-      memory = parseInt(arg.split("=")[1]) ?? memory;
-    } else if (arg.startsWith("--timeout=")) {
-      timeoutSec = parseInt(arg.split("=")[1]) ?? timeoutSec;
     }
   });
 }
-const timeout = timeoutSec * 1000;
 
 const OK = colors.green("✓");
 const KO = colors.red("✗");
@@ -69,6 +62,8 @@ async function test() {
   // Run JsResolver
   console.log(`\nJsResolver running${showLogs ? " logs:" : "..."}`);
   const runner = new JsResolverRunner(debug);
+  const memory = buildRes.schema.memory;
+  const timeout = buildRes.schema.timeout * 1000;
   const options = { runtime, showLogs, memory, timeout };
   const res = await runner.run({ script: buildRes.filePath, context, options });
   console.log(`\nJsResolver Result:`);
@@ -80,7 +75,7 @@ async function test() {
 
   // Show runtime stats
   console.log(`\nJsResolver Runtime stats:`);
-  const durationStatus = res.duration < 0.9 * timeoutSec ? OK : KO;
+  const durationStatus = res.duration < 0.9 * buildRes.schema.timeout ? OK : KO;
   console.log(` ${durationStatus} Duration: ${res.duration.toFixed(2)}s`);
   const memoryStatus = res.memory < 0.9 * memory ? OK : KO;
   console.log(` ${memoryStatus} Memory: ${res.memory.toFixed(2)}mb`);

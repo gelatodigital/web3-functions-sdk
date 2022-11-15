@@ -3,8 +3,14 @@ import { performance } from "perf_hooks";
 import esbuild from "esbuild";
 import Ajv from "ajv";
 import * as jsResolverSchema from "./jsresolver.schema.json";
+import path from "node:path";
 const ajv = new Ajv({ messages: true, allErrors: true });
 const jsResolverSchemaValidator = ajv.compile(jsResolverSchema);
+
+export type JsResolverSchema = {
+  memory: number;
+  timeout: number;
+};
 
 export type JsResolverBuildResult =
   | {
@@ -13,6 +19,7 @@ export type JsResolverBuildResult =
       schemaPath: string;
       fileSize: number;
       buildTime: number;
+      schema: JsResolverSchema;
     }
   | { success: false; error: Error };
 
@@ -38,12 +45,17 @@ export class JsResolverBuilder {
 
       const stats = fs.statSync(filePath);
       const fileSize = stats.size / 1024 / 1024; // size in mb
+      const schemaPath = path.join(path.parse(input).dir, "schema.json");
+      const schema = await JsResolverBuilder._validateSchema(schemaPath);
 
-      // ToDo: dynamically detect path of schema.json
-      const schemaPath = input.replace("index.ts", "schema.json");
-      await JsResolverBuilder._validateSchema(schemaPath);
-
-      return { success: true, schemaPath, filePath, fileSize, buildTime };
+      return {
+        success: true,
+        schemaPath,
+        filePath,
+        fileSize,
+        buildTime,
+        schema,
+      };
     } catch (err) {
       if (debug) console.error(err);
       return {
@@ -53,7 +65,9 @@ export class JsResolverBuilder {
     }
   }
 
-  public static async _validateSchema(input: string) {
+  public static async _validateSchema(
+    input: string
+  ): Promise<JsResolverSchema> {
     const hasSchema = fs.existsSync(input);
     if (!hasSchema) {
       throw new Error(
@@ -109,5 +123,6 @@ Please create 'schema.json', default:
       }
       throw new Error(`JsResolverSchemaError: invalid ${input} ${errorParts}`);
     }
+    return schemaBody as JsResolverSchema;
   }
 }

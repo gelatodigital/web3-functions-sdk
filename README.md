@@ -87,8 +87,6 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
 - Options:
   - `--show-logs` Show internal Resolver logs
   - `--runtime=thread|docker` Use `thread` if you don't have `docker`set up locally (default: `docker`)
-  - `--memory=256` configure memory usage (in `mb`) required for your resolver (default: `128` mb)
-  - `--timeout=60` configure max execution time (in second) required for your resolver (default: `30` s)
   - `--debug` Show Runtime debug messages
 
 - Example: `yarn test src/resolvers/index.ts --show-logs --runtime=thread`
@@ -168,7 +166,7 @@ Some example failing file to test error handling
   ```
 
 - Resolver run out of memory:
-  - Run: `yarn test src/resolvers/fails/escape-memory.ts --memory=32`
+  - Run: `yarn test src/resolvers/fails/escape-memory.ts`
   - Result
   ```
   JsResolver Result:
@@ -180,7 +178,7 @@ Some example failing file to test error handling
   ```
 
 - Resolver exceed timeout:
-   - Run: `yarn test src/resolvers/fails/escape-timeout.ts --timeout=10`
+   - Run: `yarn test src/resolvers/fails/escape-timeout.ts`
    - Result:
   ```
   JsResolver Result:
