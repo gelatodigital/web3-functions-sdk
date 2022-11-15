@@ -19,10 +19,14 @@ export class JsResolverUploader {
 
     try {
       await fsp.access(input);
-      await this.compress(input, schemaPath);
+      const compressedPath = await this.compress(input, schemaPath);
 
       const authToken = await this._signMessage(wallet);
-      cid = await this._userApiUpload(wallet.address, authToken);
+      cid = await this._userApiUpload(
+        wallet.address,
+        authToken,
+        compressedPath
+      );
     } catch (err) {
       console.error("Error uploading: ", err);
     }
@@ -76,12 +80,13 @@ export class JsResolverUploader {
   public static async compress(
     input: string,
     schemaPath: string
-  ): Promise<void> {
+  ): Promise<string> {
     try {
       const { base } = path.parse(input);
 
       // create directory with jsResolver.cjs & schema
-      const folderCompressedName = `.tmp/jsResolver-${Date.now()}`;
+      const time = Math.floor(Date.now() / 1000);
+      const folderCompressedName = `.tmp/jsResolver-${time}`;
       const folderCompressedTar = `${folderCompressedName}.tgz`;
       if (!fs.existsSync(folderCompressedName)) {
         fs.mkdirSync(folderCompressedName, { recursive: true });
@@ -106,9 +111,12 @@ export class JsResolverUploader {
 
       // delete directory after compression
       await fsp.rm(folderCompressedName, { recursive: true });
+
+      return folderCompressedTar;
     } catch (err) {
       console.error(`Error compressing JSResolver: `, err);
     }
+    return "";
   }
 
   public static async extract(input: string): Promise<void> {
@@ -123,12 +131,13 @@ export class JsResolverUploader {
 
   private static async _userApiUpload(
     address: string,
-    authToken: string
+    authToken: string,
+    compressedPath: string
   ): Promise<string | null> {
     let cid: string | null = null;
     try {
       const form = new FormData();
-      const file = fs.createReadStream(".tmp/jsResolver.tgz");
+      const file = fs.createReadStream(compressedPath);
 
       form.append("title", "JsResolver");
       form.append("file", file);
