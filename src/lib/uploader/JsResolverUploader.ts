@@ -81,7 +81,7 @@ export class JsResolverUploader {
       const { base } = path.parse(input);
 
       // create directory with jsResolver.cjs & schema
-      const folderCompressedName = "jsResolver";
+      const folderCompressedName = `.tmp/jsResolver-${Date.now()}`;
       const folderCompressedTar = `${folderCompressedName}.tgz`;
       if (!fs.existsSync(folderCompressedName)) {
         fs.mkdirSync(folderCompressedName, { recursive: true });
@@ -98,7 +98,7 @@ export class JsResolverUploader {
           },
           [folderCompressedName]
         )
-        .pipe(fs.createWriteStream(`.tmp/${folderCompressedTar}`));
+        .pipe(fs.createWriteStream(folderCompressedTar));
 
       await new Promise((fulfill) => {
         stream.once("finish", fulfill);
