@@ -8,8 +8,7 @@ import axios from "axios";
 import { Wallet } from "ethers";
 import { SiweMessage } from "siwe";
 
-const OPS_USER_API = "http://localhost:3050"; // TODO: Replace with prod api
-
+const OPS_USER_API = process.env.OPS_USER_API;
 export class JsResolverUploader {
   public static async uploadResolver(
     wallet: Wallet,
