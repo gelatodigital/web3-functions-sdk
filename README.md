@@ -88,6 +88,7 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
   - `--show-logs` Show internal Resolver logs
   - `--runtime=thread|docker` Use `thread` if you don't have `docker`set up locally (default: `docker`)
   - `--debug` Show Runtime debug messages
+  - `--user-args=[key]:[value]` Set your Resolver user args
 
 - Example: `yarn test src/resolvers/index.ts --show-logs --runtime=thread`
 - Output:
@@ -114,6 +115,38 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
   ✓ Memory: 57.77mb
   ```
 
+
+## Use User arguments
+1. Declare your expected `userArgs` in you schema, accepted types are 'string', 'number' or 'float':
+```json
+{
+  "jsResolverVersion": "1.0.0",
+  "runtime": "node-18",
+  "memory": 128, 
+  "timeout": 60,
+  "userArgs": {
+    "currency": "string",
+    "oracle": "string"
+  }
+}
+```
+
+2. Access your `userArgs` from the JsResolver context:
+```typescript
+JsResolverSdk.onChecker(async (context: JsResolverContext) => {
+  const { userArgs, gelatoArgs, secrets } = context;
+
+  // User args:
+  console.log('Currency:', userArgs.currency)
+  console.log('Oracle:', userArgs.oracle)
+  
+});
+```
+
+1. Pass `user-args` to the CLI to test your resolver:
+```
+yarn test src/resolvers/oracle/index.ts --show-logs --user-args=currency:ethereum --user-args=oracle:0x6a3c82330164822A8a39C7C0224D20DB35DD030a
+```
 
 ## Benchmark / Load testing
 
