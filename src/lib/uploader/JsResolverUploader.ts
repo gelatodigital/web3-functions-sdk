@@ -34,13 +34,9 @@ export class JsResolverUploader {
   public static async fetchResolver(
     wallet: Wallet,
     cid: string,
-    filePath = "./.tmp"
+    destDir = "./.tmp"
   ): Promise<string> {
     try {
-      if (!fs.existsSync(filePath)) {
-        fs.mkdirSync(filePath, { recursive: true });
-      }
-
       const authToken = await this._signMessage(wallet);
       const res = await axios.get(
         `${OPS_USER_API}/users/${wallet.address}/js-resolver/${cid}`,
@@ -51,15 +47,31 @@ export class JsResolverUploader {
         }
       );
 
+      // store jsResolver file in .tmp
+      let jsResolverPath: string;
+
       const jsResolverFileName = `${cid}.tgz`;
-      fs.writeFile(jsResolverFileName, res.data, (err) => {
-        if (err) throw err;
-      });
+      const tempJsResolverPath = `.tmp/${jsResolverFileName}`;
 
-      const jsResolverDir = `${filePath}/${jsResolverFileName}`;
-      await fsp.rename(jsResolverFileName, jsResolverDir);
+      if (!fs.existsSync(".tmp")) {
+        fs.mkdirSync(".tmp", { recursive: true });
+      }
 
-      return jsResolverDir;
+      await fsp.writeFile(tempJsResolverPath, res.data);
+      jsResolverPath = tempJsResolverPath;
+
+      // store jsResolver to custom dir
+      if (destDir !== "./.tmp") {
+        if (!fs.existsSync(destDir)) {
+          fs.mkdirSync(destDir, { recursive: true });
+        }
+
+        const customJsResolverPath = `${destDir}/${jsResolverFileName}`;
+        await fsp.rename(jsResolverPath, customJsResolverPath);
+        jsResolverPath = customJsResolverPath;
+      }
+
+      return jsResolverPath;
     } catch (err) {
       let errMsg = `${err.message} `;
       if (axios.isAxiosError(err)) {
@@ -70,7 +82,7 @@ export class JsResolverUploader {
       }
 
       throw new Error(
-        `JsResolverUploaderError: Fetch JsResolver to ${filePath} failed. \n${errMsg}`
+        `JsResolverUploaderError: Fetch JsResolver to ${destDir} failed. \n${errMsg}`
       );
     }
   }
