@@ -4,6 +4,7 @@ import { ethers } from "ethers";
 import { JsResolverUploader } from "../lib/uploader/JsResolverUploader";
 
 const OK = colors.green("✓");
+const KO = colors.red("✗");
 
 const upload = async () => {
   const pk = process.env.PK;
@@ -13,8 +14,12 @@ const upload = async () => {
   if (!cid) throw new Error("JsResolver CID missing");
   const wallet = new ethers.Wallet(pk);
 
-  const resolverDir = await JsResolverUploader.fetchResolver(wallet, cid);
-  console.log(` ${OK} Fetched JsResolver to: ${resolverDir}`);
+  try {
+    const resolverDir = await JsResolverUploader.fetchResolver(wallet, cid);
+    console.log(` ${OK} Fetched JsResolver to: ${resolverDir}`);
+  } catch (err) {
+    ` ${KO} Error fetching JsResolver: ${err}`;
+  }
 };
 
 upload().catch((err) => console.error(err));

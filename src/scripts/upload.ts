@@ -15,9 +15,13 @@ const upload = async () => {
   const buildRes = await JsResolverBuilder.build(jsResolverSrcPath, false);
 
   if (buildRes.success) {
-    const cid = await JsResolverUploader.uploadResolver(wallet);
-    if (cid) console.log(` ${OK} JsResolver uploaded to ipfs. CID: ${cid}`);
-    else console.log(` ${KO} JsResolver upload failed.`);
+    try {
+      const cid = await JsResolverUploader.uploadResolver(wallet);
+      if (cid) console.log(` ${OK} JsResolver uploaded to ipfs. CID: ${cid}`);
+      else console.log(` ${KO} JsResolver upload failed.`);
+    } catch (err) {
+      console.error(` ${KO} JsResolver upload failed: ${err}`);
+    }
   } else {
     console.log(` ${KO} Error: ${buildRes.error.message}`);
     return;
