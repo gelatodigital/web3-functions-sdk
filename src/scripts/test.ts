@@ -9,6 +9,7 @@ const jsResolverSrcPath = process.argv[2] ?? "./src/resolvers/index.ts";
 let runtime: "docker" | "thread" = "docker";
 let debug = false;
 let showLogs = false;
+const inputUserArgs: { [key: string]: string } = {};
 if (process.argv.length > 2) {
   process.argv.slice(3).forEach((arg) => {
     if (arg.startsWith("--debug")) {
@@ -18,6 +19,16 @@ if (process.argv.length > 2) {
     } else if (arg.startsWith("--runtime=")) {
       const type = arg.split("=")[1];
       runtime = type === "thread" ? "thread" : "docker";
+    } else if (arg.startsWith("--user-args=")) {
+      const userArgParts = arg.split("=")[1].split(":");
+      if (userArgParts.length < 2) {
+        console.error("Invalid user-args:", arg);
+        console.error("Please use format: --user-args=[key]:[value]");
+        process.exit(1);
+      }
+      const key = userArgParts.shift() as string;
+      const value = userArgParts.join(":");
+      inputUserArgs[key] = value;
     }
   });
 }
@@ -59,12 +70,31 @@ async function test() {
       context.secrets[key.replace("SECRETS_", "")] = process.env[key];
     });
 
-  // Run JsResolver
-  console.log(`\nJsResolver running${showLogs ? " logs:" : "..."}`);
+  // Configure JsResolver runner
   const runner = new JsResolverRunner(debug);
   const memory = buildRes.schema.memory;
   const timeout = buildRes.schema.timeout * 1000;
   const options = { runtime, showLogs, memory, timeout };
+
+  // Validate input user args against schema
+  if (Object.keys(inputUserArgs).length > 0) {
+    console.log(`\nJsResolver user args validation:`);
+    try {
+      context.userArgs = await runner.validateUserArgs(
+        buildRes.schema.userArgs,
+        inputUserArgs
+      );
+      Object.keys(context.userArgs).forEach((key) => {
+        console.log(` ${OK} ${key}:`, context.userArgs[key]);
+      });
+    } catch (err) {
+      console.log(` ${KO} ${err.message}`);
+      return;
+    }
+  }
+
+  // Run JsResolver
+  console.log(`\nJsResolver running${showLogs ? " logs:" : "..."}`);
   const res = await runner.run({ script: buildRes.filePath, context, options });
   console.log(`\nJsResolver Result:`);
   if (res.success) {

@@ -26,6 +26,47 @@ export class JsResolverRunner {
     this._debug = debug;
   }
 
+  public async validateUserArgs(
+    schema: {
+      [key: string]: string;
+    },
+    inputUserArgs: { [key: string]: string }
+  ): Promise<{ [key: string]: string | number | boolean }> {
+    const typedUserArgs: { [key: string]: string | number | boolean } = {};
+    for (const key in schema) {
+      const value = inputUserArgs[key];
+      if (typeof value === "undefined") {
+        throw new Error(`JsResolverSchemaError: Missing user arg '${key}'`);
+      }
+      const type = schema[key];
+      switch (type) {
+        case "boolean":
+          typedUserArgs[key] = !(value === "false" || value === "0");
+          break;
+        case "string":
+          typedUserArgs[key] = value;
+          break;
+        case "number": {
+          const parsedValue = value.includes(".")
+            ? parseFloat(value)
+            : parseInt(value);
+          if (isNaN(parsedValue)) {
+            throw new Error(
+              `JsResolverSchemaError: Invalid number value '${value}' for user arg '${key}'`
+            );
+          }
+          typedUserArgs[key] = parsedValue;
+          break;
+        }
+        default:
+          throw new Error(
+            `JsResolverSchemaError: Unrecognized type '${type}' for user arg '${key}'`
+          );
+      }
+    }
+    return typedUserArgs;
+  }
+
   public async run(payload: JsResolverRunnerPayload): Promise<JsResolverExec> {
     const start = performance.now();
     let success;

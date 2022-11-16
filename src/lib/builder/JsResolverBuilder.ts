@@ -10,6 +10,9 @@ const jsResolverSchemaValidator = ajv.compile(jsResolverSchema);
 export type JsResolverSchema = {
   memory: number;
   timeout: number;
+  userArgs: {
+    [key: string]: string;
+  };
 };
 
 export type JsResolverBuildResult =

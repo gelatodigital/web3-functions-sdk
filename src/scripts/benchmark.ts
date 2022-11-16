@@ -6,6 +6,7 @@ import { JsResolverBuilder } from "../lib/builder/JsResolverBuilder";
 import { JsResolverExec } from "../lib/types/JsResolverExecResult";
 import { performance } from "perf_hooks";
 import { JsResolverRunnerPool } from "../lib/runtime/JsResolverRunnerPool";
+import { JsResolverRunner } from "../lib/runtime/JsResolverRunner";
 
 const jsResolverSrcPath = process.argv[2] ?? "./src/resolvers/index.ts";
 
@@ -14,6 +15,7 @@ let debug = false;
 let showLogs = false;
 let load = 10;
 let pool = 10;
+const inputUserArgs: { [key: string]: string } = {};
 if (process.argv.length > 2) {
   process.argv.slice(3).forEach((arg) => {
     if (arg.startsWith("--debug")) {
@@ -27,6 +29,16 @@ if (process.argv.length > 2) {
       load = parseInt(arg.split("=")[1]) ?? load;
     } else if (arg.startsWith("--pool")) {
       pool = parseInt(arg.split("=")[1]) ?? pool;
+    } else if (arg.startsWith("--user-args=")) {
+      const userArgParts = arg.split("=")[1].split(":");
+      if (userArgParts.length < 2) {
+        console.error("Invalid user-args:", arg);
+        console.error("Please use format: --user-args=[key]:[value]");
+        process.exit(1);
+      }
+      const key = userArgParts.shift() as string;
+      const value = userArgParts.join(":");
+      inputUserArgs[key] = value;
     }
   });
 }
@@ -59,6 +71,24 @@ async function test() {
     .forEach((key) => {
       context.secrets[key.replace("SECRETS_", "")] = process.env[key];
     });
+
+  // Validate input user args against schema
+  if (Object.keys(inputUserArgs).length > 0) {
+    const runner = new JsResolverRunner(debug);
+    console.log(`\nJsResolver user args validation:`);
+    try {
+      context.userArgs = await runner.validateUserArgs(
+        buildRes.schema.userArgs,
+        inputUserArgs
+      );
+      Object.keys(context.userArgs).forEach((key) => {
+        console.log(` ${OK} ${key}:`, context.userArgs[key]);
+      });
+    } catch (err) {
+      console.log(` ${KO} ${err.message}`);
+      return;
+    }
+  }
 
   // Run JsResolver
   const start = performance.now();
