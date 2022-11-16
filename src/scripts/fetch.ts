@@ -14,12 +14,8 @@ const upload = async () => {
   if (!cid) throw new Error("JsResolver CID missing");
   const wallet = new ethers.Wallet(pk);
 
-  try {
-    const resolverDir = await JsResolverUploader.fetchResolver(wallet, cid);
-    console.log(` ${OK} Fetched JsResolver to: ${resolverDir}`);
-  } catch (err) {
-    ` ${KO} Error fetching JsResolver: ${err}`;
-  }
+  const resolverDir = await JsResolverUploader.fetchResolver(wallet, cid);
+  console.log(` ${OK} Fetched JsResolver to: ${resolverDir}`);
 };
 
-upload().catch((err) => console.error(err));
+upload().catch((err) => console.error(` ${KO} ${err.message}`));

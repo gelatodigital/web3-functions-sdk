@@ -13,25 +13,22 @@ export class JsResolverUploader {
   public static async uploadResolver(
     wallet: Wallet,
     schemaPath = "src/resolvers/schema.json",
-    input = ".tmp/resolver.cjs"
-  ): Promise<string | null> {
-    let cid: string | null = null;
-
+    resolverBuildPath = ".tmp/resolver.cjs"
+  ): Promise<string> {
     try {
-      await fsp.access(input);
-      const compressedPath = await this.compress(input, schemaPath);
+      const compressedPath = await this.compress(resolverBuildPath, schemaPath);
 
       const authToken = await this._signMessage(wallet);
-      cid = await this._userApiUpload(
+      const cid = await this._userApiUpload(
         wallet.address,
         authToken,
         compressedPath
       );
-    } catch (err) {
-      console.error("Error uploading: ", err);
-    }
 
-    return cid;
+      return cid;
+    } catch (err) {
+      throw new Error(`JsResolverUploaderError: ${err.message}`);
+    }
   }
 
   public static async fetchResolver(
@@ -72,51 +69,60 @@ export class JsResolverUploader {
         if (data.message) errMsg += data.message;
       }
 
-      console.error(`Error fetching JsResolver: `, errMsg);
+      throw new Error(
+        `JsResolverUploaderError: Fetch JsResolver to ${filePath} failed. \n${errMsg}`
+      );
     }
-    return "";
   }
 
   public static async compress(
-    input: string,
+    resolverBuildPath: string,
     schemaPath: string
   ): Promise<string> {
     try {
-      const { base } = path.parse(input);
-
-      // create directory with jsResolver.cjs & schema
-      const time = Math.floor(Date.now() / 1000);
-      const folderCompressedName = `.tmp/jsResolver-${time}`;
-      const folderCompressedTar = `${folderCompressedName}.tgz`;
-      if (!fs.existsSync(folderCompressedName)) {
-        fs.mkdirSync(folderCompressedName, { recursive: true });
-      }
-
-      // move files to directory
-      await fsp.rename(input, `${folderCompressedName}/${base}`);
-      await fsp.copyFile(schemaPath, `${folderCompressedName}/schema.json`);
-
-      const stream = tar
-        .c(
-          {
-            gzip: true,
-          },
-          [folderCompressedName]
-        )
-        .pipe(fs.createWriteStream(folderCompressedTar));
-
-      await new Promise((fulfill) => {
-        stream.once("finish", fulfill);
-      });
-
-      // delete directory after compression
-      await fsp.rm(folderCompressedName, { recursive: true });
-
-      return folderCompressedTar;
+      await fsp.access(resolverBuildPath);
     } catch (err) {
-      console.error(`Error compressing JSResolver: `, err);
+      throw new Error(
+        `JsResolver build file not found at path. ${resolverBuildPath} \n${err.message}`
+      );
     }
-    return "";
+    const { base } = path.parse(resolverBuildPath);
+
+    // create directory with jsResolver.cjs & schema
+    const time = Math.floor(Date.now() / 1000);
+    const folderCompressedName = `.tmp/jsResolver-${time}`;
+    const folderCompressedTar = `${folderCompressedName}.tgz`;
+    if (!fs.existsSync(folderCompressedName)) {
+      fs.mkdirSync(folderCompressedName, { recursive: true });
+    }
+
+    // move files to directory
+    await fsp.rename(resolverBuildPath, `${folderCompressedName}/${base}`);
+    try {
+      await fsp.copyFile(schemaPath, `${folderCompressedName}/schema.json`);
+    } catch (err) {
+      throw new Error(
+        `Schema not found at path: ${schemaPath}. \n${err.message}`
+      );
+    }
+
+    const stream = tar
+      .c(
+        {
+          gzip: true,
+        },
+        [folderCompressedName]
+      )
+      .pipe(fs.createWriteStream(folderCompressedTar));
+
+    await new Promise((fulfill) => {
+      stream.once("finish", fulfill);
+    });
+
+    // delete directory after compression
+    await fsp.rm(folderCompressedName, { recursive: true });
+
+    return folderCompressedTar;
   }
 
   public static async extract(input: string): Promise<void> {
@@ -125,7 +131,9 @@ export class JsResolverUploader {
 
       tar.x({ file: `${input}`, sync: true, cwd: dir });
     } catch (err) {
-      console.error(`Error extracting JSResolver: `, err);
+      throw new Error(
+        `JsResolverUploaderError: Extract JsResolver from ${input} failed. \n${err.message}`
+      );
     }
   }
 
@@ -133,8 +141,7 @@ export class JsResolverUploader {
     address: string,
     authToken: string,
     compressedPath: string
-  ): Promise<string | null> {
-    let cid: string | null = null;
+  ): Promise<string> {
     try {
       const form = new FormData();
       const file = fs.createReadStream(compressedPath);
@@ -151,7 +158,8 @@ export class JsResolverUploader {
         }
       );
 
-      cid = res.data.cid;
+      const cid = res.data.cid;
+      return cid;
     } catch (err) {
       let errMsg = `${err.message} `;
       if (axios.isAxiosError(err)) {
@@ -159,14 +167,11 @@ export class JsResolverUploader {
         if (data.message) errMsg += data.message;
       }
 
-      console.error(`Error uploading JSResolver: `, errMsg);
+      throw new Error(`Upload to User api failed. \n${errMsg}`);
     }
-
-    return cid;
   }
 
   private static async _signMessage(wallet: Wallet): Promise<string> {
-    let authToken = "";
     try {
       const domain = "app.gelato.network";
       const uri = "http://app.gelato.network/";
@@ -189,13 +194,13 @@ export class JsResolverUploader {
       const message = siweMessage.prepareMessage();
       const signature = await wallet.signMessage(message);
 
-      authToken = Buffer.from(JSON.stringify({ message, signature })).toString(
-        "base64"
-      );
-    } catch (err) {
-      console.error("Error signing message: ", err);
-    }
+      const authToken = Buffer.from(
+        JSON.stringify({ message, signature })
+      ).toString("base64");
 
-    return authToken;
+      return authToken;
+    } catch (err) {
+      throw new Error(`Signing message failed. \n${err.message}`);
+    }
   }
 }
