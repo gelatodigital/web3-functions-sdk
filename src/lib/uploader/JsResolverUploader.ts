@@ -1,3 +1,4 @@
+import { Signer } from "@ethersproject/abstract-signer";
 import "dotenv/config";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
@@ -5,25 +6,21 @@ import path from "node:path";
 import tar from "tar";
 import FormData from "form-data";
 import axios from "axios";
-import { Wallet } from "ethers";
 import { SiweMessage } from "siwe";
 
 const OPS_USER_API = process.env.OPS_USER_API;
 export class JsResolverUploader {
   public static async uploadResolver(
-    wallet: Wallet,
+    signer: Signer,
     schemaPath = "src/resolvers/schema.json",
     resolverBuildPath = ".tmp/resolver.cjs"
   ): Promise<string> {
     try {
       const compressedPath = await this.compress(resolverBuildPath, schemaPath);
 
-      const authToken = await this._signMessage(wallet);
-      const cid = await this._userApiUpload(
-        wallet.address,
-        authToken,
-        compressedPath
-      );
+      const authToken = await this._signMessage(signer);
+      const address = await signer.getAddress();
+      const cid = await this._userApiUpload(address, authToken, compressedPath);
 
       return cid;
     } catch (err) {
@@ -32,14 +29,15 @@ export class JsResolverUploader {
   }
 
   public static async fetchResolver(
-    wallet: Wallet,
+    signer: Signer,
     cid: string,
     destDir = "./.tmp"
   ): Promise<string> {
     try {
-      const authToken = await this._signMessage(wallet);
+      const authToken = await this._signMessage(signer);
+      const address = await signer.getAddress();
       const res = await axios.get(
-        `${OPS_USER_API}/users/${wallet.address}/js-resolver/${cid}`,
+        `${OPS_USER_API}/users/${address}/js-resolver/${cid}`,
         {
           responseEncoding: "binary",
           responseType: "arraybuffer",
@@ -183,11 +181,11 @@ export class JsResolverUploader {
     }
   }
 
-  private static async _signMessage(wallet: Wallet): Promise<string> {
+  private static async _signMessage(signer: Signer): Promise<string> {
     try {
       const domain = "app.gelato.network";
       const uri = "http://app.gelato.network/";
-      const address = wallet.address;
+      const address = await signer.getAddress();
       const version = "1";
       const chainId = 1;
       const expirationTime = new Date(Date.now() + 600_000).toISOString();
@@ -204,7 +202,7 @@ export class JsResolverUploader {
       });
 
       const message = siweMessage.prepareMessage();
-      const signature = await wallet.signMessage(message);
+      const signature = await signer.signMessage(message);
 
       const authToken = Buffer.from(
         JSON.stringify({ message, signature })
