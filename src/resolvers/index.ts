@@ -8,7 +8,7 @@ const ORACLE_ABI = [
 ];
 
 JsResolverSdk.onChecker(async (context: JsResolverContext) => {
-  const { userArgs, gelatoArgs, secrets } = context;
+  const { gelatoArgs, secrets } = context;
 
   // Use default ethers provider or your own using secrets api key
   console.log("ChainId:", context.gelatoArgs.chainId);
@@ -20,8 +20,7 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
   let lastUpdated;
   let oracle;
   try {
-    const oracleAddress =
-      userArgs.oracleAddress ?? "0x6a3c82330164822A8a39C7C0224D20DB35DD030a";
+    const oracleAddress = "0x6a3c82330164822A8a39C7C0224D20DB35DD030a";
     oracle = new Contract(oracleAddress, ORACLE_ABI, rpcProvider);
     lastUpdated = parseInt(await oracle.lastUpdated());
     console.log(`Last oracle update: ${lastUpdated}`);
@@ -38,7 +37,7 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
   }
 
   // Get current price on coingecko
-  const currency = userArgs.currency ?? "ethereum";
+  const currency = "ethereum";
   let price = 0;
   try {
     const priceData = await axios.get(
