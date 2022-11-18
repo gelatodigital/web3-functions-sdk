@@ -151,6 +151,11 @@ export class JsResolverUploader {
       });
 
       const cid = res.data.cid;
+
+      // rename file with cid
+      const { dir, ext } = path.parse(compressedPath);
+      await fsp.rename(compressedPath, `${dir}/${cid}${ext}`);
+
       return cid;
     } catch (err) {
       let errMsg = `${err.message} `;
