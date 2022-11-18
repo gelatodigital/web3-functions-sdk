@@ -1,4 +1,3 @@
-import { Signer } from "@ethersproject/abstract-signer";
 import "dotenv/config";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
@@ -6,21 +5,20 @@ import path from "node:path";
 import tar from "tar";
 import FormData from "form-data";
 import axios from "axios";
-import { SiweMessage } from "siwe";
 
 const OPS_USER_API = process.env.OPS_USER_API;
 export class JsResolverUploader {
   public static async uploadResolver(
-    signer: Signer,
     schemaPath = "src/resolvers/schema.json",
-    resolverBuildPath = ".tmp/resolver.cjs"
+    jsResolverBuildPath = ".tmp/resolver.cjs"
   ): Promise<string> {
     try {
-      const compressedPath = await this.compress(resolverBuildPath, schemaPath);
+      const compressedPath = await this.compress(
+        jsResolverBuildPath,
+        schemaPath
+      );
 
-      const authToken = await this._signMessage(signer);
-      const address = await signer.getAddress();
-      const cid = await this._userApiUpload(address, authToken, compressedPath);
+      const cid = await this._userApiUpload(compressedPath);
 
       return cid;
     } catch (err) {
@@ -29,21 +27,14 @@ export class JsResolverUploader {
   }
 
   public static async fetchResolver(
-    signer: Signer,
     cid: string,
     destDir = "./.tmp"
   ): Promise<string> {
     try {
-      const authToken = await this._signMessage(signer);
-      const address = await signer.getAddress();
-      const res = await axios.get(
-        `${OPS_USER_API}/users/${address}/js-resolver/${cid}`,
-        {
-          responseEncoding: "binary",
-          responseType: "arraybuffer",
-          headers: { Authorization: authToken },
-        }
-      );
+      const res = await axios.get(`${OPS_USER_API}/users/js-resolver/${cid}`, {
+        responseEncoding: "binary",
+        responseType: "arraybuffer",
+      });
 
       // store jsResolver file in .tmp
       let jsResolverPath: string;
@@ -86,17 +77,17 @@ export class JsResolverUploader {
   }
 
   public static async compress(
-    resolverBuildPath: string,
+    jsResolverBuildPath: string,
     schemaPath: string
   ): Promise<string> {
     try {
-      await fsp.access(resolverBuildPath);
+      await fsp.access(jsResolverBuildPath);
     } catch (err) {
       throw new Error(
-        `JsResolver build file not found at path. ${resolverBuildPath} \n${err.message}`
+        `JsResolver build file not found at path. ${jsResolverBuildPath} \n${err.message}`
       );
     }
-    const { base } = path.parse(resolverBuildPath);
+    const { base } = path.parse(jsResolverBuildPath);
 
     // create directory with jsResolver.cjs & schema
     const time = Math.floor(Date.now() / 1000);
@@ -107,7 +98,7 @@ export class JsResolverUploader {
     }
 
     // move files to directory
-    await fsp.rename(resolverBuildPath, `${folderCompressedName}/${base}`);
+    await fsp.rename(jsResolverBuildPath, `${folderCompressedName}/${base}`);
     try {
       await fsp.copyFile(schemaPath, `${folderCompressedName}/schema.json`);
     } catch (err) {
@@ -147,11 +138,7 @@ export class JsResolverUploader {
     }
   }
 
-  private static async _userApiUpload(
-    address: string,
-    authToken: string,
-    compressedPath: string
-  ): Promise<string> {
+  private static async _userApiUpload(compressedPath: string): Promise<string> {
     try {
       const form = new FormData();
       const file = fs.createReadStream(compressedPath);
@@ -159,14 +146,9 @@ export class JsResolverUploader {
       form.append("title", "JsResolver");
       form.append("file", file);
 
-      const res = await axios.post(
-        `${OPS_USER_API}/users/${address}/js-resolver`,
-        form,
-        {
-          ...form.getHeaders(),
-          headers: { Authorization: authToken },
-        }
-      );
+      const res = await axios.post(`${OPS_USER_API}/users/js-resolver`, form, {
+        ...form.getHeaders(),
+      });
 
       const cid = res.data.cid;
       return cid;
@@ -178,39 +160,6 @@ export class JsResolverUploader {
       }
 
       throw new Error(`Upload to User api failed. \n${errMsg}`);
-    }
-  }
-
-  private static async _signMessage(signer: Signer): Promise<string> {
-    try {
-      const domain = "app.gelato.network";
-      const uri = "http://app.gelato.network/";
-      const address = await signer.getAddress();
-      const version = "1";
-      const chainId = 1;
-      const expirationTime = new Date(Date.now() + 600_000).toISOString();
-      const statement = "Sign this message to upload/fetch JsResolver";
-
-      const siweMessage = new SiweMessage({
-        domain,
-        statement,
-        uri,
-        address,
-        version,
-        chainId,
-        expirationTime,
-      });
-
-      const message = siweMessage.prepareMessage();
-      const signature = await signer.signMessage(message);
-
-      const authToken = Buffer.from(
-        JSON.stringify({ message, signature })
-      ).toString("base64");
-
-      return authToken;
-    } catch (err) {
-      throw new Error(`Signing message failed. \n${err.message}`);
     }
   }
 }

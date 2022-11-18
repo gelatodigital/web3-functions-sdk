@@ -115,10 +115,6 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
   ✓ Memory: 57.77mb
   ```
 ## Upload / fetch Js Resolver
-In `.env`, fill in your wallet's private key.
-```
-  PK= <-- Your private key
-```
 Use `yarn upload FILENAME` command to upload your resolver.
 
 ```
