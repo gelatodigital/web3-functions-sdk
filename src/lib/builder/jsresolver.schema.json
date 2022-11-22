@@ -21,7 +21,14 @@
       "type": "object",
       "patternProperties": {
         "^[\\w\\-]+$": {
-          "enum": ["string", "number", "boolean"]
+          "enum": [
+            "string",
+            "number",
+            "boolean",
+            "string[]",
+            "number[]",
+            "boolean[]"
+          ]
         }
       },
       "additionalProperties": false

@@ -7,7 +7,9 @@ export interface JsResolverContextData {
     gasPrice: string;
     taskId?: string;
   };
-  userArgs: { [key: string]: string | number | boolean };
+  userArgs: {
+    [key: string]: string | number | boolean | string[] | number[] | boolean[];
+  };
   secrets: { [key: string]: string | undefined };
   storage: { [key: string]: string | undefined };
 }
@@ -19,7 +21,9 @@ export interface JsResolverContext {
     gasPrice: BigNumber;
     taskId?: string;
   };
-  userArgs: { [key: string]: string | number | boolean };
+  userArgs: {
+    [key: string]: string | number | boolean | string[] | number[] | boolean[];
+  };
   secrets: {
     get(key: string): Promise<string | undefined>;
   };
