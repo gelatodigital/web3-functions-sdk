@@ -11,6 +11,7 @@ import {
   JsResolverRunnerPayload,
   JsResolverRunnerOptions,
 } from "../types/JsResolverRunnerPayload";
+import { JsResolverUserArgs } from "../types/JsResolverUserArgs";
 
 const START_TIMEOUT = 10_000;
 
@@ -31,8 +32,8 @@ export class JsResolverRunner {
       [key: string]: string;
     },
     inputUserArgs: { [key: string]: string }
-  ): Promise<{ [key: string]: string | number | boolean }> {
-    const typedUserArgs: { [key: string]: string | number | boolean } = {};
+  ): Promise<JsResolverUserArgs> {
+    const typedUserArgs: JsResolverUserArgs = {};
     for (const key in schema) {
       const value = inputUserArgs[key];
       if (typeof value === "undefined") {
@@ -43,9 +44,30 @@ export class JsResolverRunner {
         case "boolean":
           typedUserArgs[key] = !(value === "false" || value === "0");
           break;
+        case "boolean[]": {
+          try {
+            const a = JSON.parse(value);
+            typedUserArgs[key] = a.map((v) => !(v === false || v === 0));
+          } catch (err) {
+            throw new Error(
+              `Parsing ${value} to boolean[] failed. \n${err.message}`
+            );
+          }
+          break;
+        }
         case "string":
           typedUserArgs[key] = value;
           break;
+        case "string[]": {
+          try {
+            typedUserArgs[key] = JSON.parse(value);
+          } catch (err) {
+            throw new Error(
+              `Parsing ${value} to string[] failed. \n${err.message}`
+            );
+          }
+          break;
+        }
         case "number": {
           const parsedValue = value.includes(".")
             ? parseFloat(value)
@@ -58,6 +80,15 @@ export class JsResolverRunner {
           typedUserArgs[key] = parsedValue;
           break;
         }
+        case "number[]":
+          try {
+            typedUserArgs[key] = JSON.parse(value);
+          } catch (err) {
+            throw new Error(
+              `Parsing ${value} to number[] failed. \n${err.message}`
+            );
+          }
+          break;
         default:
           throw new Error(
             `JsResolverSchemaError: Unrecognized type '${type}' for user arg '${key}'`
