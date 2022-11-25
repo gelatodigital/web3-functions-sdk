@@ -8,6 +8,13 @@
   "files": [
     "dist/lib/**/*"
   ],
+  "exports": {
+    ".": "./dist/lib/index.js",
+    "./tcp": "./dist/lib/tcp/index.js",
+    "./runtime": "./dist/lib/runtime/index.js",
+    "./builder": "./dist/lib/builder/index.js",
+    "./uploader": "./dist/lib/uploader/index.js"
+  },
   "typesVersions": {
     "*": {
       "*": [
@@ -18,11 +25,17 @@
       ],
       "runtime": [
         "dist/lib/runtime/index.d.ts"
+      ],
+      "builder": [
+        "dist/lib/builder/index.d.ts"
+      ],
+      "uploader": [
+        "dist/lib/uploader/index.d.ts"
       ]
     }
   },
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist && tsc",
     "format": "prettier --write '*/**/*.{js,json,md,ts}'",
     "format:check": "prettier --check '*/**/*.{js,json,md,ts}'",
     "lint": "eslint --cache .",

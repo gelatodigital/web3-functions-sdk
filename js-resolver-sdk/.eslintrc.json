@@ -14,7 +14,7 @@
     {
       "files": ["*.ts"],
       "parser": "@typescript-eslint/parser",
-      "parserOptions": { "project": "./tsconfig.json" },
+      "parserOptions": { "project": "js-resolver-sdk/tsconfig.json" },
       "plugins": ["@typescript-eslint", "prettier"],
       "extends": [
         "eslint:recommended",
