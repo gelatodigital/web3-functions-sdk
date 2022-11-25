@@ -1,7 +1,7 @@
 {
   "name": "@gelatonetwork/js-resolver-examples",
   "version": "0.1.0",
-  "description": "Gelato Ops JS resolvers examples",
+  "description": "Gelato Automate JS resolvers examples",
   "url": "https://github.com/gelatodigital/js-resolver-poc",
   "scripts": {
     "build": "tsc",
@@ -29,6 +29,7 @@
     "typescript": "^4.7.0"
   },
   "dependencies": {
+    "@gelatonetwork/js-resolver-sdk": "../js-resolver-sdk",
     "axios": "^1.1.2",
     "colors": "^1.4.0",
     "dotenv": "^16.0.3",

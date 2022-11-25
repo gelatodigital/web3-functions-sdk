@@ -1,6 +1,6 @@
 import "dotenv/config";
 import colors from "colors/safe";
-import { JsResolverUploader } from "../lib";
+import { JsResolverUploader } from "@gelatonetwork/js-resolver-sdk";
 
 const OK = colors.green("✓");
 const KO = colors.red("✗");

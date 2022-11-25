@@ -18,9 +18,7 @@
   "include": [
     "src/**/*.ts",
     "src/**/*.d.ts",
-    "src/resolvers/fails/no-result.js",
-    "src/resolvers/syntax-error.js",
-    "src/resolvers/escape.js"
+    "src/resolvers/fails/syntax-error.js"
   ],
   "exclude": ["node_modules"]
 }

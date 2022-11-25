@@ -1,12 +1,15 @@
 import "dotenv/config";
 import colors from "colors/safe";
 import { setTimeout as delay } from "timers/promises";
-import { JsResolverBuilder, JsResolverContextData } from "../lib";
+import {
+  JsResolverBuilder,
+  JsResolverContextData,
+} from "@gelatonetwork/js-resolver-sdk";
 import {
   JsResolverExec,
   JsResolverRunnerPool,
   JsResolverRunner,
-} from "../lib/runtime";
+} from "@gelatonetwork/js-resolver-sdk/runtime";
 import { performance } from "perf_hooks";
 
 const jsResolverSrcPath = process.argv[2] ?? "./src/resolvers/index.ts";

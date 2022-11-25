@@ -1,7 +1,7 @@
 {
-  "name": "@gelatonetwork/js-resolver-poc",
+  "name": "@gelatonetwork/js-resolver-sdk",
   "version": "0.1.0",
-  "description": "Gelato Ops template for JS resolvers",
+  "description": "Gelato Automate JS resolvers sdk",
   "url": "https://github.com/gelatodigital/js-resolver-poc",
   "main": "dist/lib/index.js",
   "types": "dist/lib/types/index.d.ts",

@@ -1,7 +1,10 @@
 import "dotenv/config";
 import colors from "colors/safe";
-import { JsResolverContextData, JsResolverBuilder } from "../lib";
-import { JsResolverRunner } from "../lib/runtime";
+import {
+  JsResolverBuilder,
+  JsResolverContextData,
+} from "@gelatonetwork/js-resolver-sdk";
+import { JsResolverRunner } from "@gelatonetwork/js-resolver-sdk/runtime";
 
 const jsResolverSrcPath = process.argv[2] ?? "./src/resolvers/index.ts";
 
