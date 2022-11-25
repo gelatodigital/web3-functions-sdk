@@ -1,6 +1,6 @@
 import { JsResolverTcpHelper } from "../tcp/JsResolverTcpHelper";
-import { JsResolverExec } from "../types/JsResolverExecResult";
-import { JsResolverRunnerPayload } from "../types/JsResolverRunnerPayload";
+import { JsResolverExec } from "./types/JsResolverExecResult";
+import { JsResolverRunnerPayload } from "./types";
 import { JsResolverRunner } from "./JsResolverRunner";
 
 export class JsResolverRunnerPool {

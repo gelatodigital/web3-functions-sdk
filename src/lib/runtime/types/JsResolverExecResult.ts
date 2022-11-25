@@ -1,4 +1,4 @@
-import { JsResolverResult } from "./JsResolverResult";
+import { JsResolverResult } from "../../types/JsResolverResult";
 
 type JsResolverExecStats = {
   duration: number;

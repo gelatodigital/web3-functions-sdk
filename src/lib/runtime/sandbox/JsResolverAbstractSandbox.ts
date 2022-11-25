@@ -1,6 +1,6 @@
 import { EventEmitter } from "node:stream";
 import colors from "colors/safe";
-import { JsResolverSandboxOptions } from "../../types/JsResolverSandboxOptions";
+import { JsResolverSandboxOptions } from "../../tcp";
 
 export abstract class JsResolverAbstractSandbox extends EventEmitter {
   protected _memoryLimit: number;

@@ -1,12 +1,13 @@
 import "dotenv/config";
 import colors from "colors/safe";
 import { setTimeout as delay } from "timers/promises";
-import { JsResolverContextData } from "../lib";
-import { JsResolverBuilder } from "../lib/builder/JsResolverBuilder";
-import { JsResolverExec } from "../lib/types/JsResolverExecResult";
+import { JsResolverBuilder, JsResolverContextData } from "../lib";
+import {
+  JsResolverExec,
+  JsResolverRunnerPool,
+  JsResolverRunner,
+} from "../lib/runtime";
 import { performance } from "perf_hooks";
-import { JsResolverRunnerPool } from "../lib/runtime/JsResolverRunnerPool";
-import { JsResolverRunner } from "../lib/runtime/JsResolverRunner";
 
 const jsResolverSrcPath = process.argv[2] ?? "./src/resolvers/index.ts";
 

@@ -3,6 +3,24 @@
   "version": "0.1.0",
   "description": "Gelato Ops template for JS resolvers",
   "url": "https://github.com/gelatodigital/js-resolver-poc",
+  "main": "dist/lib/index.js",
+  "types": "dist/lib/types/index.d.ts",
+  "files": [
+    "dist/lib/**/*"
+  ],
+  "typesVersions": {
+    "*": {
+      "*": [
+        "dist/lib/index.d.ts"
+      ],
+      "tcp": [
+        "dist/lib/tcp/index.d.ts"
+      ],
+      "runtime": [
+        "dist/lib/runtime/index.d.ts"
+      ]
+    }
+  },
   "scripts": {
     "build": "tsc",
     "format": "prettier --write '*/**/*.{js,json,md,ts}'",
