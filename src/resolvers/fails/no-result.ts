@@ -1,10 +1,7 @@
-import {
-  JsResolverSdk,
-  JsResolverContext,
-} from "@gelatonetwork/js-resolver-sdk";
-import { setTimeout as delay } from "timers/promises";
+import { JsResolverSdk } from "../../lib/JsResolverSdk.ts";
+const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 
 JsResolverSdk.onChecker(async (context: JsResolverContext) => {
   await delay(1000);
-  process.exit(0);
+  Deno.exit(0);
 });

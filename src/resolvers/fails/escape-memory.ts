@@ -1,7 +1,5 @@
-import {
-  JsResolverSdk,
-  JsResolverContext,
-} from "@gelatonetwork/js-resolver-sdk";
+import { JsResolverSdk } from "../../lib/JsResolverSdk.ts";
+import { JsResolverContext } from "../../lib/types/JsResolverContext.ts";
 
 JsResolverSdk.onChecker(async (context: JsResolverContext) => {
   const arr: string[] = [];

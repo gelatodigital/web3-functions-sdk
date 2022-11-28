@@ -1,9 +1,7 @@
-import {
-  JsResolverSdk,
-  JsResolverContext,
-} from "@gelatonetwork/js-resolver-sdk";
+import { JsResolverSdk } from "../lib/JsResolverSdk";
+import { JsResolverContext } from "../lib/types/JsResolverContext";
 import { Contract, ethers } from "ethers";
-import axios from "axios";
+import ky from "ky"; // we recommend using ky as axios doesn't support fetch by default
 
 const ORACLE_ABI = [
   "function lastUpdated() external view returns(uint256)",
@@ -43,11 +41,13 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
   const currency = "ethereum";
   let price = 0;
   try {
-    const priceData = await axios.get(
-      `https://api.coingecko.com/api/v3/simple/price?ids=${currency}&vs_currencies=usd`,
-      { timeout: 5_000 }
-    );
-    price = Math.floor(priceData.data[currency].usd);
+    const priceData: any = await ky
+      .get(
+        `https://api.coingecko.com/api/v3/simple/price?ids=${currency}&vs_currencies=usd`,
+        { timeout: 5_000 }
+      )
+      .json();
+    price = Math.floor(priceData[currency].usd);
   } catch (err) {
     return { canExec: false, message: `Coingecko call failed` };
   }
