@@ -1,6 +1,6 @@
 import net from "net";
 
-export class JsResolverTcpHelper {
+export class JsResolverNetHelper {
   public static getAvailablePort(): Promise<number> {
     return new Promise((res, rej) => {
       const srv = net.createServer();
@@ -17,12 +17,12 @@ export class JsResolverTcpHelper {
     let retries = 0;
     const maxRetries = size * 2;
     while (ports.length < size) {
-      const port = await JsResolverTcpHelper.getAvailablePort();
+      const port = await JsResolverNetHelper.getAvailablePort();
       if (ports.includes(port)) {
         retries++;
         if (retries === maxRetries) {
           throw new Error(
-            `JsResolverTcpHelper Error: Unable to get ${size} free ports`
+            `JsResolverNetHelper Error: Unable to get ${size} free ports`
           );
         }
       } else {
