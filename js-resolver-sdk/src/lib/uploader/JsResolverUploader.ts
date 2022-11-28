@@ -91,16 +91,18 @@ export class JsResolverUploader {
 
     // create directory with jsResolver.cjs & schema
     const time = Math.floor(Date.now() / 1000);
-    const folderCompressedName = `.tmp/jsResolver-${time}`;
-    const folderCompressedTar = `${folderCompressedName}.tgz`;
-    if (!fs.existsSync(folderCompressedName)) {
-      fs.mkdirSync(folderCompressedName, { recursive: true });
+    const folderCompressedName = `jsResolver-${time}`;
+    const folderCompressedPath = `.tmp/${folderCompressedName}`;
+    const folderCompressedTar = `${folderCompressedPath}.tgz`;
+
+    if (!fs.existsSync(folderCompressedPath)) {
+      fs.mkdirSync(folderCompressedPath, { recursive: true });
     }
 
     // move files to directory
-    await fsp.rename(jsResolverBuildPath, `${folderCompressedName}/${base}`);
+    await fsp.rename(jsResolverBuildPath, `${folderCompressedPath}/${base}`);
     try {
-      await fsp.copyFile(schemaPath, `${folderCompressedName}/schema.json`);
+      await fsp.copyFile(schemaPath, `${folderCompressedPath}/schema.json`);
     } catch (err) {
       throw new Error(
         `Schema not found at path: ${schemaPath}. \n${err.message}`
@@ -111,6 +113,7 @@ export class JsResolverUploader {
       .c(
         {
           gzip: true,
+          cwd: `${process.cwd()}/.tmp`,
         },
         [folderCompressedName]
       )
@@ -121,7 +124,7 @@ export class JsResolverUploader {
     });
 
     // delete directory after compression
-    await fsp.rm(folderCompressedName, { recursive: true });
+    await fsp.rm(folderCompressedPath, { recursive: true });
 
     return folderCompressedTar;
   }
