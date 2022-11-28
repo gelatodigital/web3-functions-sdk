@@ -12,9 +12,16 @@ export class JsResolverThreadSandbox extends JsResolverAbstractSandbox {
   }
 
   protected async _start(script: string, serverPort: number): Promise<void> {
-    const cmd = `node`;
+    const cmd = `./node_modules/deno-bin/bin/deno`;
     const args: string[] = [];
-    args.push(`--max-old-space-size=${this._memoryLimit}`);
+    args.push("run");
+    args.push(`--allow-env=JS_RESOLVER_SERVER_PORT`);
+    args.push(`--allow-net`);
+    args.push(`--unstable`);
+    args.push(`--no-prompt`);
+    args.push(`--no-npm`);
+    args.push(`--no-remote`);
+    args.push(`--v8-flags=--max-old-space-size=${this._memoryLimit}`);
     args.push(script);
     this._thread = spawn(cmd, args, {
       shell: true,

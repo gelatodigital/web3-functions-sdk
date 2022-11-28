@@ -5,7 +5,7 @@ import { JsResolverAbstractSandbox } from "./JsResolverAbstractSandbox";
 export class JsResolverDockerSandbox extends JsResolverAbstractSandbox {
   private _container?: Docker.Container;
   private _docker = new Docker();
-  private _nodeImage = "node:18-alpine";
+  private _denoImage = "denoland/deno:alpine-1.28.1";
 
   protected async _stop(): Promise<void> {
     if (!this._container) return;
@@ -44,7 +44,17 @@ export class JsResolverDockerSandbox extends JsResolverAbstractSandbox {
   }
 
   protected async _start(script: string, serverPort: number): Promise<void> {
-    const cmd = `node`;
+    const cmd = `deno`;
+    const args: string[] = [];
+    args.push("run");
+    args.push(`--allow-env=JS_RESOLVER_SERVER_PORT`);
+    args.push(`--allow-net`);
+    args.push(`--unstable`);
+    args.push(`--no-prompt`);
+    args.push(`--no-npm`);
+    args.push(`--no-remote`);
+    args.push(`--v8-flags=--max-old-space-size=${this._memoryLimit}`);
+    args.push(`/resolver/${script}`);
     const resolverPath = process.cwd() + "/.tmp/";
 
     // See docker create options:
@@ -65,8 +75,8 @@ export class JsResolverDockerSandbox extends JsResolverAbstractSandbox {
       },
       Tty: true,
       //StopTimeout: 10,
-      Cmd: [cmd, `/resolver/${script}`],
-      Image: this._nodeImage,
+      Cmd: [cmd, ...args],
+      Image: this._denoImage,
     };
 
     let processExitCodeResolver;
@@ -74,7 +84,7 @@ export class JsResolverDockerSandbox extends JsResolverAbstractSandbox {
       processExitCodeResolver = resolve;
     });
 
-    await this._createImageIfMissing(this._nodeImage);
+    await this._createImageIfMissing(this._denoImage);
     this._container = await this._docker.createContainer(createOptions);
     const containerStream = await this._container.attach({
       stream: true,
