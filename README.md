@@ -233,9 +233,41 @@ Some example failing file to test error handling
   ```
 
 - Resolver ends without returning result:
-  - Run: `yarn test src/resolvers/fails/no-result.js`
+  - Run: `yarn test src/resolvers/fails/no-result.ts`
   - Result:
   ```
   JsResolver Result:
   ✗ Error: JsResolver exited without returning result
+  ```
+
+- Resolver try to access env:
+  - Run: `yarn test src/resolvers/fails/escape-env.ts`
+  - Result:
+  ```
+  JsResolver Result:
+ ✗ Error: PermissionDenied: Requires env access to all, run again with the --allow-env flag
+  ```
+
+- Resolver try to access file system:
+  - Run: `yarn test src/resolvers/fails/escape-file.ts`
+  - Result:
+  ```
+  JsResolver Result:
+ ✗ Error: PermissionDenied: Requires read access to "./.env", run again with the --allow-read flag
+  ```
+
+- Resolver try to access os:
+  - Run: `yarn test src/resolvers/fails/escape-os.ts`
+  - Result:
+  ```
+  JsResolver Result:
+ ✗ Error: PermissionDenied: Requires sys access to "osRelease", run again with the --allow-sys flag
+  ```
+
+- Resolver try to access cpu:
+  - Run: `yarn test src/resolvers/fails/escape-cpu.ts`
+  - Result:
+  ```
+  JsResolver Result:
+ ✗ Error: PermissionDenied: Requires run access to "whoami", run again with the --allow-run flag
   ```
