@@ -1,49 +1,57 @@
 import { BigNumber } from "ethers";
-import { JsResolverTcpServer } from "./tcp/JsResolverTcpServer";
+import { JsResolverHttpServer } from "./net/JsResolverHttpServer.ts";
 import {
   JsResolverContext,
   JsResolverContextData,
-} from "./types/JsResolverContext";
-import { JsResolverResult } from "./types/JsResolverResult";
-import { JsResolverEvent /* LogLevel */ } from "./types/JsResolverEvent";
+} from "./types/JsResolverContext.ts";
+import { JsResolverResult } from "./types/JsResolverResult.ts";
+import { JsResolverEvent } from "./types/JsResolverEvent.ts";
 
 export class JsResolverSdk {
   private static Instance?: JsResolverSdk;
-  private static _debug = false;
-  private _server: JsResolverTcpServer;
+  private static _debug = true;
+  private _server: JsResolverHttpServer;
   private _checker?: (ctx: JsResolverContext) => Promise<JsResolverResult>;
 
   constructor() {
-    const port = Number(process.env.JS_RESOLVER_SERVER_PORT ?? 80);
-    this._server = new JsResolverTcpServer(port, JsResolverSdk._debug);
-    this._server.on("input_event", this._onEvent.bind(this));
+    const port = Number(Deno.env.get("JS_RESOLVER_SERVER_PORT") ?? 80);
+    this._server = new JsResolverHttpServer(
+      port,
+      JsResolverSdk._debug,
+      this._onEvent.bind(this)
+    );
   }
 
-  private async _onEvent(event: JsResolverEvent) {
+  private async _onEvent(event: JsResolverEvent): Promise<JsResolverEvent> {
     switch (event?.action) {
-      case "start":
-        {
-          try {
-            const result = await this._runChecker(event.data.context);
-            // ToDo: validate result format
-            this._server.emit("output_event", {
-              action: "result",
-              data: { result },
-            });
-          } catch (error) {
-            this._server.emit("output_event", {
-              action: "error",
-              data: { error },
-            });
-          } finally {
-            this._exit();
-          }
+      case "start": {
+        try {
+          const result = await this._runChecker(event.data.context);
+          // ToDo: validate result format
+          return {
+            action: "result",
+            data: { result },
+          };
+        } catch (error) {
+          return {
+            action: "error",
+            data: {
+              error: {
+                name: error.name,
+                message: `${error.name}: ${error.message}`,
+              },
+            },
+          };
+        } finally {
+          this._exit();
         }
         break;
+      }
       default:
         JsResolverSdk._log(
           `Unrecognized parent process event: ${event.action}`
         );
+        throw new Error(`Unrecognized parent process event: ${event.action}`);
     }
   }
 
@@ -82,9 +90,11 @@ export class JsResolverSdk {
     return this._checker(context);
   }
 
-  private _exit() {
-    this._server.close();
-    process.exit();
+  private _exit(code = 0) {
+    setTimeout(() => {
+      this._server.close();
+      Deno.exit(code);
+    });
   }
 
   static getInstance(): JsResolverSdk {
