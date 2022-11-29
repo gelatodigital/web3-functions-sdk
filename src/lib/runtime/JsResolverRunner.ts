@@ -42,12 +42,20 @@ export class JsResolverRunner {
       const type = schema[key];
       switch (type) {
         case "boolean":
-          typedUserArgs[key] = !(value === "false" || value === "0");
+          typedUserArgs[key] = !(value === "false");
           break;
         case "boolean[]": {
           try {
-            const a = JSON.parse(value);
-            typedUserArgs[key] = a.map((v) => !(v === false || v === 0));
+            const parsedValue = JSON.parse(value);
+            if (
+              !Array.isArray(parsedValue) ||
+              parsedValue.some((a) => typeof a !== "boolean")
+            ) {
+              throw new Error(
+                `JsResolverSchemaError: Invalid boolean[] value '${value}' for user arg '${key}' (use: '[true, false]')`
+              );
+            }
+            typedUserArgs[key] = parsedValue;
           } catch (err) {
             throw new Error(
               `Parsing ${value} to boolean[] failed. \n${err.message}`
@@ -60,7 +68,16 @@ export class JsResolverRunner {
           break;
         case "string[]": {
           try {
-            typedUserArgs[key] = JSON.parse(value);
+            const parsedValue = JSON.parse(value);
+            if (
+              !Array.isArray(parsedValue) ||
+              parsedValue.some((a) => typeof a !== "string")
+            ) {
+              throw new Error(
+                `JsResolverSchemaError: Invalid string[] value '${value}' for user arg '${key}' (use: '["a", "b"]')`
+              );
+            }
+            typedUserArgs[key] = parsedValue;
           } catch (err) {
             throw new Error(
               `Parsing ${value} to string[] failed. \n${err.message}`
@@ -82,7 +99,16 @@ export class JsResolverRunner {
         }
         case "number[]":
           try {
-            typedUserArgs[key] = JSON.parse(value);
+            const parsedValue = JSON.parse(value);
+            if (
+              !Array.isArray(parsedValue) ||
+              parsedValue.some((a) => typeof a !== "number")
+            ) {
+              throw new Error(
+                `JsResolverSchemaError: Invalid number[] value '${value}' for user arg '${key}' (use: '[1, 2]')`
+              );
+            }
+            typedUserArgs[key] = parsedValue;
           } catch (err) {
             throw new Error(
               `Parsing ${value} to number[] failed. \n${err.message}`
