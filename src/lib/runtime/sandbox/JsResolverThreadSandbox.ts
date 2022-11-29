@@ -12,7 +12,7 @@ export class JsResolverThreadSandbox extends JsResolverAbstractSandbox {
   }
 
   protected async _start(script: string, serverPort: number): Promise<void> {
-    const cmd = `./node_modules/deno-bin/bin/deno`;
+    const cmd = process.env.DENO_PATH ?? `./node_modules/deno-bin/bin/deno`;
     const args: string[] = [];
     args.push("run");
     args.push(`--allow-env=JS_RESOLVER_SERVER_PORT`);
