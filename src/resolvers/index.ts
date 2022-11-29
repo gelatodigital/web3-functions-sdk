@@ -44,12 +44,13 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
     const priceData: any = await ky
       .get(
         `https://api.coingecko.com/api/v3/simple/price?ids=${currency}&vs_currencies=usd`,
-        { timeout: 5_000 }
+        { timeout: 5_000, retry: 0 }
       )
       .json();
     price = Math.floor(priceData[currency].usd);
   } catch (err) {
-    return { canExec: false, message: `Coingecko call failed` };
+    console.log(`Coingecko call failed: ${err.message}`);
+    return { canExec: false, message: `Coingecko call failed: ${err.message}` };
   }
   console.log(`Updating price: ${price}`);
 
