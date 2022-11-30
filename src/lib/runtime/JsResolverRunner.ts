@@ -11,6 +11,7 @@ import {
   JsResolverRunnerPayload,
   JsResolverRunnerOptions,
 } from "../types/JsResolverRunnerPayload";
+import { JsResolverUserArgs } from "../types/JsResolverUserArgs";
 
 const START_TIMEOUT = 10_000;
 
@@ -31,8 +32,8 @@ export class JsResolverRunner {
       [key: string]: string;
     },
     inputUserArgs: { [key: string]: string }
-  ): Promise<{ [key: string]: string | number | boolean }> {
-    const typedUserArgs: { [key: string]: string | number | boolean } = {};
+  ): Promise<JsResolverUserArgs> {
+    const typedUserArgs: JsResolverUserArgs = {};
     for (const key in schema) {
       const value = inputUserArgs[key];
       if (typeof value === "undefined") {
@@ -41,11 +42,49 @@ export class JsResolverRunner {
       const type = schema[key];
       switch (type) {
         case "boolean":
-          typedUserArgs[key] = !(value === "false" || value === "0");
+          typedUserArgs[key] = !(value === "false");
           break;
+        case "boolean[]": {
+          try {
+            const parsedValue = JSON.parse(value);
+            if (
+              !Array.isArray(parsedValue) ||
+              parsedValue.some((a) => typeof a !== "boolean")
+            ) {
+              throw new Error(
+                `JsResolverSchemaError: Invalid boolean[] value '${value}' for user arg '${key}' (use: '[true, false]')`
+              );
+            }
+            typedUserArgs[key] = parsedValue;
+          } catch (err) {
+            throw new Error(
+              `Parsing ${value} to boolean[] failed. \n${err.message}`
+            );
+          }
+          break;
+        }
         case "string":
           typedUserArgs[key] = value;
           break;
+        case "string[]": {
+          try {
+            const parsedValue = JSON.parse(value);
+            if (
+              !Array.isArray(parsedValue) ||
+              parsedValue.some((a) => typeof a !== "string")
+            ) {
+              throw new Error(
+                `JsResolverSchemaError: Invalid string[] value '${value}' for user arg '${key}' (use: '["a", "b"]')`
+              );
+            }
+            typedUserArgs[key] = parsedValue;
+          } catch (err) {
+            throw new Error(
+              `Parsing ${value} to string[] failed. \n${err.message}`
+            );
+          }
+          break;
+        }
         case "number": {
           const parsedValue = value.includes(".")
             ? parseFloat(value)
@@ -58,6 +97,24 @@ export class JsResolverRunner {
           typedUserArgs[key] = parsedValue;
           break;
         }
+        case "number[]":
+          try {
+            const parsedValue = JSON.parse(value);
+            if (
+              !Array.isArray(parsedValue) ||
+              parsedValue.some((a) => typeof a !== "number")
+            ) {
+              throw new Error(
+                `JsResolverSchemaError: Invalid number[] value '${value}' for user arg '${key}' (use: '[1, 2]')`
+              );
+            }
+            typedUserArgs[key] = parsedValue;
+          } catch (err) {
+            throw new Error(
+              `Parsing ${value} to number[] failed. \n${err.message}`
+            );
+          }
+          break;
         default:
           throw new Error(
             `JsResolverSchemaError: Unrecognized type '${type}' for user arg '${key}'`

@@ -1,5 +1,5 @@
 import { BigNumber } from "ethers";
-
+import { JsResolverUserArgs } from "./JsResolverUserArgs";
 export interface JsResolverContextData {
   gelatoArgs: {
     blockTime: number;
@@ -7,7 +7,7 @@ export interface JsResolverContextData {
     gasPrice: string;
     taskId?: string;
   };
-  userArgs: { [key: string]: string | number | boolean };
+  userArgs: JsResolverUserArgs;
   secrets: { [key: string]: string | undefined };
   storage: { [key: string]: string | undefined };
 }
@@ -19,7 +19,7 @@ export interface JsResolverContext {
     gasPrice: BigNumber;
     taskId?: string;
   };
-  userArgs: { [key: string]: string | number | boolean };
+  userArgs: JsResolverUserArgs;
   secrets: {
     get(key: string): Promise<string | undefined>;
   };
