@@ -90,8 +90,7 @@ export class JsResolverUploader {
     const { base } = path.parse(jsResolverBuildPath);
 
     // create directory with jsResolver.cjs & schema
-    const time = Math.floor(Date.now() / 1000);
-    const folderCompressedName = `jsResolver-${time}`;
+    const folderCompressedName = `jsResolver`;
     const folderCompressedPath = `.tmp/${folderCompressedName}`;
     const folderCompressedTar = `${folderCompressedPath}.tgz`;
 
@@ -114,6 +113,8 @@ export class JsResolverUploader {
         {
           gzip: true,
           cwd: `${process.cwd()}/.tmp`,
+          noMtime: true,
+          portable: true,
         },
         [folderCompressedName]
       )
@@ -133,7 +134,7 @@ export class JsResolverUploader {
     try {
       const { dir } = path.parse(input);
 
-      tar.x({ file: `${input}`, sync: true, cwd: dir });
+      await tar.x({ file: input, cwd: dir });
     } catch (err) {
       throw new Error(
         `JsResolverUploaderError: Extract JsResolver from ${input} failed. \n${err.message}`
