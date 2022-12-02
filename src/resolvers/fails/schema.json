@@ -1,0 +1,7 @@
+{
+  "jsResolverVersion": "1.0.0",
+  "runtime": "node-18",
+  "memory": 128,
+  "timeout": 60,
+  "userArgs": {}
+}
