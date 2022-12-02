@@ -121,7 +121,7 @@ Use `yarn upload FILENAME` command to upload your resolver.
 > yarn upload ./src/resolvers/index.ts
 
 ## Use User arguments
-1. Declare your expected `userArgs` in you schema, accepted types are 'string', 'number' or 'float':
+1. Declare your expected `userArgs` in you schema, accepted types are 'string', 'string[]', 'number', 'number[]', 'boolean', 'boolean[]':
 ```json
 {
   "jsResolverVersion": "1.0.0",
@@ -147,10 +147,16 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
 });
 ```
 
-1. Pass `user-args` to the CLI to test your resolver:
+3. Pass `user-args` to the CLI to test your resolver:
 ```
 yarn test src/resolvers/oracle/index.ts --show-logs --user-args=currency:ethereum --user-args=oracle:0x6a3c82330164822A8a39C7C0224D20DB35DD030a
 ```
+
+To pass array argument (eg `string[]`), you can use:
+```
+--user-args=arr:\[\"a\"\,\"b\"\]
+```
+
 
 ## Benchmark / Load testing
 
