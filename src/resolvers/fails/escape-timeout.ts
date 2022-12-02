@@ -1,5 +1,8 @@
-import { JsResolverSdk } from "../../lib/JsResolverSdk.ts";
-import { JsResolverContext } from "../../lib/types/JsResolverContext.ts";
+import {
+  JsResolverSdk,
+  JsResolverContext,
+} from "@gelatonetwork/js-resolver-sdk";
+
 const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 
 JsResolverSdk.onChecker(async (context: JsResolverContext) => {

@@ -1,4 +1,4 @@
-import { JsResolverEvent } from "../types/JsResolverEvent.ts";
+import { JsResolverEvent } from "../types/JsResolverEvent";
 
 export class JsResolverHttpServer {
   private _server: any; //http.Server;

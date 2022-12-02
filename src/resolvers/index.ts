@@ -1,5 +1,7 @@
-import { JsResolverSdk } from "../lib/JsResolverSdk";
-import { JsResolverContext } from "../lib/types/JsResolverContext";
+import {
+  JsResolverSdk,
+  JsResolverContext,
+} from "@gelatonetwork/js-resolver-sdk";
 import { Contract, ethers } from "ethers";
 import ky from "ky"; // we recommend using ky as axios doesn't support fetch by default
 

@@ -1,11 +1,11 @@
 import { BigNumber } from "ethers";
-import { JsResolverHttpServer } from "./net/JsResolverHttpServer.ts";
+import { JsResolverHttpServer } from "./net/JsResolverHttpServer";
 import {
   JsResolverContext,
   JsResolverContextData,
-} from "./types/JsResolverContext.ts";
-import { JsResolverResult } from "./types/JsResolverResult.ts";
-import { JsResolverEvent } from "./types/JsResolverEvent.ts";
+} from "./types/JsResolverContext";
+import { JsResolverResult } from "./types/JsResolverResult";
+import { JsResolverEvent } from "./types/JsResolverEvent";
 
 export class JsResolverSdk {
   private static Instance?: JsResolverSdk;
