@@ -1,6 +1,5 @@
 import { JsResolverNetHelper } from "../net/JsResolverNetHelper";
-import { JsResolverExec } from "../types/JsResolverExecResult";
-import { JsResolverRunnerPayload } from "../types/JsResolverRunnerPayload";
+import { JsResolverExec, JsResolverRunnerPayload } from "./types";
 import { JsResolverRunner } from "./JsResolverRunner";
 
 export class JsResolverRunnerPool {

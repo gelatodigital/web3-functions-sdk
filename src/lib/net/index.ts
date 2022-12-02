@@ -1,4 +1,3 @@
-export * from "./JsResolverTcpClient";
-export * from "./JsResolverTcpHelper";
-export * from "./JsResolverTcpServer";
-export * from "./types";
+export * from "./JsResolverHttpClient";
+export * from "./JsResolverHttpServer";
+export * from "./JsResolverNetHelper";

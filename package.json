@@ -10,7 +10,7 @@
   ],
   "exports": {
     ".": "./dist/lib/index.js",
-    "./tcp": "./dist/lib/tcp/index.js",
+    "./net": "./dist/lib/net/index.js",
     "./runtime": "./dist/lib/runtime/index.js",
     "./builder": "./dist/lib/builder/index.js",
     "./uploader": "./dist/lib/uploader/index.js"
@@ -20,8 +20,8 @@
       "*": [
         "dist/lib/index.d.ts"
       ],
-      "tcp": [
-        "dist/lib/tcp/index.d.ts"
+      "net": [
+        "dist/lib/net/index.d.ts"
       ],
       "runtime": [
         "dist/lib/runtime/index.d.ts"
