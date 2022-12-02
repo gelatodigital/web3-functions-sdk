@@ -4,13 +4,13 @@ import { JsResolverTcpClient } from "../tcp/JsResolverTcpClient";
 import { JsResolverContextData } from "../types/JsResolverContext";
 import { JsResolverEvent } from "../types/JsResolverEvent";
 import { JsResolverAbstractSandbox } from "./sandbox/JsResolverAbstractSandbox";
-import { JsResolverExec } from "../types/JsResolverExecResult";
 import { JsResolverDockerSandbox } from "./sandbox/JsResolverDockerSandbox";
 import { JsResolverThreadSandbox } from "./sandbox/JsResolverThreadSandbox";
 import {
+  JsResolverExec,
   JsResolverRunnerPayload,
   JsResolverRunnerOptions,
-} from "../types/JsResolverRunnerPayload";
+} from "./types";
 import { JsResolverUserArgs } from "../types/JsResolverUserArgs";
 
 const START_TIMEOUT = 10_000;

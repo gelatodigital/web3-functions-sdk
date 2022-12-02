@@ -1,10 +1,42 @@
 {
-  "name": "@gelatonetwork/js-resolver-poc",
+  "name": "@gelatonetwork/js-resolver-sdk",
   "version": "0.1.0",
-  "description": "Gelato Ops template for JS resolvers",
+  "description": "Gelato Automate JS resolvers sdk",
   "url": "https://github.com/gelatodigital/js-resolver-poc",
+  "main": "dist/lib/index.js",
+  "types": "dist/lib/types/index.d.ts",
+  "files": [
+    "dist/lib/**/*"
+  ],
+  "exports": {
+    ".": "./dist/lib/index.js",
+    "./tcp": "./dist/lib/tcp/index.js",
+    "./runtime": "./dist/lib/runtime/index.js",
+    "./builder": "./dist/lib/builder/index.js",
+    "./uploader": "./dist/lib/uploader/index.js"
+  },
+  "typesVersions": {
+    "*": {
+      "*": [
+        "dist/lib/index.d.ts"
+      ],
+      "tcp": [
+        "dist/lib/tcp/index.d.ts"
+      ],
+      "runtime": [
+        "dist/lib/runtime/index.d.ts"
+      ],
+      "builder": [
+        "dist/lib/builder/index.d.ts"
+      ],
+      "uploader": [
+        "dist/lib/uploader/index.d.ts"
+      ]
+    }
+  },
   "scripts": {
-    "build": "tsc",
+    "build": "rm -rf dist && tsc --project tsconfig.build.json && yarn deps",
+    "deps": "yarn link && yarn link @gelatonetwork/js-resolver-sdk",
     "format": "prettier --write '*/**/*.{js,json,md,ts}'",
     "format:check": "prettier --check '*/**/*.{js,json,md,ts}'",
     "lint": "eslint --cache .",
@@ -19,7 +51,6 @@
   "devDependencies": {
     "@tsconfig/recommended": "^1.0.1",
     "@types/node": "^16.11.12",
-    "@types/tar": "^6.1.3",
     "@typescript-eslint/eslint-plugin": "^5.40.0",
     "@typescript-eslint/parser": "^5.6.0",
     "eslint": "^8.4.1",
@@ -32,7 +63,7 @@
   "dependencies": {
     "@types/dockerode": "^3.3.11",
     "ajv": "^8.11.0",
-    "axios": "^1.1.2",
+    "axios": "1.1.2",
     "colors": "^1.4.0",
     "dockerode": "^3.3.4",
     "dotenv": "^16.0.3",

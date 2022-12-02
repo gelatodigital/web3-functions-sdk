@@ -15,6 +15,6 @@
     "declaration": true,
     "useUnknownInCatchVariables": false
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/resolvers/fails/no-result.js", "src/resolvers/syntax-error.js", "src/resolvers/escape.js"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts"],
   "exclude": ["node_modules"]
 }

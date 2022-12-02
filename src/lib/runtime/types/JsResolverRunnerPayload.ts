@@ -1,4 +1,4 @@
-import { JsResolverContextData } from "./JsResolverContext";
+import { JsResolverContextData } from "../../types/JsResolverContext";
 
 export interface JsResolverRunnerOptions {
   memory: number;

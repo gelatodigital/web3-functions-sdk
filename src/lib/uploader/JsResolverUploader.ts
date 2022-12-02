@@ -90,17 +90,18 @@ export class JsResolverUploader {
     const { base } = path.parse(jsResolverBuildPath);
 
     // create directory with jsResolver.cjs & schema
-    const time = Math.floor(Date.now() / 1000);
-    const folderCompressedName = `.tmp/jsResolver-${time}`;
-    const folderCompressedTar = `${folderCompressedName}.tgz`;
-    if (!fs.existsSync(folderCompressedName)) {
-      fs.mkdirSync(folderCompressedName, { recursive: true });
+    const folderCompressedName = `jsResolver`;
+    const folderCompressedPath = `.tmp/${folderCompressedName}`;
+    const folderCompressedTar = `${folderCompressedPath}.tgz`;
+
+    if (!fs.existsSync(folderCompressedPath)) {
+      fs.mkdirSync(folderCompressedPath, { recursive: true });
     }
 
     // move files to directory
-    await fsp.rename(jsResolverBuildPath, `${folderCompressedName}/${base}`);
+    await fsp.rename(jsResolverBuildPath, `${folderCompressedPath}/${base}`);
     try {
-      await fsp.copyFile(schemaPath, `${folderCompressedName}/schema.json`);
+      await fsp.copyFile(schemaPath, `${folderCompressedPath}/schema.json`);
     } catch (err) {
       throw new Error(
         `Schema not found at path: ${schemaPath}. \n${err.message}`
@@ -111,6 +112,9 @@ export class JsResolverUploader {
       .c(
         {
           gzip: true,
+          cwd: `${process.cwd()}/.tmp`,
+          noMtime: true,
+          portable: true,
         },
         [folderCompressedName]
       )
@@ -121,7 +125,7 @@ export class JsResolverUploader {
     });
 
     // delete directory after compression
-    await fsp.rm(folderCompressedName, { recursive: true });
+    await fsp.rm(folderCompressedPath, { recursive: true });
 
     return folderCompressedTar;
   }
@@ -130,7 +134,7 @@ export class JsResolverUploader {
     try {
       const { dir } = path.parse(input);
 
-      tar.x({ file: `${input}`, sync: true, cwd: dir });
+      await tar.x({ file: input, cwd: dir });
     } catch (err) {
       throw new Error(
         `JsResolverUploaderError: Extract JsResolver from ${input} failed. \n${err.message}`

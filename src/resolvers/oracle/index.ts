@@ -1,4 +1,7 @@
-import { JsResolverSdk, JsResolverContext } from "../../lib";
+import {
+  JsResolverSdk,
+  JsResolverContext,
+} from "@gelatonetwork/js-resolver-sdk";
 import { Contract, ethers } from "ethers";
 import axios from "axios";
 
