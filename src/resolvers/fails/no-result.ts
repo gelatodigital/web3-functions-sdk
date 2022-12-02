@@ -2,9 +2,11 @@ import {
   JsResolverSdk,
   JsResolverContext,
 } from "@gelatonetwork/js-resolver-sdk";
-import { setTimeout as delay } from "timers/promises";
 
-JsResolverSdk.onChecker(async (context: JsResolverContext) => {
+const delay = (time: number) => new Promise((res) => setTimeout(res, time));
+
+JsResolverSdk.onChecker(async (_context: JsResolverContext) => {
   await delay(1000);
-  process.exit(0);
+  Deno.exit(0);
+  return { canExec: false, message: "Exit before result" };
 });

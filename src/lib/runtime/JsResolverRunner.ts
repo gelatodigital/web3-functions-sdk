@@ -1,6 +1,6 @@
 import { performance } from "perf_hooks";
-import { JsResolverTcpHelper } from "../tcp/JsResolverTcpHelper";
-import { JsResolverTcpClient } from "../tcp/JsResolverTcpClient";
+import { JsResolverNetHelper } from "../net/JsResolverNetHelper";
+import { JsResolverHttpClient } from "../net/JsResolverHttpClient";
 import { JsResolverContextData } from "../types/JsResolverContext";
 import { JsResolverEvent } from "../types/JsResolverEvent";
 import { JsResolverAbstractSandbox } from "./sandbox/JsResolverAbstractSandbox";
@@ -13,12 +13,12 @@ import {
 } from "./types";
 import { JsResolverUserArgs } from "../types/JsResolverUserArgs";
 
-const START_TIMEOUT = 10_000;
+const START_TIMEOUT = 5_000;
 
 export class JsResolverRunner {
   private _debug: boolean;
   private _memory = 0;
-  private _client?: JsResolverTcpClient;
+  private _client?: JsResolverHttpClient;
   private _sandbox?: JsResolverAbstractSandbox;
   private _execTimeoutId?: NodeJS.Timeout;
   private _memoryIntervalId?: NodeJS.Timer;
@@ -140,7 +140,7 @@ export class JsResolverRunner {
       await this.stop();
     }
 
-    const logs = [];
+    const logs: string[] = [];
     const duration = (performance.now() - start) / 1000;
     const memory = this._memory / 1024 / 1024;
     this._log(`Runtime duration=${duration.toFixed(2)}s`);
@@ -168,7 +168,7 @@ export class JsResolverRunner {
     );
 
     const serverPort =
-      options.serverPort ?? (await JsResolverTcpHelper.getAvailablePort());
+      options.serverPort ?? (await JsResolverNetHelper.getAvailablePort());
     try {
       this._log(`Sarting sandbox: ${script}`);
       await this._sandbox.start(script, serverPort);
@@ -183,7 +183,11 @@ export class JsResolverRunner {
     // Start monitoring memory usage
     this._monitorMemoryUsage();
 
-    this._client = new JsResolverTcpClient(serverPort, this._debug);
+    this._client = new JsResolverHttpClient(
+      "http://0.0.0.0",
+      serverPort,
+      this._debug
+    );
     try {
       await this._client.connect(START_TIMEOUT);
     } catch (err) {
@@ -198,6 +202,14 @@ export class JsResolverRunner {
     return new Promise((resolve, reject) => {
       let isResolved = false;
       this._client?.emit("input_event", { action: "start", data: { context } });
+      this._client?.on("error", async (error: Error) => {
+        this._log(`Client error: ${error.message}`);
+        try {
+          await this.stop();
+        } catch (err) {
+          this._log(`Error stopping sandbox: ${err.message}`);
+        }
+      });
       this._client?.on("output_event", (event: JsResolverEvent) => {
         this._log(`Received event: ${event.action}`);
         switch (event.action) {

@@ -1,6 +1,5 @@
-import { JsResolverTcpHelper } from "../tcp/JsResolverTcpHelper";
-import { JsResolverExec } from "./types/JsResolverExecResult";
-import { JsResolverRunnerPayload } from "./types";
+import { JsResolverNetHelper } from "../net/JsResolverNetHelper";
+import { JsResolverExec, JsResolverRunnerPayload } from "./types";
 import { JsResolverRunner } from "./JsResolverRunner";
 
 export class JsResolverRunnerPool {
@@ -16,7 +15,7 @@ export class JsResolverRunnerPool {
   }
 
   public async init() {
-    this._tcpPortsAvailable = await JsResolverTcpHelper.getAvailablePorts(
+    this._tcpPortsAvailable = await JsResolverNetHelper.getAvailablePorts(
       this._poolSize
     );
   }

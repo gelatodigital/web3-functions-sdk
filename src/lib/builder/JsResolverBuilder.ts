@@ -38,7 +38,7 @@ export class JsResolverBuilder {
         bundle: true,
         entryPoints: [input],
         absWorkingDir: process.cwd(),
-        platform: "node",
+        platform: "browser",
         outfile: filePath,
       };
 
