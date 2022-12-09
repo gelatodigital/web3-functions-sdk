@@ -132,11 +132,40 @@ export class JsResolverUploader {
     return folderCompressedTar;
   }
 
-  public static async extract(input: string): Promise<void> {
+  public static async extract(
+    input: string
+  ): Promise<{ schemaPath: string; jsResolverPath: string }> {
     try {
-      const { dir } = path.parse(input);
+      const { dir, name } = path.parse(input);
 
       await tar.x({ file: input, cwd: dir });
+
+      // remove tar file
+      fs.rmSync(input, { recursive: true });
+
+      // rename directory to ipfs cid of resolver if possible.
+      const cidDirectory = `${dir}/${name}`;
+      if (!fs.existsSync(cidDirectory)) {
+        fs.mkdirSync(cidDirectory, { recursive: true });
+      }
+
+      // move resolver & schema to ipfs cid directory
+      fs.renameSync(
+        `${dir}/jsResolver/schema.json`,
+        `${dir}/${name}/schema.json`
+      );
+      fs.renameSync(
+        `${dir}/jsResolver/resolver.cjs`,
+        `${dir}/${name}/resolver.cjs`
+      );
+
+      // remove jsResolver directory
+      fs.rmSync(`${dir}/jsResolver`, { recursive: true });
+
+      return {
+        schemaPath: `${cidDirectory}/schema.json`,
+        jsResolverPath: `${cidDirectory}/resolver.cjs`,
+      };
     } catch (err) {
       throw new Error(
         `JsResolverUploaderError: Extract JsResolver from ${input} failed. \n${err.message}`
