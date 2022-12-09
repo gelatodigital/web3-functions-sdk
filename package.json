@@ -43,7 +43,8 @@
     "test": "ts-node src/scripts/test.ts",
     "benchmark": "ts-node src/scripts/benchmark.ts",
     "upload": "ts-node src/scripts/upload.ts",
-    "fetch": "ts-node src/scripts/fetch.ts"
+    "fetch": "ts-node src/scripts/fetch.ts",
+    "schema": "ts-node src/scripts/schema.ts"
   },
   "keywords": [],
   "author": "",
