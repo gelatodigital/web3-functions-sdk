@@ -9,6 +9,7 @@ import {
 } from "@gelatonetwork/js-resolver-sdk/runtime";
 import { JsResolverBuilder } from "@gelatonetwork/js-resolver-sdk/builder";
 import { performance } from "perf_hooks";
+import { ethers } from "ethers";
 
 const jsResolverSrcPath = process.argv[2] ?? "./src/resolvers/index.ts";
 
@@ -97,12 +98,16 @@ async function test() {
   const memory = buildRes.schema.memory;
   const timeout = buildRes.schema.timeout * 1000;
   const options = { runtime, showLogs, memory, timeout };
+  const script = buildRes.filePath;
+  const provider = new ethers.providers.JsonRpcProvider(
+    process.env.PROVIDER_URL
+  );
   const runner = new JsResolverRunnerPool(pool, debug);
   await runner.init();
   const promises: Promise<JsResolverExec>[] = [];
   for (let i = 0; i < load; i++) {
     console.log(`#${i} Queuing JsResolver`);
-    promises.push(runner.run({ script: buildRes.filePath, context, options }));
+    promises.push(runner.run({ script, context, options, provider }));
     await delay(100);
   }
 
