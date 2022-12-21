@@ -16,7 +16,7 @@ export class JsResolverProxyProvider {
   private _port: number;
   private _mountPath: string;
   private _proxyUrl: string;
-  private _provider: ethers.providers.JsonRpcProvider;
+  private _provider: ethers.providers.StaticJsonRpcProvider;
   private _app: express.Application = express();
   private _server: http.Server | undefined;
   private _isStopped = false;
@@ -29,7 +29,7 @@ export class JsResolverProxyProvider {
   constructor(
     host: string,
     port: number,
-    provider: ethers.providers.JsonRpcProvider,
+    provider: ethers.providers.StaticJsonRpcProvider,
     debug = true
   ) {
     this._host = host;

@@ -20,7 +20,7 @@ export interface JsResolverContext {
     gasPrice: BigNumber;
     taskId?: string;
   };
-  provider: ethers.providers.JsonRpcProvider;
+  provider: ethers.providers.StaticJsonRpcProvider;
   userArgs: JsResolverUserArgs;
   secrets: {
     get(key: string): Promise<string | undefined>;
