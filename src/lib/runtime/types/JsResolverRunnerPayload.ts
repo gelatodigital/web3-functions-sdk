@@ -1,3 +1,4 @@
+import { ethers } from "ethers";
 import { JsResolverContextData } from "../../types/JsResolverContext";
 
 export interface JsResolverRunnerOptions {
@@ -12,4 +13,5 @@ export interface JsResolverRunnerPayload {
   script: string;
   context: JsResolverContextData;
   options: JsResolverRunnerOptions;
+  provider: ethers.providers.JsonRpcProvider;
 }

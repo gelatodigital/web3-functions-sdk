@@ -12,12 +12,15 @@ import {
   JsResolverRunnerOptions,
 } from "./types";
 import { JsResolverUserArgs } from "../types/JsResolverUserArgs";
+import { JsResolverProxyProvider } from "../provider/JsResolverProxyProvider";
+import { ethers } from "ethers";
 
 const START_TIMEOUT = 5_000;
 
 export class JsResolverRunner {
   private _debug: boolean;
   private _memory = 0;
+  private _proxyProvider?: JsResolverProxyProvider;
   private _client?: JsResolverHttpClient;
   private _sandbox?: JsResolverAbstractSandbox;
   private _execTimeoutId?: NodeJS.Timeout;
@@ -130,8 +133,8 @@ export class JsResolverRunner {
     let result;
     let error;
     try {
-      const { script, context, options } = payload;
-      result = await this._runInSandbox(script, context, options);
+      const { script, context, options, provider } = payload;
+      result = await this._runInSandbox(script, context, options, provider);
       success = true;
     } catch (err) {
       error = err;
@@ -143,19 +146,25 @@ export class JsResolverRunner {
     const logs: string[] = [];
     const duration = (performance.now() - start) / 1000;
     const memory = this._memory / 1024 / 1024;
+    const rpcCalls = this._proxyProvider?.getNbRpcCalls() ?? {
+      total: 0,
+      throttled: 0,
+    };
     this._log(`Runtime duration=${duration.toFixed(2)}s`);
     this._log(`Runtime memory=${memory.toFixed(2)}mb`);
+    this._log(`Runtime rpc calls=${JSON.stringify(rpcCalls)}`);
     if (success) {
-      return { success, result, logs, duration, memory };
+      return { success, result, logs, duration, memory, rpcCalls };
     } else {
-      return { success, error, logs, duration, memory };
+      return { success, error, logs, duration, memory, rpcCalls };
     }
   }
 
   private async _runInSandbox(
     script: string,
     context: JsResolverContextData,
-    options: JsResolverRunnerOptions
+    options: JsResolverRunnerOptions,
+    provider: ethers.providers.JsonRpcProvider
   ) {
     const SandBoxClass =
       options.runtime === "thread"
@@ -179,6 +188,19 @@ export class JsResolverRunner {
 
     // Attach process exit handler to clean runtime environment
     process.on("SIGINT", this.stop.bind(this));
+
+    // Proxy RPC provider
+    const proxyProviderPort = await JsResolverNetHelper.getAvailablePort();
+    this._proxyProvider = new JsResolverProxyProvider(
+      options.runtime === "thread"
+        ? "http://127.0.0.1"
+        : "http://host.docker.internal",
+      proxyProviderPort,
+      provider,
+      this._debug
+    );
+    await this._proxyProvider.start();
+    context.rpcProviderUrl = this._proxyProvider.getProxyUrl();
 
     // Start monitoring memory usage
     this._monitorMemoryUsage();
@@ -262,6 +284,7 @@ export class JsResolverRunner {
     this._log("Stopping runtime environment...");
     if (this._sandbox) await this._sandbox.stop();
     if (this._client) this._client.end();
+    if (this._proxyProvider) this._proxyProvider.stop();
     if (this._execTimeoutId) clearTimeout(this._execTimeoutId);
     if (this._memoryIntervalId) clearInterval(this._memoryIntervalId);
     // Remove process exit handler

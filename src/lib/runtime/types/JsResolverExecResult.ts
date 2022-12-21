@@ -3,6 +3,7 @@ import { JsResolverResult } from "../../types/JsResolverResult";
 type JsResolverExecStats = {
   duration: number;
   memory: number;
+  rpcCalls: { total: number; throttled: number };
   logs: string[];
 };
 
