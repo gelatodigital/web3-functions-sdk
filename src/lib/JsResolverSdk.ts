@@ -64,7 +64,7 @@ export class JsResolverSdk {
         ...contextData.gelatoArgs,
         gasPrice: BigNumber.from(contextData.gelatoArgs.gasPrice),
       },
-      provider: new ethers.providers.JsonRpcProvider(
+      provider: new ethers.providers.StaticJsonRpcProvider(
         contextData.rpcProviderUrl
       ),
       userArgs: contextData.userArgs,

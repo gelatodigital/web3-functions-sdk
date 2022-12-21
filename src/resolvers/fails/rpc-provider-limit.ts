@@ -52,7 +52,7 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
   // Test sending http query
   try {
     const res = await ky
-      .post((provider as ethers.providers.JsonRpcProvider).connection.url)
+      .post((provider as ethers.providers.StaticJsonRpcProvider).connection.url)
       .text();
     console.log(res);
     failure = res;

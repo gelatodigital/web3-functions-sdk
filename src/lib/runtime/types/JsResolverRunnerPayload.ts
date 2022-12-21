@@ -13,5 +13,5 @@ export interface JsResolverRunnerPayload {
   script: string;
   context: JsResolverContextData;
   options: JsResolverRunnerOptions;
-  provider: ethers.providers.JsonRpcProvider;
+  provider: ethers.providers.StaticJsonRpcProvider;
 }
