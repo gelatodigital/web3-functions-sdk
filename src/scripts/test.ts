@@ -3,6 +3,7 @@ import colors from "colors/safe";
 import { JsResolverContextData } from "@gelatonetwork/js-resolver-sdk";
 import { JsResolverRunner } from "@gelatonetwork/js-resolver-sdk/runtime";
 import { JsResolverBuilder } from "@gelatonetwork/js-resolver-sdk/builder";
+import { ethers } from "ethers";
 
 const jsResolverSrcPath = process.argv[2] ?? "./src/resolvers/index.ts";
 
@@ -75,6 +76,10 @@ async function test() {
   const memory = buildRes.schema.memory;
   const timeout = buildRes.schema.timeout * 1000;
   const options = { runtime, showLogs, memory, timeout };
+  const script = buildRes.filePath;
+  const provider = new ethers.providers.JsonRpcProvider(
+    process.env.PROVIDER_URL
+  );
 
   // Validate input user args against schema
   if (Object.keys(inputUserArgs).length > 0) {
@@ -95,7 +100,7 @@ async function test() {
 
   // Run JsResolver
   console.log(`\nJsResolver running${showLogs ? " logs:" : "..."}`);
-  const res = await runner.run({ script: buildRes.filePath, context, options });
+  const res = await runner.run({ script, context, options, provider });
   console.log(`\nJsResolver Result:`);
   if (res.success) {
     console.log(` ${OK} Return value:`, res.result);
@@ -109,6 +114,13 @@ async function test() {
   console.log(` ${durationStatus} Duration: ${res.duration.toFixed(2)}s`);
   const memoryStatus = res.memory < 0.9 * memory ? OK : KO;
   console.log(` ${memoryStatus} Memory: ${res.memory.toFixed(2)}mb`);
+  const rpcCallsStatus =
+    res.rpcCalls.throttled > 0.1 * res.rpcCalls.total ? KO : OK;
+  console.log(
+    ` ${rpcCallsStatus} Rpc calls: ${res.rpcCalls.total} ${
+      res.rpcCalls.throttled > 0 ? `(${res.rpcCalls.throttled} throttled)` : ""
+    }`
+  );
 }
 
 test().catch((err) => console.error("Error running JsResolver:", err));
