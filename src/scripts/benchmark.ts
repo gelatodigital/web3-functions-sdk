@@ -11,8 +11,12 @@ import { JsResolverBuilder } from "@gelatonetwork/js-resolver-sdk/builder";
 import { performance } from "perf_hooks";
 import { ethers } from "ethers";
 
-const jsResolverSrcPath = process.argv[2] ?? "./src/resolvers/index.ts";
+if (!process.env.PROVIDER_URL) {
+  console.error(`Missing PROVIDER_URL in .env file`);
+  process.exit();
+}
 
+const jsResolverSrcPath = process.argv[2] ?? "./src/resolvers/index.ts";
 let runtime: "docker" | "thread" = "docker";
 let debug = false;
 let showLogs = false;
@@ -99,7 +103,7 @@ async function test() {
   const timeout = buildRes.schema.timeout * 1000;
   const options = { runtime, showLogs, memory, timeout };
   const script = buildRes.filePath;
-  const provider = new ethers.providers.JsonRpcProvider(
+  const provider = new ethers.providers.StaticJsonRpcProvider(
     process.env.PROVIDER_URL
   );
   const runner = new JsResolverRunnerPool(pool, debug);
