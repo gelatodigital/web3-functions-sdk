@@ -1,4 +1,4 @@
-import { BigNumber } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { JsResolverUserArgs } from "./JsResolverUserArgs";
 export interface JsResolverContextData {
   gelatoArgs: {
@@ -7,6 +7,7 @@ export interface JsResolverContextData {
     gasPrice: string;
     taskId?: string;
   };
+  rpcProviderUrl?: string;
   userArgs: JsResolverUserArgs;
   secrets: { [key: string]: string | undefined };
   storage: { [key: string]: string | undefined };
@@ -19,6 +20,7 @@ export interface JsResolverContext {
     gasPrice: BigNumber;
     taskId?: string;
   };
+  provider: ethers.providers.JsonRpcProvider;
   userArgs: JsResolverUserArgs;
   secrets: {
     get(key: string): Promise<string | undefined>;
