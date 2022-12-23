@@ -1,10 +1,10 @@
 #! /usr/bin/env node
 import colors from "colors/safe";
-import benchmark from "./benchmark";
-import fetch from "./fetch";
-import upload from "./upload";
-import schema from "./schema";
-import test from "./test";
+import benchmark from "../lib/binaries/benchmark";
+import fetch from "../lib/binaries/fetch";
+import upload from "../lib/binaries/upload";
+import schema from "../lib/binaries/schema";
+import test from "../lib/binaries/test";
 
 const KO = colors.red("✗");
 const command = process.argv[2];

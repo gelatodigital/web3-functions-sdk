@@ -1,6 +1,6 @@
 {
   "name": "@gelatonetwork/js-resolver-sdk",
-  "version": "0.1.0",
+  "version": "0.1.6",
   "description": "Gelato Automate JS resolvers sdk",
   "url": "https://github.com/gelatodigital/js-resolver-sdk",
   "main": "dist/lib/index.js",
@@ -17,7 +17,8 @@
     "./runtime": "./dist/lib/runtime/index.js",
     "./provider": "./dist/lib/provider/index.js",
     "./builder": "./dist/lib/builder/index.js",
-    "./uploader": "./dist/lib/uploader/index.js"
+    "./uploader": "./dist/lib/uploader/index.js",
+    "./binaries": "./dist/lib/binaries/index.js"
   },
   "typesVersions": {
     "*": {
@@ -38,6 +39,9 @@
       ],
       "uploader": [
         "dist/lib/uploader/index.d.ts"
+      ],
+      "binaries": [
+        "dist/lib/binaries/index.d.ts"
       ]
     }
   },

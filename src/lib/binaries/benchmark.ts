@@ -1,10 +1,16 @@
-#! /usr/bin/env node
 import "dotenv/config";
 import colors from "colors/safe";
-import { JsResolverContextData } from "../lib/types";
-import { JsResolverRunner } from "../lib/runtime";
-import { JsResolverBuilder } from "../lib/builder";
+import { setTimeout as delay } from "timers/promises";
+import { performance } from "perf_hooks";
 import { ethers } from "ethers";
+
+import { JsResolverContextData } from "../types";
+import {
+  JsResolverExec,
+  JsResolverRunnerPool,
+  JsResolverRunner,
+} from "../runtime";
+import { JsResolverBuilder } from "../builder";
 
 if (!process.env.PROVIDER_URL) {
   console.error(`Missing PROVIDER_URL in .env file`);
@@ -16,6 +22,8 @@ let chainId = 5;
 let runtime: "docker" | "thread" = "thread";
 let debug = false;
 let showLogs = false;
+let load = 10;
+let pool = 10;
 const inputUserArgs: { [key: string]: string } = {};
 if (process.argv.length > 2) {
   process.argv.slice(3).forEach((arg) => {
@@ -28,6 +36,10 @@ if (process.argv.length > 2) {
       runtime = type === "docker" ? "docker" : "thread";
     } else if (arg.startsWith("--chain-id")) {
       chainId = parseInt(arg.split("=")[1]) ?? chainId;
+    } else if (arg.startsWith("--load")) {
+      load = parseInt(arg.split("=")[1]) ?? load;
+    } else if (arg.startsWith("--pool")) {
+      pool = parseInt(arg.split("=")[1]) ?? pool;
     } else if (arg.startsWith("--user-args=")) {
       const userArgParts = arg.split("=")[1].split(":");
       if (userArgParts.length < 2) {
@@ -41,21 +53,13 @@ if (process.argv.length > 2) {
     }
   });
 }
-
 const OK = colors.green("✓");
 const KO = colors.red("✗");
-export default async function test() {
+export default async function benchmark() {
   // Build JsResolver
-  console.log(`JsResolver building...`);
-
   const buildRes = await JsResolverBuilder.build(jsResolverSrcPath, debug);
-  console.log(`\nJsResolver Build result:`);
-  if (buildRes.success) {
-    console.log(` ${OK} Schema: ${buildRes.schemaPath}`);
-    console.log(` ${OK} Built file: ${buildRes.filePath}`);
-    console.log(` ${OK} File size: ${buildRes.fileSize.toFixed(2)}mb`);
-    console.log(` ${OK} Build time: ${buildRes.buildTime.toFixed(2)}ms`);
-  } else {
+  if (!buildRes.success) {
+    console.log(`\nJsResolver Build result:`);
     console.log(` ${KO} Error: ${buildRes.error.message}`);
     return;
   }
@@ -79,18 +83,9 @@ export default async function test() {
       context.secrets[key.replace("SECRETS_", "")] = process.env[key];
     });
 
-  // Configure JsResolver runner
-  const runner = new JsResolverRunner(debug);
-  const memory = buildRes.schema.memory;
-  const timeout = buildRes.schema.timeout * 1000;
-  const options = { runtime, showLogs, memory, timeout };
-  const script = buildRes.filePath;
-  const provider = new ethers.providers.StaticJsonRpcProvider(
-    process.env.PROVIDER_URL
-  );
-
   // Validate input user args against schema
   if (Object.keys(inputUserArgs).length > 0) {
+    const runner = new JsResolverRunner(debug);
     console.log(`\nJsResolver user args validation:`);
     try {
       context.userArgs = await runner.validateUserArgs(
@@ -107,26 +102,33 @@ export default async function test() {
   }
 
   // Run JsResolver
-  console.log(`\nJsResolver running${showLogs ? " logs:" : "..."}`);
-  const res = await runner.run({ script, context, options, provider });
-  console.log(`\nJsResolver Result:`);
-  if (res.success) {
-    console.log(` ${OK} Return value:`, res.result);
-  } else {
-    console.log(` ${KO} Error: ${res.error.message}`);
+  const start = performance.now();
+  const memory = buildRes.schema.memory;
+  const timeout = buildRes.schema.timeout * 1000;
+  const options = { runtime, showLogs, memory, timeout };
+  const script = buildRes.filePath;
+  const provider = new ethers.providers.StaticJsonRpcProvider(
+    process.env.PROVIDER_URL
+  );
+  const runner = new JsResolverRunnerPool(pool, debug);
+  await runner.init();
+  const promises: Promise<JsResolverExec>[] = [];
+  for (let i = 0; i < load; i++) {
+    console.log(`#${i} Queuing JsResolver`);
+    promises.push(runner.run({ script, context, options, provider }));
+    await delay(100);
   }
 
-  // Show runtime stats
-  console.log(`\nJsResolver Runtime stats:`);
-  const durationStatus = res.duration < 0.9 * buildRes.schema.timeout ? OK : KO;
-  console.log(` ${durationStatus} Duration: ${res.duration.toFixed(2)}s`);
-  const memoryStatus = res.memory < 0.9 * memory ? OK : KO;
-  console.log(` ${memoryStatus} Memory: ${res.memory.toFixed(2)}mb`);
-  const rpcCallsStatus =
-    res.rpcCalls.throttled > 0.1 * res.rpcCalls.total ? KO : OK;
-  console.log(
-    ` ${rpcCallsStatus} Rpc calls: ${res.rpcCalls.total} ${
-      res.rpcCalls.throttled > 0 ? `(${res.rpcCalls.throttled} throttled)` : ""
-    }`
-  );
+  const results = await Promise.all(promises);
+  const duration = (performance.now() - start) / 1000;
+
+  console.log(`\nJsResolver results:`);
+  results.forEach((res, i) => {
+    if (res.success) console.log(` ${OK} #${i} Success`);
+    else console.log(` ${KO} #${i} Error:`, res.error);
+  });
+  const nbSuccess = results.filter((res) => res.success).length;
+  console.log(`\nBenchmark result:`);
+  console.log(`- nb success: ${nbSuccess}/${load}`);
+  console.log(`- duration: ${duration.toFixed()}s`);
 }
