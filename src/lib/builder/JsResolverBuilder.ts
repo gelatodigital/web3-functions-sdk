@@ -5,6 +5,7 @@ import Ajv from "ajv";
 import * as jsResolverSchema from "./jsresolver.schema.json";
 import path from "node:path";
 import { JsResolverSchema } from "../types";
+import { JsResolverUploader } from "../uploader";
 const ajv = new Ajv({ messages: true, allErrors: true });
 const jsResolverSchemaValidator = ajv.compile(jsResolverSchema);
 
@@ -20,9 +21,25 @@ export type JsResolverBuildResult =
   | { success: false; error: Error };
 
 export class JsResolverBuilder {
+  /**
+   * Helper function to build and publish JsResolver to IPFS
+   *
+   * @param input jsResolverFilePath
+   * @returns string CID: JsResolver IPF hash
+   */
+  public static async deploy(input: string): Promise<string> {
+    const buildRes = await JsResolverBuilder.build(input);
+    if (!buildRes.success) throw buildRes.error;
+
+    return await JsResolverUploader.uploadResolver(
+      buildRes.schemaPath,
+      buildRes.filePath
+    );
+  }
+
   public static async build(
     input: string,
-    debug,
+    debug = false,
     filePath = "./.tmp/resolver.cjs"
   ): Promise<JsResolverBuildResult> {
     try {
