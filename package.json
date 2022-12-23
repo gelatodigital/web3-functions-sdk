@@ -12,6 +12,7 @@
     ".": "./dist/lib/index.js",
     "./net": "./dist/lib/net/index.js",
     "./runtime": "./dist/lib/runtime/index.js",
+    "./provider": "./dist/lib/provider/index.js",
     "./builder": "./dist/lib/builder/index.js",
     "./uploader": "./dist/lib/uploader/index.js"
   },
@@ -22,6 +23,9 @@
       ],
       "net": [
         "dist/lib/net/index.d.ts"
+      ],
+      "provider": [
+        "dist/lib/provider/index.d.ts"
       ],
       "runtime": [
         "dist/lib/runtime/index.d.ts"
