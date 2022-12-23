@@ -7,7 +7,7 @@
       "enum": ["1.0.0"]
     },
     "runtime": {
-      "enum": ["node-18"]
+      "enum": ["js-1.0"]
     },
     "memory": {
       "enum": [128, 256, 512]

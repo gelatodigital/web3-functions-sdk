@@ -71,7 +71,7 @@ export class JsResolverBuilder {
 Please create 'schema.json', default: 
 {
   "jsResolverVersion": "1.0.0",
-  "runtime": "node-18",
+  "runtime": "js-1.0",
   "memory": 128,
   "timeout": 60,
   "userArgs": {}
