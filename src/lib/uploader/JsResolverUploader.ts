@@ -141,29 +141,29 @@ export class JsResolverUploader {
     try {
       const { dir, name } = path.parse(input);
 
-      await tar.x({ file: input, cwd: dir });
-
-      // remove tar file
-      fs.rmSync(input, { recursive: true });
-
       // rename directory to ipfs cid of resolver if possible.
       const cidDirectory = `${dir}/${name}`;
       if (!fs.existsSync(cidDirectory)) {
         fs.mkdirSync(cidDirectory, { recursive: true });
       }
 
-      // move resolver & schema to ipfs cid directory
+      await tar.x({ file: input, cwd: cidDirectory });
+
+      // remove tar file
+      fs.rmSync(input, { recursive: true });
+
+      // move resolver & schema to root ipfs cid directory
       fs.renameSync(
-        `${dir}/jsResolver/schema.json`,
-        `${dir}/${name}/schema.json`
+        `${cidDirectory}/jsResolver/schema.json`,
+        `${cidDirectory}/schema.json`
       );
       fs.renameSync(
-        `${dir}/jsResolver/resolver.cjs`,
-        `${dir}/${name}/resolver.cjs`
+        `${cidDirectory}/jsResolver/resolver.cjs`,
+        `${cidDirectory}/resolver.cjs`
       );
 
       // remove jsResolver directory
-      fs.rmSync(`${dir}/jsResolver`, { recursive: true });
+      fs.rmSync(`${cidDirectory}/jsResolver`, { recursive: true });
 
       return {
         dir: `${cidDirectory}`,
