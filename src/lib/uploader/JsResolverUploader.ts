@@ -12,8 +12,8 @@ const OPS_USER_API =
   "https://ops.fra.gelato.digital/1514007e8336fa99e6fe/api";
 export class JsResolverUploader {
   public static async uploadResolver(
-    schemaPath = "src/resolvers/schema.json",
-    jsResolverBuildPath = ".tmp/resolver.cjs"
+    schemaPath: string,
+    jsResolverBuildPath: string
   ): Promise<string> {
     try {
       const compressedPath = await this.compress(
