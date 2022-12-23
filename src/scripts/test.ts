@@ -3,10 +3,15 @@ import colors from "colors/safe";
 import { JsResolverContextData } from "@gelatonetwork/js-resolver-sdk";
 import { JsResolverRunner } from "@gelatonetwork/js-resolver-sdk/runtime";
 import { JsResolverBuilder } from "@gelatonetwork/js-resolver-sdk/builder";
+import { ethers } from "ethers";
+
+if (!process.env.PROVIDER_URL) {
+  console.error(`Missing PROVIDER_URL in .env file`);
+  process.exit();
+}
 
 const jsResolverSrcPath = process.argv[2] ?? "./src/resolvers/index.ts";
-
-let runtime: "docker" | "thread" = "docker";
+let runtime: "docker" | "thread" = "thread";
 let debug = false;
 let showLogs = false;
 const inputUserArgs: { [key: string]: string } = {};
@@ -18,7 +23,7 @@ if (process.argv.length > 2) {
       showLogs = true;
     } else if (arg.startsWith("--runtime=")) {
       const type = arg.split("=")[1];
-      runtime = type === "thread" ? "thread" : "docker";
+      runtime = type === "docker" ? "docker" : "thread";
     } else if (arg.startsWith("--user-args=")) {
       const userArgParts = arg.split("=")[1].split(":");
       if (userArgParts.length < 2) {
@@ -75,6 +80,10 @@ async function test() {
   const memory = buildRes.schema.memory;
   const timeout = buildRes.schema.timeout * 1000;
   const options = { runtime, showLogs, memory, timeout };
+  const script = buildRes.filePath;
+  const provider = new ethers.providers.StaticJsonRpcProvider(
+    process.env.PROVIDER_URL
+  );
 
   // Validate input user args against schema
   if (Object.keys(inputUserArgs).length > 0) {
@@ -95,7 +104,7 @@ async function test() {
 
   // Run JsResolver
   console.log(`\nJsResolver running${showLogs ? " logs:" : "..."}`);
-  const res = await runner.run({ script: buildRes.filePath, context, options });
+  const res = await runner.run({ script, context, options, provider });
   console.log(`\nJsResolver Result:`);
   if (res.success) {
     console.log(` ${OK} Return value:`, res.result);
@@ -109,6 +118,13 @@ async function test() {
   console.log(` ${durationStatus} Duration: ${res.duration.toFixed(2)}s`);
   const memoryStatus = res.memory < 0.9 * memory ? OK : KO;
   console.log(` ${memoryStatus} Memory: ${res.memory.toFixed(2)}mb`);
+  const rpcCallsStatus =
+    res.rpcCalls.throttled > 0.1 * res.rpcCalls.total ? KO : OK;
+  console.log(
+    ` ${rpcCallsStatus} Rpc calls: ${res.rpcCalls.total} ${
+      res.rpcCalls.throttled > 0 ? `(${res.rpcCalls.throttled} throttled)` : ""
+    }`
+  );
 }
 
 test().catch((err) => console.error("Error running JsResolver:", err));

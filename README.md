@@ -23,7 +23,7 @@ yarn install
 ```typescript
 import { JsResolverSdk, JsResolverContext } from "../lib";
 import { Contract, ethers } from "ethers";
-import axios from "axios";
+import ky from "ky"; // we recommend using ky as axios doesn't support fetch by default
 
 const ORACLE_ABI = [
   "function lastUpdated() external view returns(uint256)",
@@ -31,17 +31,11 @@ const ORACLE_ABI = [
 ];
 
 JsResolverSdk.onChecker(async (context: JsResolverContext) => {
-  const { userArgs, gelatoArgs, secrets } = context;
-
-  // Use default ethers provider or your own using secrets api key
-  console.log('ChainId:', context.gelatoArgs.chainId)
-  const rpcProvider = ethers.getDefaultProvider(context.gelatoArgs.chainId, {
-    alchemy: await secrets.get("ALCHEMY_ID"),
-  });
+  const { userArgs, gelatoArgs, provider } = context;
 
   // Retrieve Last oracle update time
   const oracleAddress = "0x6a3c82330164822A8a39C7C0224D20DB35DD030a";
-  const oracle = new Contract(oracleAddress, ORACLE_ABI, rpcProvider);
+  const oracle = new Contract(oracleAddress, ORACLE_ABI, provider);
   const lastUpdated = parseInt(await oracle.lastUpdated());
   console.log(`Last oracle update: ${lastUpdated}`);
 
@@ -55,10 +49,13 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
 
   // Get current price on coingecko
   const currency = "ethereum";
-  const priceData = await axios.get(
-    `https://api.coingecko.com/api/v3/simple/price?ids=${currency}&vs_currencies=usd`
-  );
-  const price = Math.floor(priceData.data[currency].usd);
+  const priceData: any = await ky
+    .get(
+      `https://api.coingecko.com/api/v3/simple/price?ids=${currency}&vs_currencies=usd`,
+      { timeout: 5_000, retry: 0 }
+    )
+    .json();
+  price = Math.floor(priceData[currency].usd);
   console.log(`Updating price: ${price}`);
 
   // Return execution call data

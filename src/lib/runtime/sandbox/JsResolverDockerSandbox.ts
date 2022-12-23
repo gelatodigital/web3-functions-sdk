@@ -71,6 +71,7 @@ export class JsResolverDockerSandbox extends JsResolverAbstractSandbox {
             { HostPort: `${serverPort.toString()}` },
           ],
         },
+        NetworkMode: "bridge",
         Memory: this._memoryLimit * 1024 * 1024,
       },
       Tty: true,

@@ -2,7 +2,7 @@ import {
   JsResolverSdk,
   JsResolverContext,
 } from "@gelatonetwork/js-resolver-sdk";
-import { Contract, ethers } from "ethers";
+import { Contract } from "ethers";
 import ky from "ky"; // we recommend using ky as axios doesn't support fetch by default
 
 const ORACLE_ABI = [
@@ -11,20 +11,14 @@ const ORACLE_ABI = [
 ];
 
 JsResolverSdk.onChecker(async (context: JsResolverContext) => {
-  const { gelatoArgs, secrets } = context;
-
-  // Use default ethers provider or your own using secrets api key
-  console.log("ChainId:", context.gelatoArgs.chainId);
-  const rpcProvider = ethers.getDefaultProvider(context.gelatoArgs.chainId, {
-    alchemy: await secrets.get("ALCHEMY_ID"),
-  });
+  const { gelatoArgs, provider } = context;
 
   // Retrieve Last oracle update time
   let lastUpdated;
   let oracle;
   try {
     const oracleAddress = "0x6a3c82330164822A8a39C7C0224D20DB35DD030a";
-    oracle = new Contract(oracleAddress, ORACLE_ABI, rpcProvider);
+    oracle = new Contract(oracleAddress, ORACLE_ABI, provider);
     lastUpdated = parseInt(await oracle.lastUpdated());
     console.log(`Last oracle update: ${lastUpdated}`);
   } catch (err) {

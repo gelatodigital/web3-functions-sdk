@@ -9,10 +9,15 @@ import {
 } from "@gelatonetwork/js-resolver-sdk/runtime";
 import { JsResolverBuilder } from "@gelatonetwork/js-resolver-sdk/builder";
 import { performance } from "perf_hooks";
+import { ethers } from "ethers";
+
+if (!process.env.PROVIDER_URL) {
+  console.error(`Missing PROVIDER_URL in .env file`);
+  process.exit();
+}
 
 const jsResolverSrcPath = process.argv[2] ?? "./src/resolvers/index.ts";
-
-let runtime: "docker" | "thread" = "docker";
+let runtime: "docker" | "thread" = "thread";
 let debug = false;
 let showLogs = false;
 let load = 10;
@@ -26,7 +31,7 @@ if (process.argv.length > 2) {
       showLogs = true;
     } else if (arg.startsWith("--runtime=")) {
       const type = arg.split("=")[1];
-      runtime = type === "thread" ? "thread" : "docker";
+      runtime = type === "docker" ? "docker" : "thread";
     } else if (arg.startsWith("--load")) {
       load = parseInt(arg.split("=")[1]) ?? load;
     } else if (arg.startsWith("--pool")) {
@@ -97,12 +102,16 @@ async function test() {
   const memory = buildRes.schema.memory;
   const timeout = buildRes.schema.timeout * 1000;
   const options = { runtime, showLogs, memory, timeout };
+  const script = buildRes.filePath;
+  const provider = new ethers.providers.StaticJsonRpcProvider(
+    process.env.PROVIDER_URL
+  );
   const runner = new JsResolverRunnerPool(pool, debug);
   await runner.init();
   const promises: Promise<JsResolverExec>[] = [];
   for (let i = 0; i < load; i++) {
     console.log(`#${i} Queuing JsResolver`);
-    promises.push(runner.run({ script: buildRes.filePath, context, options }));
+    promises.push(runner.run({ script, context, options, provider }));
     await delay(100);
   }
 

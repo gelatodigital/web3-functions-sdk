@@ -1,4 +1,4 @@
-import { BigNumber } from "ethers";
+import { BigNumber, ethers } from "ethers";
 import { JsResolverHttpServer } from "./net/JsResolverHttpServer";
 import {
   JsResolverContext,
@@ -64,6 +64,9 @@ export class JsResolverSdk {
         ...contextData.gelatoArgs,
         gasPrice: BigNumber.from(contextData.gelatoArgs.gasPrice),
       },
+      provider: new ethers.providers.StaticJsonRpcProvider(
+        contextData.rpcProviderUrl
+      ),
       userArgs: contextData.userArgs,
       secrets: {
         get: async (key: string) => {
