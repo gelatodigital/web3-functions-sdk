@@ -72,7 +72,7 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
 ```json
 {
   "jsResolverVersion": "1.0.0",
-  "runtime": "node-18",
+  "runtime": "js-1.0",
   "memory": 128, 
   "timeout": 60,
   "userArgs": {}
@@ -125,7 +125,7 @@ Use `yarn upload FILENAME` command to upload your resolver.
 ```json
 {
   "jsResolverVersion": "1.0.0",
-  "runtime": "node-18",
+  "runtime": "js-1.0",
   "memory": 128, 
   "timeout": 60,
   "userArgs": {

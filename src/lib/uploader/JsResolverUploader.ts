@@ -5,6 +5,7 @@ import path from "node:path";
 import tar from "tar";
 import FormData from "form-data";
 import axios from "axios";
+import { JsResolverSchema } from "../types";
 
 const OPS_USER_API =
   process.env.OPS_USER_API ??
@@ -132,14 +133,66 @@ export class JsResolverUploader {
     return folderCompressedTar;
   }
 
-  public static async extract(input: string): Promise<void> {
+  public static async extract(input: string): Promise<{
+    dir: string;
+    schemaPath: string;
+    jsResolverPath: string;
+  }> {
     try {
-      const { dir } = path.parse(input);
+      const { dir, name } = path.parse(input);
 
-      await tar.x({ file: input, cwd: dir });
+      // rename directory to ipfs cid of resolver if possible.
+      const cidDirectory = `${dir}/${name}`;
+      if (!fs.existsSync(cidDirectory)) {
+        fs.mkdirSync(cidDirectory, { recursive: true });
+      }
+
+      await tar.x({ file: input, cwd: cidDirectory });
+
+      // remove tar file
+      fs.rmSync(input, { recursive: true });
+
+      // move resolver & schema to root ipfs cid directory
+      fs.renameSync(
+        `${cidDirectory}/jsResolver/schema.json`,
+        `${cidDirectory}/schema.json`
+      );
+      fs.renameSync(
+        `${cidDirectory}/jsResolver/resolver.cjs`,
+        `${cidDirectory}/resolver.cjs`
+      );
+
+      // remove jsResolver directory
+      fs.rmSync(`${cidDirectory}/jsResolver`, { recursive: true });
+
+      return {
+        dir: `${cidDirectory}`,
+        schemaPath: `${cidDirectory}/schema.json`,
+        jsResolverPath: `${cidDirectory}/resolver.cjs`,
+      };
     } catch (err) {
       throw new Error(
         `JsResolverUploaderError: Extract JsResolver from ${input} failed. \n${err.message}`
+      );
+    }
+  }
+
+  public static async fetchSchema(cid: string): Promise<JsResolverSchema> {
+    try {
+      const jsResolverPath = await JsResolverUploader.fetchResolver(cid);
+
+      const { dir, schemaPath } = await JsResolverUploader.extract(
+        jsResolverPath
+      );
+
+      const schema = JSON.parse(fs.readFileSync(schemaPath, "utf-8"));
+
+      fs.rmSync(dir, { recursive: true });
+
+      return schema;
+    } catch (err) {
+      throw new Error(
+        `JsResolverUploaderError: Get schema of ${cid} failed: \n${err.message}`
       );
     }
   }

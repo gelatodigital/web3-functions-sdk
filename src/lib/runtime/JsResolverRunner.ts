@@ -11,7 +11,7 @@ import {
   JsResolverRunnerPayload,
   JsResolverRunnerOptions,
 } from "./types";
-import { JsResolverUserArgs } from "../types/JsResolverUserArgs";
+import { JsResolverUserArgs, JsResolverUserArgsSchema } from "../types";
 
 const START_TIMEOUT = 5_000;
 
@@ -28,18 +28,16 @@ export class JsResolverRunner {
   }
 
   public async validateUserArgs(
-    schema: {
-      [key: string]: string;
-    },
+    userArgsSchema: JsResolverUserArgsSchema,
     inputUserArgs: { [key: string]: string }
   ): Promise<JsResolverUserArgs> {
     const typedUserArgs: JsResolverUserArgs = {};
-    for (const key in schema) {
+    for (const key in userArgsSchema) {
       const value = inputUserArgs[key];
       if (typeof value === "undefined") {
         throw new Error(`JsResolverSchemaError: Missing user arg '${key}'`);
       }
-      const type = schema[key];
+      const type = userArgsSchema[key];
       switch (type) {
         case "boolean":
           typedUserArgs[key] = !(value === "false");

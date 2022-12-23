@@ -4,16 +4,9 @@ import esbuild from "esbuild";
 import Ajv from "ajv";
 import * as jsResolverSchema from "./jsresolver.schema.json";
 import path from "node:path";
+import { JsResolverSchema } from "../types";
 const ajv = new Ajv({ messages: true, allErrors: true });
 const jsResolverSchemaValidator = ajv.compile(jsResolverSchema);
-
-export type JsResolverSchema = {
-  memory: number;
-  timeout: number;
-  userArgs: {
-    [key: string]: string;
-  };
-};
 
 export type JsResolverBuildResult =
   | {
@@ -78,7 +71,7 @@ export class JsResolverBuilder {
 Please create 'schema.json', default: 
 {
   "jsResolverVersion": "1.0.0",
-  "runtime": "node-18",
+  "runtime": "js-1.0",
   "memory": 128,
   "timeout": 60,
   "userArgs": {}
