@@ -1,7 +1,6 @@
-#! /usr/bin/env node
 import "dotenv/config";
 import colors from "colors/safe";
-import { JsResolverUploader } from "../lib/uploader";
+import { JsResolverUploader } from "../uploader";
 
 const OK = colors.green("✓");
 export default async function fetch() {

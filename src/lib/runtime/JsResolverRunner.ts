@@ -141,7 +141,7 @@ export class JsResolverRunner {
       await this.stop();
     }
 
-    const logs: string[] = [];
+    const logs: string[] = this._sandbox?.getLogs() ?? [];
     const duration = (performance.now() - start) / 1000;
     const memory = this._memory / 1024 / 1024;
     const rpcCalls = this._proxyProvider?.getNbRpcCalls() ?? {

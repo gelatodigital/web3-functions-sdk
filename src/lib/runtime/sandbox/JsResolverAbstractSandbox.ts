@@ -45,15 +45,20 @@ export abstract class JsResolverAbstractSandbox extends EventEmitter {
     }
   }
 
+  public getLogs(): string[] {
+    return this._logs;
+  }
+
   protected _onStdoutData(data: string) {
     const output = data.toString();
-    if (this._showStdout)
-      output
-        .split("\n")
-        .filter((line) => line !== "")
-        .forEach((line) =>
-          console.log(colors.cyan(`>`), colors.grey(`${line}`))
-        );
+    output
+      .split("\n")
+      .filter((line) => line !== "")
+      .forEach((line) => {
+        this._logs.push(line);
+        if (this._showStdout)
+          console.log(colors.cyan(`>`), colors.grey(`${line}`));
+      });
   }
 
   public async waitForProcessEnd() {
