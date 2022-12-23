@@ -85,6 +85,7 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
   - `--show-logs` Show internal Resolver logs
   - `--runtime=thread|docker` Use `thread` if you don't have `docker`set up locally (default: `docker`)
   - `--debug` Show Runtime debug messages
+  - `--chain-id=[number]` Specify the chainId to be used for your Resolver (default: `5`)
   - `--user-args=[key]:[value]` Set your Resolver user args
 
 - Example: `yarn test src/resolvers/index.ts --show-logs --runtime=thread`

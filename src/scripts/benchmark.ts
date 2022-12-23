@@ -17,6 +17,7 @@ if (!process.env.PROVIDER_URL) {
 }
 
 const jsResolverSrcPath = process.argv[2] ?? "./src/resolvers/index.ts";
+let chainId = 5;
 let runtime: "docker" | "thread" = "thread";
 let debug = false;
 let showLogs = false;
@@ -32,6 +33,8 @@ if (process.argv.length > 2) {
     } else if (arg.startsWith("--runtime=")) {
       const type = arg.split("=")[1];
       runtime = type === "docker" ? "docker" : "thread";
+    } else if (arg.startsWith("--chain-id")) {
+      chainId = parseInt(arg.split("=")[1]) ?? chainId;
     } else if (arg.startsWith("--load")) {
       load = parseInt(arg.split("=")[1]) ?? load;
     } else if (arg.startsWith("--pool")) {
@@ -65,7 +68,7 @@ async function test() {
     secrets: {},
     storage: {},
     gelatoArgs: {
-      chainId: 5,
+      chainId,
       blockTime: Date.now() / 1000,
       gasPrice: "10",
     },
