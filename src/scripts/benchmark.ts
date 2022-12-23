@@ -17,7 +17,7 @@ if (!process.env.PROVIDER_URL) {
 }
 
 const jsResolverSrcPath = process.argv[2] ?? "./src/resolvers/index.ts";
-let runtime: "docker" | "thread" = "docker";
+let runtime: "docker" | "thread" = "thread";
 let debug = false;
 let showLogs = false;
 let load = 10;
@@ -31,7 +31,7 @@ if (process.argv.length > 2) {
       showLogs = true;
     } else if (arg.startsWith("--runtime=")) {
       const type = arg.split("=")[1];
-      runtime = type === "thread" ? "thread" : "docker";
+      runtime = type === "docker" ? "docker" : "thread";
     } else if (arg.startsWith("--load")) {
       load = parseInt(arg.split("=")[1]) ?? load;
     } else if (arg.startsWith("--pool")) {
