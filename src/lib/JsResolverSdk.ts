@@ -9,7 +9,7 @@ import { JsResolverEvent } from "./types/JsResolverEvent";
 
 export class JsResolverSdk {
   private static Instance?: JsResolverSdk;
-  private static _debug = true;
+  private static _debug = false;
   private _server: JsResolverHttpServer;
   private _checker?: (ctx: JsResolverContext) => Promise<JsResolverResult>;
 

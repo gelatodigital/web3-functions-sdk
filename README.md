@@ -85,6 +85,7 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
   - `--show-logs` Show internal Resolver logs
   - `--runtime=thread|docker` Use `thread` if you don't have `docker`set up locally (default: `docker`)
   - `--debug` Show Runtime debug messages
+  - `--chain-id=[number]` Specify the chainId to be used for your Resolver (default: `5`)
   - `--user-args=[key]:[value]` Set your Resolver user args
 
 - Example: `yarn test src/resolvers/index.ts --show-logs --runtime=thread`
@@ -242,7 +243,7 @@ Some example failing file to test error handling
   - Result:
   ```
   JsResolver Result:
- ✗ Error: PermissionDenied: Requires env access to all, run again with the --allow-env flag
+  ✗ Error: PermissionDenied: Requires env access to all, run again with the --allow-env flag
   ```
 
 - Resolver try to access file system:
@@ -250,7 +251,7 @@ Some example failing file to test error handling
   - Result:
   ```
   JsResolver Result:
- ✗ Error: PermissionDenied: Requires read access to "./.env", run again with the --allow-read flag
+  ✗ Error: PermissionDenied: Requires read access to "./.env", run again with the --allow-read flag
   ```
 
 - Resolver try to access os:
@@ -258,7 +259,7 @@ Some example failing file to test error handling
   - Result:
   ```
   JsResolver Result:
- ✗ Error: PermissionDenied: Requires sys access to "osRelease", run again with the --allow-sys flag
+  ✗ Error: PermissionDenied: Requires sys access to "osRelease", run again with the --allow-sys flag
   ```
 
 - Resolver try to access cpu:
@@ -266,5 +267,5 @@ Some example failing file to test error handling
   - Result:
   ```
   JsResolver Result:
- ✗ Error: PermissionDenied: Requires run access to "whoami", run again with the --allow-run flag
+  ✗ Error: PermissionDenied: Requires run access to "whoami", run again with the --allow-run flag
   ```

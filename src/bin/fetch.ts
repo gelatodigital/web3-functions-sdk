@@ -1,12 +1,11 @@
+#! /usr/bin/env node
 import "dotenv/config";
 import colors from "colors/safe";
-import { JsResolverUploader } from "@gelatonetwork/js-resolver-sdk/uploader";
+import { JsResolverUploader } from "../lib/uploader";
 
 const OK = colors.green("✓");
-const KO = colors.red("✗");
-
-const fetch = async () => {
-  const cid = process.argv[2];
+export default async function fetch() {
+  const cid = process.argv[3];
 
   if (!cid) throw new Error("JsResolver CID missing");
 
@@ -19,6 +18,4 @@ const fetch = async () => {
   console.log(
     ` ${OK} Extracted JsResolver. \n schemaPath: ${schemaPath} \n jsResolverPath: ${jsResolverPath}`
   );
-};
-
-fetch().catch((err) => console.error(` ${KO} ${err.message}`));
+}

@@ -2,12 +2,15 @@
   "name": "@gelatonetwork/js-resolver-sdk",
   "version": "0.1.0",
   "description": "Gelato Automate JS resolvers sdk",
-  "url": "https://github.com/gelatodigital/js-resolver-poc",
+  "url": "https://github.com/gelatodigital/js-resolver-sdk",
   "main": "dist/lib/index.js",
   "types": "dist/lib/types/index.d.ts",
   "files": [
     "dist/lib/**/*"
   ],
+  "bin": {
+    "js-resolver": "./dist/bin/index.js"
+  },
   "exports": {
     ".": "./dist/lib/index.js",
     "./net": "./dist/lib/net/index.js",
@@ -44,11 +47,11 @@
     "format": "prettier --write '*/**/*.{js,json,md,ts}'",
     "format:check": "prettier --check '*/**/*.{js,json,md,ts}'",
     "lint": "eslint --cache .",
-    "test": "ts-node src/scripts/test.ts",
-    "benchmark": "ts-node src/scripts/benchmark.ts",
-    "upload": "ts-node src/scripts/upload.ts",
-    "fetch": "ts-node src/scripts/fetch.ts",
-    "schema": "ts-node src/scripts/schema.ts"
+    "test": "ts-node src/bin/index.ts test",
+    "benchmark": "ts-node src/bin/index.ts benchmark",
+    "upload": "ts-node src/bin/index.ts upload",
+    "fetch": "ts-node src/bin/index.ts fetch",
+    "schema": "ts-node src/bin/index.ts schema"
   },
   "keywords": [],
   "author": "",
