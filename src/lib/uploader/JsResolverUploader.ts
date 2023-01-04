@@ -1,4 +1,3 @@
-import "dotenv/config";
 import pathParse from "path-parse";
 import tar from "tar";
 import tarStream from "tar-stream";
@@ -15,9 +14,7 @@ import { JsResolverSchema } from "../types";
 // Use memory file system if running outside nodeJs
 const fs = isNode ? nodeFs : memFs;
 
-const OPS_USER_API =
-  process.env.OPS_USER_API ??
-  "https://ops.fra.gelato.digital/1514007e8336fa99e6fe/api";
+const OPS_USER_API = "https://ops.fra.gelato.digital/1514007e8336fa99e6fe/api";
 export class JsResolverUploader {
   public static async uploadResolver(
     schemaPath: string,
