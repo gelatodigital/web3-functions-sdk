@@ -1,11 +1,19 @@
 import "dotenv/config";
-import fs from "node:fs";
-import fsp from "node:fs/promises";
 import pathParse from "path-parse";
 import tar from "tar";
+import tarStream from "tar-stream";
+import gzip from "gunzip-maybe";
+import { isNode } from "browser-or-node";
+import * as nodeFs from "node:fs";
+import { fs as memFs } from "memfs";
+import mkdirp from "mkdirp";
+import streamToBuffer from "stream-to-buffer";
 import FormData from "form-data";
 import axios from "axios";
 import { JsResolverSchema } from "../types";
+
+// Use memory file system if running outside nodeJs
+const fs = isNode ? nodeFs : memFs;
 
 const OPS_USER_API =
   process.env.OPS_USER_API ??
@@ -49,7 +57,7 @@ export class JsResolverUploader {
         fs.mkdirSync(".tmp", { recursive: true });
       }
 
-      await fsp.writeFile(tempJsResolverPath, res.data);
+      fs.writeFileSync(tempJsResolverPath, res.data);
       jsResolverPath = tempJsResolverPath;
 
       // store jsResolver to custom dir
@@ -59,7 +67,7 @@ export class JsResolverUploader {
         }
 
         const customJsResolverPath = `${destDir}/${jsResolverFileName}`;
-        await fsp.rename(jsResolverPath, customJsResolverPath);
+        fs.renameSync(jsResolverPath, customJsResolverPath);
         jsResolverPath = customJsResolverPath;
       }
 
@@ -84,7 +92,7 @@ export class JsResolverUploader {
     schemaPath: string
   ): Promise<string> {
     try {
-      await fsp.access(jsResolverBuildPath);
+      fs.accessSync(jsResolverBuildPath);
     } catch (err) {
       throw new Error(
         `JsResolver build file not found at path. ${jsResolverBuildPath} \n${err.message}`
@@ -102,9 +110,9 @@ export class JsResolverUploader {
     }
 
     // move files to directory
-    await fsp.rename(jsResolverBuildPath, `${folderCompressedPath}/${base}`);
+    fs.renameSync(jsResolverBuildPath, `${folderCompressedPath}/${base}`);
     try {
-      await fsp.copyFile(schemaPath, `${folderCompressedPath}/schema.json`);
+      fs.copyFileSync(schemaPath, `${folderCompressedPath}/schema.json`);
     } catch (err) {
       throw new Error(
         `Schema not found at path: ${schemaPath}. \n${err.message}`
@@ -128,7 +136,7 @@ export class JsResolverUploader {
     });
 
     // delete directory after compression
-    await fsp.rm(folderCompressedPath, { recursive: true });
+    fs.rmSync(folderCompressedPath, { recursive: true });
 
     return folderCompressedTar;
   }
@@ -147,10 +155,27 @@ export class JsResolverUploader {
         fs.mkdirSync(cidDirectory, { recursive: true });
       }
 
-      await tar.x({ file: input, cwd: cidDirectory });
+      await new Promise<void>((resolve, reject) => {
+        const extract = tarStream.extract();
+        fs.createReadStream(input).pipe(gzip()).pipe(extract);
+        extract.on("entry", (header, stream, next) => {
+          if (header.type === "directory") {
+            mkdirp.sync(`${cidDirectory}/${header.name}`, { fs });
+          } else if (header.type === "file") {
+            streamToBuffer(stream, (err, buffer) => {
+              if (err) return reject(err);
+              fs.writeFileSync(`${cidDirectory}/${header.name}`, buffer);
+            });
+          }
+          stream.on("end", () => next());
+          stream.resume();
+        });
+        extract.on("finish", () => resolve());
+      });
 
       // remove tar file
-      fs.rmSync(input, { recursive: true });
+      // memfs rmSync is currently unavailable: https://github.com/streamich/memfs/issues/884
+      if (fs.rmSync) fs.rmSync(input, { recursive: true });
 
       // move resolver & schema to root ipfs cid directory
       fs.renameSync(
@@ -163,7 +188,8 @@ export class JsResolverUploader {
       );
 
       // remove jsResolver directory
-      fs.rmSync(`${cidDirectory}/jsResolver`, { recursive: true });
+      if (fs.rmSync)
+        fs.rmSync(`${cidDirectory}/jsResolver`, { recursive: true });
 
       return {
         dir: `${cidDirectory}`,
@@ -185,9 +211,11 @@ export class JsResolverUploader {
         jsResolverPath
       );
 
-      const schema = JSON.parse(fs.readFileSync(schemaPath, "utf-8"));
+      const schema = JSON.parse(
+        fs.readFileSync(schemaPath, "utf-8").toString()
+      );
 
-      fs.rmSync(dir, { recursive: true });
+      if (fs.rmSync) fs.rmSync(dir, { recursive: true });
 
       return schema;
     } catch (err) {
@@ -213,7 +241,7 @@ export class JsResolverUploader {
 
       // rename file with cid
       const { dir, ext } = pathParse(compressedPath);
-      await fsp.rename(compressedPath, `${dir}/${cid}${ext}`);
+      fs.renameSync(compressedPath, `${dir}/${cid}${ext}`);
 
       return cid;
     } catch (err) {
