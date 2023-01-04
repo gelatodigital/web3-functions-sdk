@@ -1,7 +1,7 @@
 import "dotenv/config";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
-import path from "node:path";
+import pathParse from "path-parse";
 import tar from "tar";
 import FormData from "form-data";
 import axios from "axios";
@@ -90,7 +90,7 @@ export class JsResolverUploader {
         `JsResolver build file not found at path. ${jsResolverBuildPath} \n${err.message}`
       );
     }
-    const { base } = path.parse(jsResolverBuildPath);
+    const { base } = pathParse(jsResolverBuildPath);
 
     // create directory with jsResolver.cjs & schema
     const folderCompressedName = `jsResolver`;
@@ -139,7 +139,7 @@ export class JsResolverUploader {
     jsResolverPath: string;
   }> {
     try {
-      const { dir, name } = path.parse(input);
+      const { dir, name } = pathParse(input);
 
       // rename directory to ipfs cid of resolver if possible.
       const cidDirectory = `${dir}/${name}`;
@@ -212,7 +212,7 @@ export class JsResolverUploader {
       const cid = res.data.cid;
 
       // rename file with cid
-      const { dir, ext } = path.parse(compressedPath);
+      const { dir, ext } = pathParse(compressedPath);
       await fsp.rename(compressedPath, `${dir}/${cid}${ext}`);
 
       return cid;
