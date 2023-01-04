@@ -1,6 +1,6 @@
 {
   "name": "@gelatonetwork/js-resolver-sdk",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Gelato Automate JS resolvers sdk",
   "url": "https://github.com/gelatodigital/js-resolver-sdk",
   "main": "dist/lib/index.js",
