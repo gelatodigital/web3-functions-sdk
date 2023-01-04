@@ -112,11 +112,13 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
   ✓ Duration: 5.41s
   ✓ Memory: 57.77mb
   ```
+
 ## Upload / fetch Js Resolver
 Use `yarn upload FILENAME` command to upload your resolver.
 
 ```
 > yarn upload ./src/resolvers/index.ts
+```
 
 ## Use User arguments
 1. Declare your expected `userArgs` in you schema, accepted types are 'string', 'string[]', 'number', 'number[]', 'boolean', 'boolean[]':
