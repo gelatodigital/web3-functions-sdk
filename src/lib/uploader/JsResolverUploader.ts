@@ -8,8 +8,7 @@ import axios from "axios";
 import { JsResolverSchema } from "../types";
 
 const OPS_USER_API =
-  process.env.OPS_USER_API ??
-  "https://ops.fra.gelato.digital/1514007e8336fa99e6fe/api";
+  process.env.OPS_USER_API ?? "https://ops-user-api.prod.gelato.digital";
 export class JsResolverUploader {
   public static async uploadResolver(
     schemaPath: string,
