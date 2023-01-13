@@ -77,8 +77,7 @@ export class JsResolverSdk {
     }
   }
 
-  private async _runChecker(contextData: JsResolverContextData) {
-    const ctxData = { ...contextData };
+  private async _runChecker(ctxData: JsResolverContextData) {
     if (!this._checker)
       throw new Error("JsResolver.onChecker function is not registered");
 
