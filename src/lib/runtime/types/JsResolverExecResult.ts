@@ -6,18 +6,17 @@ type JsResolverExecStats = {
   memory: number;
   rpcCalls: { total: number; throttled: number };
   logs: string[];
+  storage: JsResolverStorage;
 };
 
 type JsResolverExecSuccess = JsResolverExecStats & {
   success: true;
   result: JsResolverResult;
-  storage: JsResolverStorage;
 };
 
 type JsResolverExecFail = JsResolverExecStats & {
   success: false;
   error: Error;
-  storage: JsResolverStorage;
 };
 
 export type JsResolverExec = JsResolverExecSuccess | JsResolverExecFail;

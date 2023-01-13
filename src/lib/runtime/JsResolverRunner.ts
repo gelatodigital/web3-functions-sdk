@@ -137,12 +137,7 @@ export class JsResolverRunner {
     let error;
     try {
       const { script, context, options, provider } = payload;
-      const data = (await this._runInSandbox(
-        script,
-        context,
-        options,
-        provider
-      )) as unknown as { result: JsResolverResult; storage: JsResolverStorage };
+      const data = await this._runInSandbox(script, context, options, provider);
       result = data.result;
       storage = data.storage;
       success = true;
@@ -191,7 +186,7 @@ export class JsResolverRunner {
     context: JsResolverContextData,
     options: JsResolverRunnerOptions,
     provider: ethers.providers.StaticJsonRpcProvider
-  ) {
+  ): Promise<{ result: JsResolverResult; storage: JsResolverStorage }> {
     const SandBoxClass =
       options.runtime === "thread"
         ? JsResolverThreadSandbox
