@@ -6,7 +6,7 @@ import {
 } from "./types/JsResolverContext";
 import { JsResolverResult } from "./types/JsResolverResult";
 import { JsResolverEvent, JsResolverStorage } from "./types/JsResolverEvent";
-
+import objectHash = require("object-hash");
 export class JsResolverSdk {
   private static Instance?: JsResolverSdk;
   private static _debug = false;
@@ -35,7 +35,17 @@ export class JsResolverSdk {
             event.data.context
           );
 
-          if (result.canExec)
+          const lastStorageHash = objectHash(storage.storage, {
+            algorithm: "md5",
+            unorderedObjects: true,
+          });
+
+          const returnedStoragehash = objectHash(ctxData.storage, {
+            algorithm: "md5",
+            unorderedObjects: true,
+          });
+
+          if (lastStorageHash !== returnedStoragehash)
             storage = { state: "updated", storage: ctxData.storage };
 
           // ToDo: validate result format
