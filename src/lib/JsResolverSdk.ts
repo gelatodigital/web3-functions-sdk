@@ -102,6 +102,9 @@ export class JsResolverSdk {
           return ctxData.storage[key];
         },
         set: async (key: string, value: string) => {
+          if (typeof value !== "string") {
+            throw new Error("JsResolverStorageError: value must be a string");
+          }
           JsResolverSdk._log(`storage.set(${key},${value})`);
           ctxData.storage[key] = value;
         },
