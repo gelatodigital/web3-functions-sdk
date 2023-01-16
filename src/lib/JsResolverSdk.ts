@@ -5,8 +5,8 @@ import {
   JsResolverContextData,
 } from "./types/JsResolverContext";
 import { JsResolverResult } from "./types/JsResolverResult";
-import { JsResolverEvent } from "./types/JsResolverEvent";
-
+import { JsResolverEvent, JsResolverStorage } from "./types/JsResolverEvent";
+import objectHash = require("object-hash");
 export class JsResolverSdk {
   private static Instance?: JsResolverSdk;
   private static _debug = false;
@@ -25,12 +25,33 @@ export class JsResolverSdk {
   private async _onEvent(event: JsResolverEvent): Promise<JsResolverEvent> {
     switch (event?.action) {
       case "start": {
+        let storage: JsResolverStorage = {
+          state: "last",
+          storage: { ...event.data.context.storage },
+        };
+
         try {
-          const result = await this._runChecker(event.data.context);
+          const { result, ctxData } = await this._runChecker(
+            event.data.context
+          );
+
+          const lastStorageHash = objectHash(storage.storage, {
+            algorithm: "md5",
+            unorderedObjects: true,
+          });
+
+          const returnedStoragehash = objectHash(ctxData.storage, {
+            algorithm: "md5",
+            unorderedObjects: true,
+          });
+
+          if (lastStorageHash !== returnedStoragehash)
+            storage = { state: "updated", storage: ctxData.storage };
+
           // ToDo: validate result format
           return {
             action: "result",
-            data: { result },
+            data: { result, storage },
           };
         } catch (error) {
           return {
@@ -40,6 +61,7 @@ export class JsResolverSdk {
                 name: error.name,
                 message: `${error.name}: ${error.message}`,
               },
+              storage,
             },
           };
         } finally {
@@ -55,42 +77,43 @@ export class JsResolverSdk {
     }
   }
 
-  private async _runChecker(contextData: JsResolverContextData) {
+  private async _runChecker(ctxData: JsResolverContextData) {
     if (!this._checker)
       throw new Error("JsResolver.onChecker function is not registered");
 
     const context: JsResolverContext = {
       gelatoArgs: {
-        ...contextData.gelatoArgs,
-        gasPrice: BigNumber.from(contextData.gelatoArgs.gasPrice),
+        ...ctxData.gelatoArgs,
+        gasPrice: BigNumber.from(ctxData.gelatoArgs.gasPrice),
       },
       provider: new ethers.providers.StaticJsonRpcProvider(
-        contextData.rpcProviderUrl
+        ctxData.rpcProviderUrl
       ),
-      userArgs: contextData.userArgs,
+      userArgs: ctxData.userArgs,
       secrets: {
         get: async (key: string) => {
           JsResolverSdk._log(`secrets.get(${key})`);
-          return contextData.secrets[key];
+          return ctxData.secrets[key];
         },
       },
       storage: {
         get: async (key: string) => {
           JsResolverSdk._log(`storage.get(${key})`);
-          return contextData.storage[key];
+          return ctxData.storage[key];
         },
         set: async (key: string, value: string) => {
           JsResolverSdk._log(`storage.set(${key},${value})`);
-          contextData.storage[key] = value;
+          ctxData.storage[key] = value;
         },
         delete: async (key: string) => {
           JsResolverSdk._log(`storage.delete(${key})`);
-          contextData.storage[key] = undefined;
+          ctxData.storage[key] = undefined;
         },
       },
     };
 
-    return this._checker(context);
+    const result = await this._checker(context);
+    return { result, ctxData };
   }
 
   private _exit(code = 0) {

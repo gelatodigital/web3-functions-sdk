@@ -1,3 +1,4 @@
+import { JsResolverStorage } from "../../types";
 import { JsResolverResult } from "../../types/JsResolverResult";
 
 type JsResolverExecStats = {
@@ -5,6 +6,7 @@ type JsResolverExecStats = {
   memory: number;
   rpcCalls: { total: number; throttled: number };
   logs: string[];
+  storage: JsResolverStorage;
 };
 
 type JsResolverExecSuccess = JsResolverExecStats & {

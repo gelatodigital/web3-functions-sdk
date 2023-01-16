@@ -2,7 +2,7 @@ import { performance } from "perf_hooks";
 import { JsResolverNetHelper } from "../net/JsResolverNetHelper";
 import { JsResolverHttpClient } from "../net/JsResolverHttpClient";
 import { JsResolverContextData } from "../types/JsResolverContext";
-import { JsResolverEvent } from "../types/JsResolverEvent";
+import { JsResolverEvent, JsResolverStorage } from "../types/JsResolverEvent";
 import { JsResolverAbstractSandbox } from "./sandbox/JsResolverAbstractSandbox";
 import { JsResolverDockerSandbox } from "./sandbox/JsResolverDockerSandbox";
 import { JsResolverThreadSandbox } from "./sandbox/JsResolverThreadSandbox";
@@ -11,7 +11,11 @@ import {
   JsResolverRunnerPayload,
   JsResolverRunnerOptions,
 } from "./types";
-import { JsResolverUserArgs, JsResolverUserArgsSchema } from "../types";
+import {
+  JsResolverResult,
+  JsResolverUserArgs,
+  JsResolverUserArgsSchema,
+} from "../types";
 import { JsResolverProxyProvider } from "../provider/JsResolverProxyProvider";
 import { ethers } from "ethers";
 
@@ -129,10 +133,13 @@ export class JsResolverRunner {
     const start = performance.now();
     let success;
     let result;
+    let storage;
     let error;
     try {
       const { script, context, options, provider } = payload;
-      result = await this._runInSandbox(script, context, options, provider);
+      const data = await this._runInSandbox(script, context, options, provider);
+      result = data.result;
+      storage = data.storage;
       success = true;
     } catch (err) {
       error = err;
@@ -152,9 +159,25 @@ export class JsResolverRunner {
     this._log(`Runtime memory=${memory.toFixed(2)}mb`);
     this._log(`Runtime rpc calls=${JSON.stringify(rpcCalls)}`);
     if (success) {
-      return { success, result, logs, duration, memory, rpcCalls };
+      return {
+        success,
+        result,
+        storage,
+        logs,
+        duration,
+        memory,
+        rpcCalls,
+      };
     } else {
-      return { success, error, logs, duration, memory, rpcCalls };
+      return {
+        success,
+        storage,
+        error,
+        logs,
+        duration,
+        memory,
+        rpcCalls,
+      };
     }
   }
 
@@ -163,7 +186,7 @@ export class JsResolverRunner {
     context: JsResolverContextData,
     options: JsResolverRunnerOptions,
     provider: ethers.providers.StaticJsonRpcProvider
-  ) {
+  ): Promise<{ result: JsResolverResult; storage: JsResolverStorage }> {
     const SandBoxClass =
       options.runtime === "thread"
         ? JsResolverThreadSandbox
@@ -235,11 +258,11 @@ export class JsResolverRunner {
         switch (event.action) {
           case "result":
             isResolved = true;
-            resolve(event.data.result);
+            resolve(event.data);
             break;
           case "error":
             isResolved = true;
-            reject(event.data.error);
+            reject(event.data);
             break;
           default:
             this._log(`Unknown event: ${event.action}`);
