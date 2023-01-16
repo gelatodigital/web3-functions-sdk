@@ -262,7 +262,7 @@ export class JsResolverRunner {
             break;
           case "error":
             isResolved = true;
-            reject(event.data);
+            reject(event.data.error);
             break;
           default:
             this._log(`Unknown event: ${event.action}`);
