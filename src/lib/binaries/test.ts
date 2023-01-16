@@ -108,6 +108,16 @@ export default async function test() {
   // Run JsResolver
   console.log(`\nJsResolver running${showLogs ? " logs:" : "..."}`);
   const res = await runner.run({ script, context, options, provider });
+
+  // Show storage update
+  if (res.storage?.state === "updated") {
+    console.log(`\nJsResolver Storage updated:`);
+    Object.entries(res.storage.storage).forEach(([key, value]) =>
+      console.log(` ${OK} ${key}: ${colors.green(`'${value}'`)}`)
+    );
+  }
+
+  // Show JsResolver result
   console.log(`\nJsResolver Result:`);
   if (res.success) {
     console.log(` ${OK} Return value:`, res.result);
