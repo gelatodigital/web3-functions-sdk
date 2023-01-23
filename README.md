@@ -117,6 +117,7 @@ Use `yarn upload FILENAME` command to upload your resolver.
 
 ```
 > yarn upload ./src/resolvers/index.ts
+```
 
 ## Use User arguments
 1. Declare your expected `userArgs` in you schema, accepted types are 'string', 'string[]', 'number', 'number[]', 'boolean', 'boolean[]':
@@ -155,6 +156,51 @@ To pass array argument (eg `string[]`), you can use:
 --user-args=arr:\[\"a\"\,\"b\"\]
 ```
 
+## Use State / Storage
+
+JsResolvers are stateless scripts, that will run in a new & empty memory context on every execution.
+If you need to manage some state variable, we provide a simple key/value store that you can access from your resolver `context`.
+
+See the above example to read & update values from your storage:
+
+```typescript
+import {
+  JsResolverSdk,
+  JsResolverContext,
+} from "@gelatonetwork/js-resolver-sdk";
+
+JsResolverSdk.onChecker(async (context: JsResolverContext) => {
+  const { storage, provider } = context;
+
+  // Use storage to retrieve previous state (stored values are always string)
+  const lastBlockStr = (await storage.get("lastBlockNumber")) ?? "0";
+  const lastBlock = parseInt(lastBlockStr);
+  console.log(`Last block: ${lastBlock}`);
+
+  const newBlock = await provider.getBlockNumber();
+  console.log(`New block: ${newBlock}`);
+  if (newBlock > lastBlock) {
+    // Update storage to persist your current state (values must be cast to string)
+    await storage.set("lastBlockNumber", newBlock.toString());
+  }
+
+  return {
+    canExec: false,
+    message: `Updated block number: ${newBlock.toString()}`,
+  };
+});
+```
+
+Test storage execution:
+```
+yarn test src/resolvers/storage/index.ts --show-logs
+```
+
+You will see your updated key/values:
+```
+JsResolver Storage updated:
+ ✓ lastBlockNumber: '8321923'
+```
 
 ## Benchmark / Load testing
 
