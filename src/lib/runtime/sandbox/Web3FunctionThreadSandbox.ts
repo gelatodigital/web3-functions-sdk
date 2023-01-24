@@ -29,14 +29,14 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
       env: { WEB3_FUNCTION_SERVER_PORT: serverPort.toString() },
     });
 
-    let processExitCodeResolver;
+    let processExitCodeFunction;
     this._processExitCode = new Promise((resolve) => {
-      processExitCodeResolver = resolve;
+      processExitCodeFunction = resolve;
     });
 
     this._thread.on("close", (code: number, signal: string) => {
       this._log(`Thread exited with code=${code} signal=${signal}`);
-      processExitCodeResolver(code);
+      processExitCodeFunction(code);
     });
     this._thread.stdout.on("data", this._onStdoutData.bind(this));
     this._thread.stderr.on("data", this._onStdoutData.bind(this));

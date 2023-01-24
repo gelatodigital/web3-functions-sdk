@@ -10,7 +10,7 @@ import { Web3FunctionSchema } from "../types";
 const OPS_USER_API =
   process.env.OPS_USER_API ?? "https://api.gelato.digital/automate/users";
 export class Web3FunctionUploader {
-  public static async uploadResolver(
+  public static async upload(
     schemaPath: string,
     filePath: string,
     sourcePath: string
@@ -30,7 +30,7 @@ export class Web3FunctionUploader {
     }
   }
 
-  public static async fetchResolver(
+  public static async fetch(
     cid: string,
     destDir = "./.tmp"
   ): Promise<string> {
@@ -148,7 +148,7 @@ export class Web3FunctionUploader {
     try {
       const { dir, name } = path.parse(input);
 
-      // rename directory to ipfs cid of resolver if possible.
+      // rename directory to ipfs cid of web3Function if possible.
       const cidDirectory = `${dir}/${name}`;
       if (!fs.existsSync(cidDirectory)) {
         fs.mkdirSync(cidDirectory, { recursive: true });
@@ -159,7 +159,7 @@ export class Web3FunctionUploader {
       // remove tar file
       fs.rmSync(input, { recursive: true });
 
-      // move resolver & schema to root ipfs cid directory
+      // move web3Function & schema to root ipfs cid directory
       fs.renameSync(
         `${cidDirectory}/web3Function/schema.json`,
         `${cidDirectory}/schema.json`
@@ -191,7 +191,7 @@ export class Web3FunctionUploader {
 
   public static async fetchSchema(cid: string): Promise<Web3FunctionSchema> {
     try {
-      const web3FunctionPath = await Web3FunctionUploader.fetchResolver(cid);
+      const web3FunctionPath = await Web3FunctionUploader.fetch(cid);
 
       const { dir, schemaPath } = await Web3FunctionUploader.extract(
         web3FunctionPath

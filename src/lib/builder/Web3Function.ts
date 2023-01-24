@@ -32,7 +32,7 @@ export class Web3FunctionBuilder {
     const buildRes = await Web3FunctionBuilder.build(input);
     if (!buildRes.success) throw buildRes.error;
 
-    return await Web3FunctionUploader.uploadResolver(
+    return await Web3FunctionUploader.upload(
       buildRes.schemaPath,
       buildRes.filePath,
       buildRes.sourcePath

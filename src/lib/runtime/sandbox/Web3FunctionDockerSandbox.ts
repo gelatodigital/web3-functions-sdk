@@ -54,8 +54,8 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
     args.push(`--no-npm`);
     args.push(`--no-remote`);
     args.push(`--v8-flags=--max-old-space-size=${this._memoryLimit}`);
-    args.push(`/resolver/${script}`);
-    const resolverPath = process.cwd() + "/.tmp/";
+    args.push(`/web3Function/${script}`);
+    const web3FunctionPath = process.cwd() + "/.tmp/";
 
     // See docker create options:
     // https://docs.docker.com/engine/api/v1.37/#tag/Container/operation/ContainerCreate
@@ -65,7 +65,7 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
       },
       Env: [`WEB3_FUNCTION_SERVER_PORT=${serverPort.toString()}`],
       Hostconfig: {
-        Binds: [`${resolverPath}:/resolver/.tmp`],
+        Binds: [`${web3FunctionPath}:/web3Function/.tmp`],
         PortBindings: {
           [`${serverPort.toString()}/tcp`]: [
             { HostPort: `${serverPort.toString()}` },
@@ -80,9 +80,9 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
       Image: this._denoImage,
     };
 
-    let processExitCodeResolver;
+    let processExitCodeFunction;
     this._processExitCode = new Promise((resolve) => {
-      processExitCodeResolver = resolve;
+      processExitCodeFunction = resolve;
     });
 
     await this._createImageIfMissing(this._denoImage);
@@ -98,10 +98,10 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
       try {
         // Container has stopped
         const status = await this._container?.wait();
-        processExitCodeResolver(status.StatusCode);
+        processExitCodeFunction(status.StatusCode);
         this._log(`Container exited with code=${status.StatusCode}`);
       } catch (err) {
-        processExitCodeResolver(1);
+        processExitCodeFunction(1);
         this._log(`Unable to get container exit code, error: ${err.message}`);
       }
     });
