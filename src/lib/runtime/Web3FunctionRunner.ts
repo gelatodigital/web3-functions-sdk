@@ -1,20 +1,23 @@
 import { performance } from "perf_hooks";
 import { JsResolverNetHelper } from "../net/Web3FunctionNetHelper";
 import { JsResolverHttpClient } from "../net/Web3FunctionHttpClient";
-import { JsResolverContextData } from "../types/Web3FunctionContext";
-import { JsResolverEvent, JsResolverStorage } from "../types/Web3FunctionEvent";
+import { Web3FunctionContextData } from "../types/Web3FunctionContext";
+import {
+  Web3FunctionEvent,
+  Web3FunctionStorage,
+} from "../types/Web3FunctionEvent";
 import { JsResolverAbstractSandbox } from "./sandbox/Web3FunctionAbstractSandbox";
 import { JsResolverDockerSandbox } from "./sandbox/Web3FunctionDockerSandbox";
 import { JsResolverThreadSandbox } from "./sandbox/Web3FunctionThreadSandbox";
 import {
-  JsResolverExec,
-  JsResolverRunnerPayload,
-  JsResolverRunnerOptions,
+  Web3FunctionExec,
+  Web3FunctionRunnerPayload,
+  Web3FunctionRunnerOptions,
 } from "./types";
 import {
-  JsResolverResult,
-  JsResolverUserArgs,
-  JsResolverUserArgsSchema,
+  Web3FunctionResult,
+  Web3FunctionUserArgs,
+  Web3FunctionUserArgsSchema,
 } from "../types";
 import { JsResolverProxyProvider } from "../provider/Web3FunctionProxyProvider";
 import { ethers } from "ethers";
@@ -35,10 +38,10 @@ export class JsResolverRunner {
   }
 
   public async validateUserArgs(
-    userArgsSchema: JsResolverUserArgsSchema,
+    userArgsSchema: Web3FunctionUserArgsSchema,
     inputUserArgs: { [key: string]: string }
-  ): Promise<JsResolverUserArgs> {
-    const typedUserArgs: JsResolverUserArgs = {};
+  ): Promise<Web3FunctionUserArgs> {
+    const typedUserArgs: Web3FunctionUserArgs = {};
     for (const key in userArgsSchema) {
       const value = inputUserArgs[key];
       if (typeof value === "undefined") {
@@ -129,7 +132,9 @@ export class JsResolverRunner {
     return typedUserArgs;
   }
 
-  public async run(payload: JsResolverRunnerPayload): Promise<JsResolverExec> {
+  public async run(
+    payload: Web3FunctionRunnerPayload
+  ): Promise<Web3FunctionExec> {
     const start = performance.now();
     let success;
     let result;
@@ -183,10 +188,10 @@ export class JsResolverRunner {
 
   private async _runInSandbox(
     script: string,
-    context: JsResolverContextData,
-    options: JsResolverRunnerOptions,
+    context: Web3FunctionContextData,
+    options: Web3FunctionRunnerOptions,
     provider: ethers.providers.StaticJsonRpcProvider
-  ): Promise<{ result: JsResolverResult; storage: JsResolverStorage }> {
+  ): Promise<{ result: Web3FunctionResult; storage: Web3FunctionStorage }> {
     const SandBoxClass =
       options.runtime === "thread"
         ? JsResolverThreadSandbox
@@ -253,7 +258,7 @@ export class JsResolverRunner {
           this._log(`Error stopping sandbox: ${err.message}`);
         }
       });
-      this._client?.on("output_event", (event: JsResolverEvent) => {
+      this._client?.on("output_event", (event: Web3FunctionEvent) => {
         this._log(`Received event: ${event.action}`);
         switch (event.action) {
           case "result":

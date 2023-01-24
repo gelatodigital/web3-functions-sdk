@@ -1,6 +1,6 @@
 import { BigNumber, ethers } from "ethers";
-import { JsResolverUserArgs } from "./Web3FunctionUserArgs";
-export interface JsResolverContextData {
+import { Web3FunctionUserArgs } from "./Web3FunctionUserArgs";
+export interface Web3FunctionContextData {
   gelatoArgs: {
     blockTime: number;
     chainId: number;
@@ -8,12 +8,12 @@ export interface JsResolverContextData {
     taskId?: string;
   };
   rpcProviderUrl?: string;
-  userArgs: JsResolverUserArgs;
+  userArgs: Web3FunctionUserArgs;
   secrets: { [key: string]: string | undefined };
   storage: { [key: string]: string | undefined };
 }
 
-export interface JsResolverContext {
+export interface Web3FunctionContext {
   gelatoArgs: {
     blockTime: number;
     chainId: number;
@@ -21,7 +21,7 @@ export interface JsResolverContext {
     taskId?: string;
   };
   provider: ethers.providers.StaticJsonRpcProvider;
-  userArgs: JsResolverUserArgs;
+  userArgs: Web3FunctionUserArgs;
   secrets: {
     get(key: string): Promise<string | undefined>;
   };

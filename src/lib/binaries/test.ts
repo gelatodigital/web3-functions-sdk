@@ -1,6 +1,6 @@
 import "dotenv/config";
 import colors from "colors/safe";
-import { JsResolverContextData } from "../types";
+import { Web3FunctionContextData } from "../types";
 import { JsResolverRunner } from "../runtime";
 import { JsResolverBuilder } from "../builder";
 import { ethers } from "ethers";
@@ -60,7 +60,7 @@ export default async function test() {
   }
 
   // Prepare mock content for test
-  const context: JsResolverContextData = {
+  const context: Web3FunctionContextData = {
     secrets: {},
     storage: {},
     gelatoArgs: {

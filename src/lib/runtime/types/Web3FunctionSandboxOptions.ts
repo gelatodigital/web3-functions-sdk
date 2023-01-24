@@ -1,3 +1,3 @@
-export interface JsResolverSandboxOptions {
+export interface Web3FunctionSandboxOptions {
   memoryLimit: number;
 }

@@ -1,17 +1,20 @@
 import { BigNumber, ethers } from "ethers";
 import { JsResolverHttpServer } from "./net/Web3FunctionHttpServer";
 import {
-  JsResolverContext,
-  JsResolverContextData,
+  Web3FunctionContext,
+  Web3FunctionContextData,
 } from "./types/Web3FunctionContext";
-import { JsResolverResult } from "./types/Web3FunctionResult";
-import { JsResolverEvent, JsResolverStorage } from "./types/Web3FunctionEvent";
+import { Web3FunctionResult } from "./types/Web3FunctionResult";
+import {
+  Web3FunctionEvent,
+  Web3FunctionStorage,
+} from "./types/Web3FunctionEvent";
 import objectHash = require("object-hash");
 export class JsResolverSdk {
   private static Instance?: JsResolverSdk;
   private static _debug = false;
   private _server: JsResolverHttpServer;
-  private _checker?: (ctx: JsResolverContext) => Promise<JsResolverResult>;
+  private _checker?: (ctx: Web3FunctionContext) => Promise<Web3FunctionResult>;
 
   constructor() {
     const port = Number(Deno.env.get("JS_RESOLVER_SERVER_PORT") ?? 80);
@@ -22,10 +25,10 @@ export class JsResolverSdk {
     );
   }
 
-  private async _onEvent(event: JsResolverEvent): Promise<JsResolverEvent> {
+  private async _onEvent(event: Web3FunctionEvent): Promise<Web3FunctionEvent> {
     switch (event?.action) {
       case "start": {
-        let storage: JsResolverStorage = {
+        let storage: Web3FunctionStorage = {
           state: "last",
           storage: { ...event.data.context.storage },
         };
@@ -77,11 +80,11 @@ export class JsResolverSdk {
     }
   }
 
-  private async _runChecker(ctxData: JsResolverContextData) {
+  private async _runChecker(ctxData: Web3FunctionContextData) {
     if (!this._checker)
       throw new Error("JsResolver.onChecker function is not registered");
 
-    const context: JsResolverContext = {
+    const context: Web3FunctionContext = {
       gelatoArgs: {
         ...ctxData.gelatoArgs,
         gasPrice: BigNumber.from(ctxData.gelatoArgs.gasPrice),
@@ -103,7 +106,7 @@ export class JsResolverSdk {
         },
         set: async (key: string, value: string) => {
           if (typeof value !== "string") {
-            throw new Error("JsResolverStorageError: value must be a string");
+            throw new Error("Web3FunctionStorageError: value must be a string");
           }
           JsResolverSdk._log(`storage.set(${key},${value})`);
           ctxData.storage[key] = value;
@@ -134,7 +137,7 @@ export class JsResolverSdk {
   }
 
   static onChecker(
-    checker: (ctx: JsResolverContext) => Promise<JsResolverResult>
+    checker: (ctx: Web3FunctionContext) => Promise<Web3FunctionResult>
   ): void {
     JsResolverSdk._log("Registering checker function");
     JsResolverSdk.getInstance()._checker = checker;

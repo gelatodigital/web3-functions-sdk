@@ -1,7 +1,7 @@
 import { ethers } from "ethers";
-import { JsResolverContextData } from "../../types/Web3FunctionContext";
+import { Web3FunctionContextData } from "../../types/Web3FunctionContext";
 
-export interface JsResolverRunnerOptions {
+export interface Web3FunctionRunnerOptions {
   memory: number;
   timeout: number;
   runtime: "thread" | "docker";
@@ -9,9 +9,9 @@ export interface JsResolverRunnerOptions {
   serverPort?: number;
 }
 
-export interface JsResolverRunnerPayload {
+export interface Web3FunctionRunnerPayload {
   script: string;
-  context: JsResolverContextData;
-  options: JsResolverRunnerOptions;
+  context: Web3FunctionContextData;
+  options: Web3FunctionRunnerOptions;
   provider: ethers.providers.StaticJsonRpcProvider;
 }

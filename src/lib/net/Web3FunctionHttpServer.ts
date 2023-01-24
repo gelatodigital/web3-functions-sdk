@@ -1,15 +1,17 @@
-import { JsResolverEvent } from "../types/Web3FunctionEvent";
+import { Web3FunctionEvent } from "../types/Web3FunctionEvent";
 
 export class JsResolverHttpServer {
   private _server: any; //http.Server;
-  private _eventHandler: (event: JsResolverEvent) => Promise<JsResolverEvent>;
+  private _eventHandler: (
+    event: Web3FunctionEvent
+  ) => Promise<Web3FunctionEvent>;
   private _port: number;
   private _debug: boolean;
 
   constructor(
     port: number,
     debug: boolean,
-    eventHandler: (event: JsResolverEvent) => Promise<JsResolverEvent>
+    eventHandler: (event: Web3FunctionEvent) => Promise<Web3FunctionEvent>
   ) {
     this._debug = debug;
     this._port = port;

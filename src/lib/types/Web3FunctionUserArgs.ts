@@ -1,3 +1,3 @@
-export interface JsResolverUserArgs {
+export interface Web3FunctionUserArgs {
   [key: string]: string | number | boolean | string[] | number[] | boolean[];
 }

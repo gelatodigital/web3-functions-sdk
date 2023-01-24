@@ -2,7 +2,7 @@ import { performance } from "perf_hooks";
 import axios from "axios";
 import { setTimeout as delay } from "timers/promises";
 import { EventEmitter } from "stream";
-import { JsResolverEvent } from "../types/Web3FunctionEvent";
+import { Web3FunctionEvent } from "../types/Web3FunctionEvent";
 export class JsResolverHttpClient extends EventEmitter {
   private _debug: boolean;
   private _host: string;
@@ -43,7 +43,7 @@ export class JsResolverHttpClient extends EventEmitter {
     }
   }
 
-  private async _safeSend(event: JsResolverEvent) {
+  private async _safeSend(event: Web3FunctionEvent) {
     try {
       await this._send(event);
     } catch (error) {
@@ -51,7 +51,7 @@ export class JsResolverHttpClient extends EventEmitter {
     }
   }
 
-  private async _send(event: JsResolverEvent) {
+  private async _send(event: Web3FunctionEvent) {
     let res;
     try {
       res = await axios.post(`${this._host}:${this._port}`, event);
@@ -59,8 +59,8 @@ export class JsResolverHttpClient extends EventEmitter {
       throw new Error(`JsResolverHttpClient request error: ${err.message}`);
     }
     try {
-      const event = res.data as JsResolverEvent;
-      this._log(`Received JsResolverEvent: ${event.action}`);
+      const event = res.data as Web3FunctionEvent;
+      this._log(`Received Web3FunctionEvent: ${event.action}`);
       this.emit("output_event", event);
     } catch (err) {
       this._log(`Error parsing message: ${err.message}`);

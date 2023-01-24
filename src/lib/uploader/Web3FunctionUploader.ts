@@ -5,7 +5,7 @@ import path from "node:path";
 import tar from "tar";
 import FormData from "form-data";
 import axios from "axios";
-import { JsResolverSchema } from "../types";
+import { Web3FunctionSchema } from "../types";
 
 const OPS_USER_API =
   process.env.OPS_USER_API ?? "https://api.gelato.digital/automate/users";
@@ -186,7 +186,7 @@ export class JsResolverUploader {
     }
   }
 
-  public static async fetchSchema(cid: string): Promise<JsResolverSchema> {
+  public static async fetchSchema(cid: string): Promise<Web3FunctionSchema> {
     try {
       const jsResolverPath = await JsResolverUploader.fetchResolver(cid);
 

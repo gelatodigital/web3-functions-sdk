@@ -1,22 +1,22 @@
-import { JsResolverStorage } from "../../types";
-import { JsResolverResult } from "../../types/Web3FunctionResult";
+import { Web3FunctionStorage } from "../../types";
+import { Web3FunctionResult } from "../../types/Web3FunctionResult";
 
-type JsResolverExecStats = {
+type Web3FunctionExecStats = {
   duration: number;
   memory: number;
   rpcCalls: { total: number; throttled: number };
   logs: string[];
-  storage: JsResolverStorage;
+  storage: Web3FunctionStorage;
 };
 
-type JsResolverExecSuccess = JsResolverExecStats & {
+type Web3FunctionExecSuccess = Web3FunctionExecStats & {
   success: true;
-  result: JsResolverResult;
+  result: Web3FunctionResult;
 };
 
-type JsResolverExecFail = JsResolverExecStats & {
+type Web3FunctionExecFail = Web3FunctionExecStats & {
   success: false;
   error: Error;
 };
 
-export type JsResolverExec = JsResolverExecSuccess | JsResolverExecFail;
+export type Web3FunctionExec = Web3FunctionExecSuccess | Web3FunctionExecFail;

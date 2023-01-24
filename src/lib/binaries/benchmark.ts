@@ -4,9 +4,9 @@ import { setTimeout as delay } from "timers/promises";
 import { performance } from "perf_hooks";
 import { ethers } from "ethers";
 
-import { JsResolverContextData } from "../types";
+import { Web3FunctionContextData } from "../types";
 import {
-  JsResolverExec,
+  Web3FunctionExec,
   JsResolverRunnerPool,
   JsResolverRunner,
 } from "../runtime";
@@ -65,7 +65,7 @@ export default async function benchmark() {
   }
 
   // Prepare mock content for test
-  const context: JsResolverContextData = {
+  const context: Web3FunctionContextData = {
     secrets: {},
     storage: {},
     gelatoArgs: {
@@ -112,7 +112,7 @@ export default async function benchmark() {
   );
   const runner = new JsResolverRunnerPool(pool, debug);
   await runner.init();
-  const promises: Promise<JsResolverExec>[] = [];
+  const promises: Promise<Web3FunctionExec>[] = [];
   for (let i = 0; i < load; i++) {
     console.log(`#${i} Queuing JsResolver`);
     promises.push(runner.run({ script, context, options, provider }));

@@ -1,6 +1,6 @@
 import { EventEmitter } from "node:stream";
 import colors from "colors/safe";
-import { JsResolverSandboxOptions } from "../types";
+import { Web3FunctionSandboxOptions } from "../types";
 
 export abstract class JsResolverAbstractSandbox extends EventEmitter {
   protected _memoryLimit: number;
@@ -11,7 +11,7 @@ export abstract class JsResolverAbstractSandbox extends EventEmitter {
   protected _logs: string[] = [];
 
   constructor(
-    options: JsResolverSandboxOptions,
+    options: Web3FunctionSandboxOptions,
     showStdout = true,
     debug = true
   ) {

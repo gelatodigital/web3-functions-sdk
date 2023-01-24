@@ -4,7 +4,7 @@ import esbuild from "esbuild";
 import Ajv from "ajv";
 import * as jsResolverSchema from "./web3function.schema.json";
 import path from "node:path";
-import { JsResolverSchema } from "../types";
+import { Web3FunctionSchema } from "../types";
 import { JsResolverUploader } from "../uploader";
 const ajv = new Ajv({ messages: true, allErrors: true });
 const jsResolverSchemaValidator = ajv.compile(jsResolverSchema);
@@ -17,7 +17,7 @@ export type JsResolverBuildResult =
       schemaPath: string;
       fileSize: number;
       buildTime: number;
-      schema: JsResolverSchema;
+      schema: Web3FunctionSchema;
     }
   | { success: false; error: Error };
 
@@ -110,7 +110,7 @@ export class JsResolverBuilder {
 
   public static async _validateSchema(
     input: string
-  ): Promise<JsResolverSchema> {
+  ): Promise<Web3FunctionSchema> {
     const hasSchema = fs.existsSync(input);
     if (!hasSchema) {
       throw new Error(
@@ -166,6 +166,6 @@ Please create 'schema.json', default:
       }
       throw new Error(`JsResolverSchemaError: invalid ${input} ${errorParts}`);
     }
-    return schemaBody as JsResolverSchema;
+    return schemaBody as Web3FunctionSchema;
   }
 }

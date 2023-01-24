@@ -1,12 +1,12 @@
-export interface JsResolverSchema {
-  jsResolverVersion: string;
+export interface Web3FunctionSchema {
+  web3FunctionVersion: string;
   runtime: string;
   memory: number;
   timeout: number;
-  userArgs: JsResolverUserArgsSchema;
+  userArgs: Web3FunctionUserArgsSchema;
 }
 
-export interface JsResolverUserArgsSchema {
+export interface Web3FunctionUserArgsSchema {
   [key: string]:
     | "string"
     | "number"

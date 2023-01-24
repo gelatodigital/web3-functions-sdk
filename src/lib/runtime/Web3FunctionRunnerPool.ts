@@ -1,5 +1,5 @@
 import { JsResolverNetHelper } from "../net/Web3FunctionNetHelper";
-import { JsResolverExec, JsResolverRunnerPayload } from "./types";
+import { Web3FunctionExec, Web3FunctionRunnerPayload } from "./types";
 import { JsResolverRunner } from "./Web3FunctionRunner";
 
 export class JsResolverRunnerPool {
@@ -20,13 +20,15 @@ export class JsResolverRunnerPool {
     );
   }
 
-  public async run(payload: JsResolverRunnerPayload): Promise<JsResolverExec> {
+  public async run(
+    payload: Web3FunctionRunnerPayload
+  ): Promise<Web3FunctionExec> {
     return this._enqueueAndWait(payload);
   }
 
   private async _enqueueAndWait(
-    payload: JsResolverRunnerPayload
-  ): Promise<JsResolverExec> {
+    payload: Web3FunctionRunnerPayload
+  ): Promise<Web3FunctionExec> {
     return new Promise((resolve, reject) => {
       this._queuedRunners.push(async (): Promise<void> => {
         this._activeRunners = this._activeRunners + 1;
