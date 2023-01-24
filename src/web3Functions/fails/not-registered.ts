@@ -1,5 +1,5 @@
-import { JsResolverContext } from "@gelatonetwork/js-resolver-sdk";
+import { Web3FunctionContext } from "@gelatonetwork/js-resolver-sdk";
 
-const main = async (context: JsResolverContext) => {
+const main = async (context: Web3FunctionContext) => {
   return { canExec: false, message: "Sandbox escaped timeout" };
 };

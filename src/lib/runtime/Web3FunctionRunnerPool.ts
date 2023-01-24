@@ -1,8 +1,8 @@
-import { JsResolverNetHelper } from "../net/Web3FunctionNetHelper";
+import { Web3FunctionNetHelper } from "../net/Web3FunctionNetHelper";
 import { Web3FunctionExec, Web3FunctionRunnerPayload } from "./types";
-import { JsResolverRunner } from "./Web3FunctionRunner";
+import { Web3FunctionRunner } from "./Web3FunctionRunner";
 
-export class JsResolverRunnerPool {
+export class Web3FunctionRunnerPool {
   private _poolSize: number;
   private _queuedRunners: (() => Promise<void>)[] = [];
   private _activeRunners = 0;
@@ -15,7 +15,7 @@ export class JsResolverRunnerPool {
   }
 
   public async init() {
-    this._tcpPortsAvailable = await JsResolverNetHelper.getAvailablePorts(
+    this._tcpPortsAvailable = await Web3FunctionNetHelper.getAvailablePorts(
       this._poolSize
     );
   }
@@ -35,9 +35,9 @@ export class JsResolverRunnerPool {
         const port = this._tcpPortsAvailable.pop();
         try {
           this._log(
-            `Starting JsResolverRunner, active=${this._activeRunners} port=${port}`
+            `Starting Web3FunctionRunner, active=${this._activeRunners} port=${port}`
           );
-          const runner = new JsResolverRunner(this._debug);
+          const runner = new Web3FunctionRunner(this._debug);
           payload.options.serverPort = port;
           const exec = await runner.run(payload);
           resolve(exec);
@@ -66,6 +66,6 @@ export class JsResolverRunnerPool {
   }
 
   private _log(message: string) {
-    if (this._debug) console.log(`JsResolverRunnerPool: ${message}`);
+    if (this._debug) console.log(`Web3FunctionRunnerPool: ${message}`);
   }
 }

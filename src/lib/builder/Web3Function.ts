@@ -2,14 +2,14 @@ import fs from "node:fs";
 import { performance } from "perf_hooks";
 import esbuild from "esbuild";
 import Ajv from "ajv";
-import * as jsResolverSchema from "./web3function.schema.json";
+import * as web3FunctionSchema from "./web3function.schema.json";
 import path from "node:path";
 import { Web3FunctionSchema } from "../types";
-import { JsResolverUploader } from "../uploader";
+import { Web3FunctionUploader } from "../uploader";
 const ajv = new Ajv({ messages: true, allErrors: true });
-const jsResolverSchemaValidator = ajv.compile(jsResolverSchema);
+const web3FunctionSchemaValidator = ajv.compile(web3FunctionSchema);
 
-export type JsResolverBuildResult =
+export type Web3FunctionBuildResult =
   | {
       success: true;
       filePath: string;
@@ -21,18 +21,18 @@ export type JsResolverBuildResult =
     }
   | { success: false; error: Error };
 
-export class JsResolverBuilder {
+export class Web3FunctionBuilder {
   /**
-   * Helper function to build and publish JsResolver to IPFS
+   * Helper function to build and publish Web3Function to IPFS
    *
-   * @param input jsResolverFilePath
-   * @returns string CID: JsResolver IPF hash
+   * @param input web3FunctionFilePath
+   * @returns string CID: Web3Function IPFS hash
    */
   public static async deploy(input: string): Promise<string> {
-    const buildRes = await JsResolverBuilder.build(input);
+    const buildRes = await Web3FunctionBuilder.build(input);
     if (!buildRes.success) throw buildRes.error;
 
-    return await JsResolverUploader.uploadResolver(
+    return await Web3FunctionUploader.uploadResolver(
       buildRes.schemaPath,
       buildRes.filePath,
       buildRes.sourcePath
@@ -40,7 +40,7 @@ export class JsResolverBuilder {
   }
 
   private static async _buildBundle(input: string, outfile: string) {
-    // Build & bundle js resolver
+    // Build & bundle web3Function
     const options: esbuild.BuildOptions = {
       bundle: true,
       entryPoints: [input],
@@ -76,19 +76,19 @@ export class JsResolverBuilder {
     debug = false,
     filePath = "./.tmp/index.js",
     sourcePath = "./.tmp/source.js"
-  ): Promise<JsResolverBuildResult> {
+  ): Promise<Web3FunctionBuildResult> {
     try {
       const start = performance.now();
       await Promise.all([
-        JsResolverBuilder._buildBundle(input, filePath),
-        JsResolverBuilder._buildSource(input, sourcePath),
+        Web3FunctionBuilder._buildBundle(input, filePath),
+        Web3FunctionBuilder._buildSource(input, sourcePath),
       ]);
       const buildTime = performance.now() - start; // in ms
 
       const stats = fs.statSync(filePath);
       const fileSize = stats.size / 1024 / 1024; // size in mb
       const schemaPath = path.join(path.parse(input).dir, "schema.json");
-      const schema = await JsResolverBuilder._validateSchema(schemaPath);
+      const schema = await Web3FunctionBuilder._validateSchema(schemaPath);
 
       return {
         success: true,
@@ -114,10 +114,10 @@ export class JsResolverBuilder {
     const hasSchema = fs.existsSync(input);
     if (!hasSchema) {
       throw new Error(
-        `JsResolverSchemaError: Missing JsResolver schema at '${input}'
+        `Web3FunctionSchemaError: Missing Web3Function schema at '${input}'
 Please create 'schema.json', default: 
 {
-  "jsResolverVersion": "1.0.0",
+  "web3FunctionVersion": "1.0.0",
   "runtime": "js-1.0",
   "memory": 128,
   "timeout": 60,
@@ -131,7 +131,7 @@ Please create 'schema.json', default:
       schemaContent = fs.readFileSync(input).toString();
     } catch (err) {
       throw new Error(
-        `JsResolverSchemaError: Unable to read JsResolver schema at '${input}', ${err.message}`
+        `Web3FunctionSchemaError: Unable to read Web3Function schema at '${input}', ${err.message}`
       );
     }
 
@@ -140,15 +140,15 @@ Please create 'schema.json', default:
       schemaBody = JSON.parse(schemaContent);
     } catch (err) {
       throw new Error(
-        `JsResolverSchemaError: Invalid json schema at '${input}', ${err.message}`
+        `Web3FunctionSchemaError: Invalid json schema at '${input}', ${err.message}`
       );
     }
 
-    const res = jsResolverSchemaValidator(schemaBody);
+    const res = web3FunctionSchemaValidator(schemaBody);
     if (!res) {
       let errorParts = "";
-      if (jsResolverSchemaValidator.errors) {
-        errorParts = jsResolverSchemaValidator.errors
+      if (web3FunctionSchemaValidator.errors) {
+        errorParts = web3FunctionSchemaValidator.errors
           .map((validationErr) => {
             let msg = `\n - `;
             if (validationErr.instancePath) {
@@ -164,7 +164,9 @@ Please create 'schema.json', default:
           })
           .join();
       }
-      throw new Error(`JsResolverSchemaError: invalid ${input} ${errorParts}`);
+      throw new Error(
+        `Web3FunctionSchemaError: invalid ${input} ${errorParts}`
+      );
     }
     return schemaBody as Web3FunctionSchema;
   }

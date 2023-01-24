@@ -1,6 +1,6 @@
 import { Web3FunctionEvent } from "../types/Web3FunctionEvent";
 
-export class JsResolverHttpServer {
+export class Web3FunctionHttpServer {
   private _server: any; //http.Server;
   private _eventHandler: (
     event: Web3FunctionEvent
@@ -44,7 +44,7 @@ export class JsResolverHttpServer {
   }
 
   private _log(message: string) {
-    if (this._debug) console.log(`JsResolverHttpServer: ${message}`);
+    if (this._debug) console.log(`Web3FunctionHttpServer: ${message}`);
   }
 
   public close() {

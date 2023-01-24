@@ -1,9 +1,9 @@
 import {
-  JsResolverSdk,
-  JsResolverContext,
+  Web3FunctionSdk,
+  Web3FunctionContext,
 } from "@gelatonetwork/js-resolver-sdk";
 
-JsResolverSdk.onChecker(async (context: JsResolverContext) => {
+Web3FunctionSdk.onChecker(async (context: Web3FunctionContext) => {
   const { storage, provider } = context;
 
   // Use storage to manage your execution state

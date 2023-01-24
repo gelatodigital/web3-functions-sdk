@@ -1,14 +1,14 @@
 import { performance } from "perf_hooks";
-import { JsResolverNetHelper } from "../net/Web3FunctionNetHelper";
-import { JsResolverHttpClient } from "../net/Web3FunctionHttpClient";
+import { Web3FunctionNetHelper } from "../net/Web3FunctionNetHelper";
+import { Web3FunctionHttpClient } from "../net/Web3FunctionHttpClient";
 import { Web3FunctionContextData } from "../types/Web3FunctionContext";
 import {
   Web3FunctionEvent,
   Web3FunctionStorage,
 } from "../types/Web3FunctionEvent";
-import { JsResolverAbstractSandbox } from "./sandbox/Web3FunctionAbstractSandbox";
-import { JsResolverDockerSandbox } from "./sandbox/Web3FunctionDockerSandbox";
-import { JsResolverThreadSandbox } from "./sandbox/Web3FunctionThreadSandbox";
+import { Web3FunctionAbstractSandbox } from "./sandbox/Web3FunctionAbstractSandbox";
+import { Web3FunctionDockerSandbox } from "./sandbox/Web3FunctionDockerSandbox";
+import { Web3FunctionThreadSandbox } from "./sandbox/Web3FunctionThreadSandbox";
 import {
   Web3FunctionExec,
   Web3FunctionRunnerPayload,
@@ -19,17 +19,17 @@ import {
   Web3FunctionUserArgs,
   Web3FunctionUserArgsSchema,
 } from "../types";
-import { JsResolverProxyProvider } from "../provider/Web3FunctionProxyProvider";
+import { Web3FunctionProxyProvider } from "../provider/Web3FunctionProxyProvider";
 import { ethers } from "ethers";
 
 const START_TIMEOUT = 5_000;
 
-export class JsResolverRunner {
+export class Web3FunctionRunner {
   private _debug: boolean;
   private _memory = 0;
-  private _proxyProvider?: JsResolverProxyProvider;
-  private _client?: JsResolverHttpClient;
-  private _sandbox?: JsResolverAbstractSandbox;
+  private _proxyProvider?: Web3FunctionProxyProvider;
+  private _client?: Web3FunctionHttpClient;
+  private _sandbox?: Web3FunctionAbstractSandbox;
   private _execTimeoutId?: NodeJS.Timeout;
   private _memoryIntervalId?: NodeJS.Timer;
 
@@ -45,7 +45,7 @@ export class JsResolverRunner {
     for (const key in userArgsSchema) {
       const value = inputUserArgs[key];
       if (typeof value === "undefined") {
-        throw new Error(`JsResolverSchemaError: Missing user arg '${key}'`);
+        throw new Error(`Web3FunctionSchemaError: Missing user arg '${key}'`);
       }
       const type = userArgsSchema[key];
       switch (type) {
@@ -60,7 +60,7 @@ export class JsResolverRunner {
               parsedValue.some((a) => typeof a !== "boolean")
             ) {
               throw new Error(
-                `JsResolverSchemaError: Invalid boolean[] value '${value}' for user arg '${key}' (use: '[true, false]')`
+                `Web3FunctionSchemaError: Invalid boolean[] value '${value}' for user arg '${key}' (use: '[true, false]')`
               );
             }
             typedUserArgs[key] = parsedValue;
@@ -82,7 +82,7 @@ export class JsResolverRunner {
               parsedValue.some((a) => typeof a !== "string")
             ) {
               throw new Error(
-                `JsResolverSchemaError: Invalid string[] value '${value}' for user arg '${key}' (use: '["a", "b"]')`
+                `Web3FunctionSchemaError: Invalid string[] value '${value}' for user arg '${key}' (use: '["a", "b"]')`
               );
             }
             typedUserArgs[key] = parsedValue;
@@ -99,7 +99,7 @@ export class JsResolverRunner {
             : parseInt(value);
           if (isNaN(parsedValue)) {
             throw new Error(
-              `JsResolverSchemaError: Invalid number value '${value}' for user arg '${key}'`
+              `Web3FunctionSchemaError: Invalid number value '${value}' for user arg '${key}'`
             );
           }
           typedUserArgs[key] = parsedValue;
@@ -113,7 +113,7 @@ export class JsResolverRunner {
               parsedValue.some((a) => typeof a !== "number")
             ) {
               throw new Error(
-                `JsResolverSchemaError: Invalid number[] value '${value}' for user arg '${key}' (use: '[1, 2]')`
+                `Web3FunctionSchemaError: Invalid number[] value '${value}' for user arg '${key}' (use: '[1, 2]')`
               );
             }
             typedUserArgs[key] = parsedValue;
@@ -125,7 +125,7 @@ export class JsResolverRunner {
           break;
         default:
           throw new Error(
-            `JsResolverSchemaError: Unrecognized type '${type}' for user arg '${key}'`
+            `Web3FunctionSchemaError: Unrecognized type '${type}' for user arg '${key}'`
           );
       }
     }
@@ -194,8 +194,8 @@ export class JsResolverRunner {
   ): Promise<{ result: Web3FunctionResult; storage: Web3FunctionStorage }> {
     const SandBoxClass =
       options.runtime === "thread"
-        ? JsResolverThreadSandbox
-        : JsResolverDockerSandbox;
+        ? Web3FunctionThreadSandbox
+        : Web3FunctionDockerSandbox;
     this._sandbox = new SandBoxClass(
       { memoryLimit: options.memory },
       options.showLogs ?? false,
@@ -203,21 +203,21 @@ export class JsResolverRunner {
     );
 
     const serverPort =
-      options.serverPort ?? (await JsResolverNetHelper.getAvailablePort());
+      options.serverPort ?? (await Web3FunctionNetHelper.getAvailablePort());
     try {
       this._log(`Sarting sandbox: ${script}`);
       await this._sandbox.start(script, serverPort);
     } catch (err) {
-      this._log(`Fail to start JsResolver in sandbox ${err.message}`);
-      throw new Error(`JsResolver failed to start sandbox: ${err.message}`);
+      this._log(`Fail to start Web3Function in sandbox ${err.message}`);
+      throw new Error(`Web3Function failed to start sandbox: ${err.message}`);
     }
 
     // Attach process exit handler to clean runtime environment
     process.on("SIGINT", this.stop.bind(this));
 
     // Proxy RPC provider
-    const proxyProviderPort = await JsResolverNetHelper.getAvailablePort();
-    this._proxyProvider = new JsResolverProxyProvider(
+    const proxyProviderPort = await Web3FunctionNetHelper.getAvailablePort();
+    this._proxyProvider = new Web3FunctionProxyProvider(
       options.runtime === "thread"
         ? "http://127.0.0.1"
         : "http://host.docker.internal",
@@ -231,7 +231,7 @@ export class JsResolverRunner {
     // Start monitoring memory usage
     this._monitorMemoryUsage();
 
-    this._client = new JsResolverHttpClient(
+    this._client = new Web3FunctionHttpClient(
       "http://0.0.0.0",
       serverPort,
       this._debug
@@ -239,9 +239,9 @@ export class JsResolverRunner {
     try {
       await this._client.connect(START_TIMEOUT);
     } catch (err) {
-      this._log(`Fail to connect to JsResolver ${err.message}`);
+      this._log(`Fail to connect to Web3Function ${err.message}`);
       throw new Error(
-        `JsResolver start-up timeout (${
+        `Web3Function start-up timeout (${
           START_TIMEOUT / 1000
         }s) \nMake sure you registered your checker function correctly in your script.`
       );
@@ -278,7 +278,7 @@ export class JsResolverRunner {
       this._execTimeoutId = setTimeout(() => {
         reject(
           new Error(
-            `JsResolver exceed execution timeout (${options.timeout / 1000}s)`
+            `Web3Function exceed execution timeout (${options.timeout / 1000}s)`
           )
         );
       }, options.timeout);
@@ -287,9 +287,11 @@ export class JsResolverRunner {
       this._sandbox?.waitForProcessEnd().then((signal: number) => {
         if (!isResolved)
           if (signal === 0) {
-            reject(new Error(`JsResolver exited without returning result`));
+            reject(new Error(`Web3Function exited without returning result`));
           } else {
-            reject(new Error(`JsResolver sandbox exited with code=${signal}`));
+            reject(
+              new Error(`Web3Function sandbox exited with code=${signal}`)
+            );
           }
       });
     });
@@ -318,6 +320,6 @@ export class JsResolverRunner {
   }
 
   private _log(message: string) {
-    if (this._debug) console.log(`JsResolverRunner: ${message}`);
+    if (this._debug) console.log(`Web3FunctionRunner: ${message}`);
   }
 }

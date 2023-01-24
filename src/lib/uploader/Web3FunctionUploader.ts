@@ -9,7 +9,7 @@ import { Web3FunctionSchema } from "../types";
 
 const OPS_USER_API =
   process.env.OPS_USER_API ?? "https://api.gelato.digital/automate/users";
-export class JsResolverUploader {
+export class Web3FunctionUploader {
   public static async uploadResolver(
     schemaPath: string,
     filePath: string,
@@ -26,7 +26,7 @@ export class JsResolverUploader {
 
       return cid;
     } catch (err) {
-      throw new Error(`JsResolverUploaderError: ${err.message}`);
+      throw new Error(`Web3FunctionUploaderError: ${err.message}`);
     }
   }
 
@@ -40,31 +40,31 @@ export class JsResolverUploader {
         responseType: "arraybuffer",
       });
 
-      // store jsResolver file in .tmp
-      let jsResolverPath: string;
+      // store web3Function file in .tmp
+      let web3FunctionPath: string;
 
-      const jsResolverFileName = `${cid}.tgz`;
-      const tempJsResolverPath = `.tmp/${jsResolverFileName}`;
+      const web3FunctionFileName = `${cid}.tgz`;
+      const tempWeb3FunctionPath = `.tmp/${web3FunctionFileName}`;
 
       if (!fs.existsSync(".tmp")) {
         fs.mkdirSync(".tmp", { recursive: true });
       }
 
-      await fsp.writeFile(tempJsResolverPath, res.data);
-      jsResolverPath = tempJsResolverPath;
+      await fsp.writeFile(tempWeb3FunctionPath, res.data);
+      web3FunctionPath = tempWeb3FunctionPath;
 
-      // store jsResolver to custom dir
+      // store web3Function to custom dir
       if (destDir !== "./.tmp") {
         if (!fs.existsSync(destDir)) {
           fs.mkdirSync(destDir, { recursive: true });
         }
 
-        const customJsResolverPath = `${destDir}/${jsResolverFileName}`;
-        await fsp.rename(jsResolverPath, customJsResolverPath);
-        jsResolverPath = customJsResolverPath;
+        const customWeb3FunctionPath = `${destDir}/${web3FunctionFileName}`;
+        await fsp.rename(web3FunctionPath, customWeb3FunctionPath);
+        web3FunctionPath = customWeb3FunctionPath;
       }
 
-      return jsResolverPath;
+      return web3FunctionPath;
     } catch (err) {
       let errMsg = `${err.message} `;
       if (axios.isAxiosError(err)) {
@@ -75,27 +75,27 @@ export class JsResolverUploader {
       }
 
       throw new Error(
-        `JsResolverUploaderError: Fetch JsResolver to ${destDir} failed. \n${errMsg}`
+        `Web3FunctionUploaderError: Fetch Web3Function to ${destDir} failed. \n${errMsg}`
       );
     }
   }
 
   public static async compress(
-    jsResolverBuildPath: string,
+    web3FunctionBuildPath: string,
     schemaPath: string,
     sourcePath: string
   ): Promise<string> {
     try {
-      await fsp.access(jsResolverBuildPath);
+      await fsp.access(web3FunctionBuildPath);
     } catch (err) {
       throw new Error(
-        `JsResolver build file not found at path. ${jsResolverBuildPath} \n${err.message}`
+        `Web3Function build file not found at path. ${web3FunctionBuildPath} \n${err.message}`
       );
     }
-    const { base } = path.parse(jsResolverBuildPath);
+    const { base } = path.parse(web3FunctionBuildPath);
 
     // create directory with index.js, source.js & schema.json
-    const folderCompressedName = `jsResolver`;
+    const folderCompressedName = `web3Function`;
     const folderCompressedPath = `.tmp/${folderCompressedName}`;
     const folderCompressedTar = `${folderCompressedPath}.tgz`;
 
@@ -104,7 +104,7 @@ export class JsResolverUploader {
     }
 
     // move files to directory
-    await fsp.rename(jsResolverBuildPath, `${folderCompressedPath}/index.js`);
+    await fsp.rename(web3FunctionBuildPath, `${folderCompressedPath}/index.js`);
     await fsp.rename(sourcePath, `${folderCompressedPath}/source.js`);
     try {
       await fsp.copyFile(schemaPath, `${folderCompressedPath}/schema.json`);
@@ -140,7 +140,7 @@ export class JsResolverUploader {
     dir: string;
     schemaPath: string;
     sourcePath: string;
-    jsResolverPath: string;
+    web3FunctionPath: string;
   }> {
     try {
       const { dir, name } = path.parse(input);
@@ -158,40 +158,40 @@ export class JsResolverUploader {
 
       // move resolver & schema to root ipfs cid directory
       fs.renameSync(
-        `${cidDirectory}/jsResolver/schema.json`,
+        `${cidDirectory}/web3Function/schema.json`,
         `${cidDirectory}/schema.json`
       );
       fs.renameSync(
-        `${cidDirectory}/jsResolver/index.js`,
+        `${cidDirectory}/web3Function/index.js`,
         `${cidDirectory}/index.js`
       );
       fs.renameSync(
-        `${cidDirectory}/jsResolver/source.js`,
+        `${cidDirectory}/web3Function/source.js`,
         `${cidDirectory}/source.js`
       );
 
-      // remove jsResolver directory
-      fs.rmSync(`${cidDirectory}/jsResolver`, { recursive: true });
+      // remove web3Function directory
+      fs.rmSync(`${cidDirectory}/web3Function`, { recursive: true });
 
       return {
         dir: `${cidDirectory}`,
         schemaPath: `${cidDirectory}/schema.json`,
         sourcePath: `${cidDirectory}/source.js`,
-        jsResolverPath: `${cidDirectory}/index.js`,
+        web3FunctionPath: `${cidDirectory}/index.js`,
       };
     } catch (err) {
       throw new Error(
-        `JsResolverUploaderError: Extract JsResolver from ${input} failed. \n${err.message}`
+        `Web3FunctionUploaderError: Extract Web3Function from ${input} failed. \n${err.message}`
       );
     }
   }
 
   public static async fetchSchema(cid: string): Promise<Web3FunctionSchema> {
     try {
-      const jsResolverPath = await JsResolverUploader.fetchResolver(cid);
+      const web3FunctionPath = await Web3FunctionUploader.fetchResolver(cid);
 
-      const { dir, schemaPath } = await JsResolverUploader.extract(
-        jsResolverPath
+      const { dir, schemaPath } = await Web3FunctionUploader.extract(
+        web3FunctionPath
       );
 
       const schema = JSON.parse(fs.readFileSync(schemaPath, "utf-8"));
@@ -201,7 +201,7 @@ export class JsResolverUploader {
       return schema;
     } catch (err) {
       throw new Error(
-        `JsResolverUploaderError: Get schema of ${cid} failed: \n${err.message}`
+        `Web3FunctionUploaderError: Get schema of ${cid} failed: \n${err.message}`
       );
     }
   }
@@ -211,7 +211,7 @@ export class JsResolverUploader {
       const form = new FormData();
       const file = fs.createReadStream(compressedPath);
 
-      form.append("title", "JsResolver");
+      form.append("title", "Web3Function");
       form.append("file", file);
 
       const res = await axios.post(`${OPS_USER_API}/users/js-resolver`, form, {

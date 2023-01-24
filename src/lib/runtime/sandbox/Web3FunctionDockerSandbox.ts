@@ -1,8 +1,8 @@
 /* eslint-disable no-empty */
 import Docker, { ImageInfo } from "dockerode";
-import { JsResolverAbstractSandbox } from "./Web3FunctionAbstractSandbox";
+import { Web3FunctionAbstractSandbox } from "./Web3FunctionAbstractSandbox";
 
-export class JsResolverDockerSandbox extends JsResolverAbstractSandbox {
+export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
   private _container?: Docker.Container;
   private _docker = new Docker();
   private _denoImage = "denoland/deno:alpine-1.28.1";

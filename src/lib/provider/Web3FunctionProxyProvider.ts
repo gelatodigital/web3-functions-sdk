@@ -10,7 +10,7 @@ export const SOFT_LIMIT = 5; // 5 rpc calls / second
 export const HARD_LIMIT = 10; // 10 rpc calls / second
 export const MAX_TIME_DIFFERENCE = 1_000;
 
-export class JsResolverProxyProvider {
+export class Web3FunctionProxyProvider {
   private _debug: boolean;
   private _host: string;
   private _port: number;
@@ -130,7 +130,7 @@ export class JsResolverProxyProvider {
   }
 
   private _log(message: string) {
-    if (this._debug) console.log(`JsResolverProxyProvider: ${message}`);
+    if (this._debug) console.log(`Web3FunctionProxyProvider: ${message}`);
   }
 
   public stop() {

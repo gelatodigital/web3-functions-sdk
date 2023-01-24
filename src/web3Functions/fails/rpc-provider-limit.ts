@@ -1,6 +1,6 @@
 import {
-  JsResolverSdk,
-  JsResolverContext,
+  Web3FunctionSdk,
+  Web3FunctionContext,
 } from "@gelatonetwork/js-resolver-sdk";
 import ky from "ky";
 import { BigNumber, Contract, ethers } from "ethers";
@@ -25,7 +25,7 @@ const ORACLE_ABI = [
   "function updatePrice(uint256)",
 ];
 
-JsResolverSdk.onChecker(async (context: JsResolverContext) => {
+Web3FunctionSdk.onChecker(async (context: Web3FunctionContext) => {
   const { provider } = context;
 
   // Test sending invalid request

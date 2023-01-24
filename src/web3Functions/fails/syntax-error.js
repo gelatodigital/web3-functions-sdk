@@ -1,5 +1,5 @@
-import { JsResolverSdk } from "nothing";
+import { Web3Function } from "nothing";
 
-JsResolverSdk.onChecker(async (context) => {
+Web3Function.onChecker(async (context) => {
   return { canExec: false, message: "Malformed import" };
 });

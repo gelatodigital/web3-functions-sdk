@@ -2,7 +2,7 @@ import { EventEmitter } from "node:stream";
 import colors from "colors/safe";
 import { Web3FunctionSandboxOptions } from "../types";
 
-export abstract class JsResolverAbstractSandbox extends EventEmitter {
+export abstract class Web3FunctionAbstractSandbox extends EventEmitter {
   protected _memoryLimit: number;
   protected _isStopped = false;
   protected _processExitCode = Promise.resolve(0);
@@ -66,6 +66,6 @@ export abstract class JsResolverAbstractSandbox extends EventEmitter {
   }
 
   protected _log(message: string) {
-    if (this._debug) console.log(`JsResolverSandbox: ${message}`);
+    if (this._debug) console.log(`Web3FunctionSandbox: ${message}`);
   }
 }

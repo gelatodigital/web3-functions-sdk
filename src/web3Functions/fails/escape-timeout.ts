@@ -1,11 +1,11 @@
 import {
-  JsResolverSdk,
-  JsResolverContext,
+  Web3FunctionSdk,
+  Web3FunctionContext,
 } from "@gelatonetwork/js-resolver-sdk";
 
 const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 
-JsResolverSdk.onChecker(async (context: JsResolverContext) => {
+Web3FunctionSdk.onChecker(async (context: Web3FunctionContext) => {
   await delay(3600_000);
   return { canExec: false, message: "Sandbox escaped timeout" };
 });
