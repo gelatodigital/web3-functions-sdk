@@ -1,5 +1,5 @@
 import { JsResolverStorage } from "../../types";
-import { JsResolverResult } from "../../types/JsResolverResult";
+import { JsResolverResult } from "../../types/Web3FunctionResult";
 
 type JsResolverExecStats = {
   duration: number;

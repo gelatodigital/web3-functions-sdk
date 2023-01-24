@@ -1,6 +1,6 @@
 /* eslint-disable no-empty */
 import Docker, { ImageInfo } from "dockerode";
-import { JsResolverAbstractSandbox } from "./JsResolverAbstractSandbox";
+import { JsResolverAbstractSandbox } from "./Web3FunctionAbstractSandbox";
 
 export class JsResolverDockerSandbox extends JsResolverAbstractSandbox {
   private _container?: Docker.Container;

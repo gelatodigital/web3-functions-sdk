@@ -1,6 +1,6 @@
-import { JsResolverNetHelper } from "../net/JsResolverNetHelper";
+import { JsResolverNetHelper } from "../net/Web3FunctionNetHelper";
 import { JsResolverExec, JsResolverRunnerPayload } from "./types";
-import { JsResolverRunner } from "./JsResolverRunner";
+import { JsResolverRunner } from "./Web3FunctionRunner";
 
 export class JsResolverRunnerPool {
   private _poolSize: number;

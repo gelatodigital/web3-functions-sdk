@@ -1,1 +1,1 @@
-export * from "./JsResolverBuilder";
+export * from "./Web3Function";

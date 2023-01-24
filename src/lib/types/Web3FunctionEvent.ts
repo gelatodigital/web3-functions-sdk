@@ -1,5 +1,5 @@
-import { JsResolverContextData } from "./JsResolverContext";
-import { JsResolverResult } from "./JsResolverResult";
+import { JsResolverContextData } from "./Web3FunctionContext";
+import { JsResolverResult } from "./Web3FunctionResult";
 
 export type JsResolverEvent =
   | { action: "start"; data: { context: JsResolverContextData } }

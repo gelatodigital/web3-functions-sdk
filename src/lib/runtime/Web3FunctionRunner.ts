@@ -1,11 +1,11 @@
 import { performance } from "perf_hooks";
-import { JsResolverNetHelper } from "../net/JsResolverNetHelper";
-import { JsResolverHttpClient } from "../net/JsResolverHttpClient";
-import { JsResolverContextData } from "../types/JsResolverContext";
-import { JsResolverEvent, JsResolverStorage } from "../types/JsResolverEvent";
-import { JsResolverAbstractSandbox } from "./sandbox/JsResolverAbstractSandbox";
-import { JsResolverDockerSandbox } from "./sandbox/JsResolverDockerSandbox";
-import { JsResolverThreadSandbox } from "./sandbox/JsResolverThreadSandbox";
+import { JsResolverNetHelper } from "../net/Web3FunctionNetHelper";
+import { JsResolverHttpClient } from "../net/Web3FunctionHttpClient";
+import { JsResolverContextData } from "../types/Web3FunctionContext";
+import { JsResolverEvent, JsResolverStorage } from "../types/Web3FunctionEvent";
+import { JsResolverAbstractSandbox } from "./sandbox/Web3FunctionAbstractSandbox";
+import { JsResolverDockerSandbox } from "./sandbox/Web3FunctionDockerSandbox";
+import { JsResolverThreadSandbox } from "./sandbox/Web3FunctionThreadSandbox";
 import {
   JsResolverExec,
   JsResolverRunnerPayload,
@@ -16,7 +16,7 @@ import {
   JsResolverUserArgs,
   JsResolverUserArgsSchema,
 } from "../types";
-import { JsResolverProxyProvider } from "../provider/JsResolverProxyProvider";
+import { JsResolverProxyProvider } from "../provider/Web3FunctionProxyProvider";
 import { ethers } from "ethers";
 
 const START_TIMEOUT = 5_000;

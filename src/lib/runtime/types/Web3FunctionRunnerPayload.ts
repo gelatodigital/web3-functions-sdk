@@ -1,5 +1,5 @@
 import { ethers } from "ethers";
-import { JsResolverContextData } from "../../types/JsResolverContext";
+import { JsResolverContextData } from "../../types/Web3FunctionContext";
 
 export interface JsResolverRunnerOptions {
   memory: number;

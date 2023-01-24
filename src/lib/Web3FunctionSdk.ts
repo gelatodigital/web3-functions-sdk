@@ -1,11 +1,11 @@
 import { BigNumber, ethers } from "ethers";
-import { JsResolverHttpServer } from "./net/JsResolverHttpServer";
+import { JsResolverHttpServer } from "./net/Web3FunctionHttpServer";
 import {
   JsResolverContext,
   JsResolverContextData,
-} from "./types/JsResolverContext";
-import { JsResolverResult } from "./types/JsResolverResult";
-import { JsResolverEvent, JsResolverStorage } from "./types/JsResolverEvent";
+} from "./types/Web3FunctionContext";
+import { JsResolverResult } from "./types/Web3FunctionResult";
+import { JsResolverEvent, JsResolverStorage } from "./types/Web3FunctionEvent";
 import objectHash = require("object-hash");
 export class JsResolverSdk {
   private static Instance?: JsResolverSdk;

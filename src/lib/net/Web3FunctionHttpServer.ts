@@ -1,4 +1,4 @@
-import { JsResolverEvent } from "../types/JsResolverEvent";
+import { JsResolverEvent } from "../types/Web3FunctionEvent";
 
 export class JsResolverHttpServer {
   private _server: any; //http.Server;

@@ -1,7 +1,7 @@
 /* eslint-disable no-empty */
 import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import pidusage from "pidusage";
-import { JsResolverAbstractSandbox } from "./JsResolverAbstractSandbox";
+import { JsResolverAbstractSandbox } from "./Web3FunctionAbstractSandbox";
 
 export class JsResolverThreadSandbox extends JsResolverAbstractSandbox {
   private _thread?: ChildProcessWithoutNullStreams;

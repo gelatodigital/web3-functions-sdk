@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { performance } from "perf_hooks";
 import esbuild from "esbuild";
 import Ajv from "ajv";
-import * as jsResolverSchema from "./jsresolver.schema.json";
+import * as jsResolverSchema from "./web3function.schema.json";
 import path from "node:path";
 import { JsResolverSchema } from "../types";
 import { JsResolverUploader } from "../uploader";

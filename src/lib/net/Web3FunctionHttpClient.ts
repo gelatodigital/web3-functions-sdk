@@ -2,7 +2,7 @@ import { performance } from "perf_hooks";
 import axios from "axios";
 import { setTimeout as delay } from "timers/promises";
 import { EventEmitter } from "stream";
-import { JsResolverEvent } from "../types/JsResolverEvent";
+import { JsResolverEvent } from "../types/Web3FunctionEvent";
 export class JsResolverHttpClient extends EventEmitter {
   private _debug: boolean;
   private _host: string;

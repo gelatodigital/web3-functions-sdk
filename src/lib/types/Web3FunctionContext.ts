@@ -1,5 +1,5 @@
 import { BigNumber, ethers } from "ethers";
-import { JsResolverUserArgs } from "./JsResolverUserArgs";
+import { JsResolverUserArgs } from "./Web3FunctionUserArgs";
 export interface JsResolverContextData {
   gelatoArgs: {
     blockTime: number;
