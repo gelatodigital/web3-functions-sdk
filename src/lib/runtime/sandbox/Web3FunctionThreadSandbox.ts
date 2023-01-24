@@ -15,7 +15,7 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
     const cmd = process.env.DENO_PATH ?? `./node_modules/deno-bin/bin/deno`;
     const args: string[] = [];
     args.push("run");
-    args.push(`--allow-env=JS_RESOLVER_SERVER_PORT`);
+    args.push(`--allow-env=WEB3_FUNCTION_SERVER_PORT`);
     args.push(`--allow-net`);
     args.push(`--unstable`);
     args.push(`--no-prompt`);
@@ -26,7 +26,7 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
     this._thread = spawn(cmd, args, {
       shell: true,
       cwd: process.cwd(),
-      env: { JS_RESOLVER_SERVER_PORT: serverPort.toString() },
+      env: { WEB3_FUNCTION_SERVER_PORT: serverPort.toString() },
     });
 
     let processExitCodeResolver;

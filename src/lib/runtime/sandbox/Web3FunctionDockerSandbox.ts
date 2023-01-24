@@ -47,7 +47,7 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
     const cmd = `deno`;
     const args: string[] = [];
     args.push("run");
-    args.push(`--allow-env=JS_RESOLVER_SERVER_PORT`);
+    args.push(`--allow-env=WEB3_FUNCTION_SERVER_PORT`);
     args.push(`--allow-net`);
     args.push(`--unstable`);
     args.push(`--no-prompt`);
@@ -63,7 +63,7 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
       ExposedPorts: {
         [`${serverPort.toString()}/tcp`]: {},
       },
-      Env: [`JS_RESOLVER_SERVER_PORT=${serverPort.toString()}`],
+      Env: [`WEB3_FUNCTION_SERVER_PORT=${serverPort.toString()}`],
       Hostconfig: {
         Binds: [`${resolverPath}:/resolver/.tmp`],
         PortBindings: {

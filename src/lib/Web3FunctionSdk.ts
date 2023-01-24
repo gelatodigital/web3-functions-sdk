@@ -17,7 +17,7 @@ export class Web3FunctionSdk {
   private _checker?: (ctx: Web3FunctionContext) => Promise<Web3FunctionResult>;
 
   constructor() {
-    const port = Number(Deno.env.get("JS_RESOLVER_SERVER_PORT") ?? 80);
+    const port = Number(Deno.env.get("WEB3_FUNCTION_SERVER_PORT") ?? 80);
     this._server = new Web3FunctionHttpServer(
       port,
       Web3FunctionSdk._debug,
