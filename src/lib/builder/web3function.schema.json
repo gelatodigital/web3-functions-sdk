@@ -1,9 +1,9 @@
 {
-  "title": "Js Resolver Schema",
-  "description": "Js Resolver Schema",
+  "title": "Web3 Function Schema",
+  "description": "Web3 Function Schema",
   "type": "object",
   "properties": {
-    "jsResolverVersion": {
+    "web3FunctionVersion": {
       "enum": ["1.0.0"]
     },
     "runtime": {
@@ -34,5 +34,5 @@
       "additionalProperties": false
     }
   },
-  "required": ["jsResolverVersion", "runtime", "memory", "timeout"]
+  "required": ["web3FunctionVersion", "runtime", "memory", "timeout"]
 }
