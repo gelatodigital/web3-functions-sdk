@@ -1,5 +1,5 @@
-import { Web3Function } from "nothing";
+import { Web3FunctionSdk } from "nothing";
 
-Web3Function.onChecker(async (context) => {
+Web3FunctionSdk.onChecker(async (context) => {
   return { canExec: false, message: "Malformed import" };
 });

@@ -1,9 +1,9 @@
 import {
-  Web3Function,
+  Web3FunctionSdk,
   Web3FunctionContext,
-} from "@gelatonetwork/js-resolver-sdk";
+} from "@gelatonetwork/web3-function-sdk";
 
-Web3Function.onChecker(async (context: Web3FunctionContext) => {
+Web3FunctionSdk.onChecker(async (context: Web3FunctionContext) => {
   const os = await Deno.osRelease();
   console.log(os);
   return { canExec: false, message: "Sandbox escaped os" };

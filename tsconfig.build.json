@@ -1,4 +1,4 @@
 {
   "extends": "./tsconfig.json",
-  "exclude": ["src/resolvers/**/*", "src/scripts/**/*"]
+  "exclude": ["src/web3Functions/**/*"]
 }

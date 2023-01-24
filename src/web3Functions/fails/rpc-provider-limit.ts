@@ -1,9 +1,9 @@
 import {
   Web3FunctionSdk,
   Web3FunctionContext,
-} from "@gelatonetwork/js-resolver-sdk";
+} from "@gelatonetwork/web3-function-sdk";
 import ky from "ky";
-import { BigNumber, Contract, ethers } from "ethers";
+import { Contract, ethers } from "ethers";
 
 const assert = {
   match: (a: string, b: RegExp) => {

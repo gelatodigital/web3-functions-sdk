@@ -1,7 +1,7 @@
 import {
   Web3FunctionSdk,
   Web3FunctionContext,
-} from "@gelatonetwork/js-resolver-sdk";
+} from "@gelatonetwork/web3-function-sdk";
 
 Web3FunctionSdk.onChecker(async (context: Web3FunctionContext) => {
   const { storage, provider } = context;

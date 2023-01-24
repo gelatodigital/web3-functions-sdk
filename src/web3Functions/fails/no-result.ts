@@ -1,7 +1,7 @@
 import {
   Web3FunctionSdk,
   Web3FunctionContext,
-} from "@gelatonetwork/js-resolver-sdk";
+} from "@gelatonetwork/web3-function-sdk";
 
 const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 
