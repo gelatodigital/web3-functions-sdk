@@ -35,10 +35,13 @@ export class Web3FunctionUploader {
     destDir = "./.tmp"
   ): Promise<string> {
     try {
-      const res = await axios.get(`${OPS_USER_API}/users/js-resolver/${cid}`, {
-        responseEncoding: "binary",
-        responseType: "arraybuffer",
-      });
+      const res = await axios.get(
+        `${OPS_USER_API}/users/web3-function/${cid}`,
+        {
+          responseEncoding: "binary",
+          responseType: "arraybuffer",
+        }
+      );
 
       // store web3Function file in .tmp
       let web3FunctionPath: string;
@@ -214,9 +217,13 @@ export class Web3FunctionUploader {
       form.append("title", "Web3Function");
       form.append("file", file);
 
-      const res = await axios.post(`${OPS_USER_API}/users/js-resolver`, form, {
-        ...form.getHeaders(),
-      });
+      const res = await axios.post(
+        `${OPS_USER_API}/users/web3-function`,
+        form,
+        {
+          ...form.getHeaders(),
+        }
+      );
 
       const cid = res.data.cid;
 
