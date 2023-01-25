@@ -1,1 +1,1 @@
-export * from "./Web3Function";
+export * from "./Web3FunctionBuilder";
