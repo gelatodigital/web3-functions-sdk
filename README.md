@@ -18,7 +18,7 @@ yarn install
 ## Write a Web3Function
 
 - Create a new file in `src/web3Functions`
-- Register your web3Function main function using `Web3Function.onChecker`
+- Register your web3Function main function using `Web3Function.onRun`
 - Example:
 ```typescript
 import { Web3Function, Web3FunctionContext } from "../lib";
@@ -30,7 +30,7 @@ const ORACLE_ABI = [
   "function updatePrice(uint256)",
 ];
 
-Web3Function.onChecker(async (context: Web3FunctionContext) => {
+Web3Function.onRun(async (context: Web3FunctionContext) => {
   const { userArgs, gelatoArgs, provider } = context;
 
   // Retrieve Last oracle update time
@@ -136,7 +136,7 @@ Use `yarn upload FILENAME` command to upload your web3Function.
 
 2. Access your `userArgs` from the Web3Function context:
 ```typescript
-Web3Function.onChecker(async (context: Web3FunctionContext) => {
+Web3Function.onRun(async (context: Web3FunctionContext) => {
   const { userArgs, gelatoArgs, secrets } = context;
 
   // User args:
@@ -169,7 +169,7 @@ import {
   Web3FunctionContext,
 } from "@gelatonetwork/web3-functions-sdk";
 
-Web3Function.onChecker(async (context: Web3FunctionContext) => {
+Web3Function.onRun(async (context: Web3FunctionContext) => {
   const { storage, provider } = context;
 
   // Use storage to retrieve previous state (stored values are always string)
@@ -243,13 +243,13 @@ Some example failing file to test error handling
   src/web3Functions/fails/syntax-error.js:1:30: ERROR: Could not resolve "nothing"
   ```
 
-- No checker function registered in the web3Function:
+- No `onRun` function registered in the web3Function:
   - Run: `yarn test src/web3Functions/fails/not-registered.ts`
   - Result:
   ```
   Web3Function Result:
   ✗ Error: Web3Function start-up timeout (5s)
-  Make sure you registered your checker function correctly in your script.
+  Make sure you registered your web3 function correctly in your script.
   ```
 
 - Web3Function run out of memory:

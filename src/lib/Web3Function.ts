@@ -14,7 +14,7 @@ export class Web3Function {
   private static Instance?: Web3Function;
   private static _debug = false;
   private _server: Web3FunctionHttpServer;
-  private _checker?: (ctx: Web3FunctionContext) => Promise<Web3FunctionResult>;
+  private _onRun?: (ctx: Web3FunctionContext) => Promise<Web3FunctionResult>;
 
   constructor() {
     const port = Number(Deno.env.get("WEB3_FUNCTION_SERVER_PORT") ?? 80);
@@ -34,7 +34,7 @@ export class Web3Function {
         };
 
         try {
-          const { result, ctxData } = await this._runChecker(
+          const { result, ctxData } = await this._run(
             event.data.context
           );
 
@@ -80,9 +80,9 @@ export class Web3Function {
     }
   }
 
-  private async _runChecker(ctxData: Web3FunctionContextData) {
-    if (!this._checker)
-      throw new Error("Web3Function.onChecker function is not registered");
+  private async _run(ctxData: Web3FunctionContextData) {
+    if (!this._onRun)
+      throw new Error("Web3Function.onRun function is not registered");
 
     const context: Web3FunctionContext = {
       gelatoArgs: {
@@ -118,7 +118,7 @@ export class Web3Function {
       },
     };
 
-    const result = await this._checker(context);
+    const result = await this._onRun(context);
     return { result, ctxData };
   }
 
@@ -136,11 +136,11 @@ export class Web3Function {
     return Web3Function.Instance;
   }
 
-  static onChecker(
-    checker: (ctx: Web3FunctionContext) => Promise<Web3FunctionResult>
+  static onRun(
+    onRun: (ctx: Web3FunctionContext) => Promise<Web3FunctionResult>
   ): void {
-    Web3Function._log("Registering checker function");
-    Web3Function.getInstance()._checker = checker;
+    Web3Function._log("Registering onRun function");
+    Web3Function.getInstance()._onRun = onRun;
   }
 
   static setDebug(debug: boolean) {

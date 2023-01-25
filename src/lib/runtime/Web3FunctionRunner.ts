@@ -243,7 +243,7 @@ export class Web3FunctionRunner {
       throw new Error(
         `Web3Function start-up timeout (${
           START_TIMEOUT / 1000
-        }s) \nMake sure you registered your checker function correctly in your script.`
+        }s) \nMake sure you registered your onRun function correctly in your script.`
       );
     }
 

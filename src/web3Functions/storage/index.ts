@@ -3,7 +3,7 @@ import {
   Web3FunctionContext,
 } from "@gelatonetwork/web3-functions-sdk";
 
-Web3Function.onChecker(async (context: Web3FunctionContext) => {
+Web3Function.onRun(async (context: Web3FunctionContext) => {
   const { storage, provider } = context;
 
   // Use storage to manage your execution state
