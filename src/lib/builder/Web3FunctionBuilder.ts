@@ -120,7 +120,7 @@ Please create 'schema.json', default:
   "web3FunctionVersion": "1.0.0",
   "runtime": "js-1.0",
   "memory": 128,
-  "timeout": 60,
+  "timeout": 30,
   "userArgs": {}
 }`
       );

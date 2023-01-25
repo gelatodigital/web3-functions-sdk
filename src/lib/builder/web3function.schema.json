@@ -10,12 +10,12 @@
       "enum": ["js-1.0"]
     },
     "memory": {
-      "enum": [128, 256, 512]
+      "enum": [128, 256]
     },
     "timeout": {
       "type": "number",
       "minimum": 5,
-      "maximum": 3600
+      "maximum": 30
     },
     "userArgs": {
       "type": "object",

@@ -71,7 +71,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   "web3FunctionVersion": "1.0.0",
   "runtime": "js-1.0",
   "memory": 128, 
-  "timeout": 60,
+  "timeout": 30,
   "userArgs": {}
 }
 ```
@@ -127,7 +127,7 @@ Use `yarn deploy FILENAME` command to upload your web3Function.
   "web3FunctionVersion": "1.0.0",
   "runtime": "js-1.0",
   "memory": 128, 
-  "timeout": 60,
+  "timeout": 30,
   "userArgs": {
     "currency": "string",
     "oracle": "string"
