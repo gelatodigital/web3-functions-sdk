@@ -12,12 +12,14 @@ const OPS_USER_API =
 export class JsResolverUploader {
   public static async uploadResolver(
     schemaPath: string,
-    jsResolverBuildPath: string
+    filePath: string,
+    sourcePath: string
   ): Promise<string> {
     try {
       const compressedPath = await this.compress(
-        jsResolverBuildPath,
-        schemaPath
+        filePath,
+        schemaPath,
+        sourcePath
       );
 
       const cid = await this._userApiUpload(compressedPath);
@@ -80,7 +82,8 @@ export class JsResolverUploader {
 
   public static async compress(
     jsResolverBuildPath: string,
-    schemaPath: string
+    schemaPath: string,
+    sourcePath: string
   ): Promise<string> {
     try {
       await fsp.access(jsResolverBuildPath);
@@ -91,7 +94,7 @@ export class JsResolverUploader {
     }
     const { base } = path.parse(jsResolverBuildPath);
 
-    // create directory with jsResolver.cjs & schema
+    // create directory with index.js, source.js & schema.json
     const folderCompressedName = `jsResolver`;
     const folderCompressedPath = `.tmp/${folderCompressedName}`;
     const folderCompressedTar = `${folderCompressedPath}.tgz`;
@@ -101,7 +104,8 @@ export class JsResolverUploader {
     }
 
     // move files to directory
-    await fsp.rename(jsResolverBuildPath, `${folderCompressedPath}/${base}`);
+    await fsp.rename(jsResolverBuildPath, `${folderCompressedPath}/index.js`);
+    await fsp.rename(sourcePath, `${folderCompressedPath}/source.js`);
     try {
       await fsp.copyFile(schemaPath, `${folderCompressedPath}/schema.json`);
     } catch (err) {
@@ -135,6 +139,7 @@ export class JsResolverUploader {
   public static async extract(input: string): Promise<{
     dir: string;
     schemaPath: string;
+    sourcePath: string;
     jsResolverPath: string;
   }> {
     try {
@@ -157,8 +162,12 @@ export class JsResolverUploader {
         `${cidDirectory}/schema.json`
       );
       fs.renameSync(
-        `${cidDirectory}/jsResolver/resolver.cjs`,
-        `${cidDirectory}/resolver.cjs`
+        `${cidDirectory}/jsResolver/index.js`,
+        `${cidDirectory}/index.js`
+      );
+      fs.renameSync(
+        `${cidDirectory}/jsResolver/source.js`,
+        `${cidDirectory}/source.js`
       );
 
       // remove jsResolver directory
@@ -167,7 +176,8 @@ export class JsResolverUploader {
       return {
         dir: `${cidDirectory}`,
         schemaPath: `${cidDirectory}/schema.json`,
-        jsResolverPath: `${cidDirectory}/resolver.cjs`,
+        sourcePath: `${cidDirectory}/source.js`,
+        jsResolverPath: `${cidDirectory}/index.js`,
       };
     } catch (err) {
       throw new Error(

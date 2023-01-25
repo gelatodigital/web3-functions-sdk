@@ -92,7 +92,7 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
 - Output:
   ```
   JsResolver Build result:
-  ✓ File: ./.tmp/resolver.cjs
+  ✓ File: ./.tmp/index.js
   ✓ File size: 1.70mb
   ✓ Build time: 109.93ms
 
@@ -109,7 +109,7 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
   }
 
   JsResolver Runtime stats:
-  ✓ Duration: 5.41s
+  ✓ Duration: 0.91s
   ✓ Memory: 57.77mb
   ```
 ## Upload / fetch Js Resolver

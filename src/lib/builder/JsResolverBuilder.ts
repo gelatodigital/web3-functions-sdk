@@ -13,6 +13,7 @@ export type JsResolverBuildResult =
   | {
       success: true;
       filePath: string;
+      sourcePath: string;
       schemaPath: string;
       fileSize: number;
       buildTime: number;
@@ -33,27 +34,55 @@ export class JsResolverBuilder {
 
     return await JsResolverUploader.uploadResolver(
       buildRes.schemaPath,
-      buildRes.filePath
+      buildRes.filePath,
+      buildRes.sourcePath
     );
+  }
+
+  private static async _buildBundle(input: string, outfile: string) {
+    // Build & bundle js resolver
+    const options: esbuild.BuildOptions = {
+      bundle: true,
+      entryPoints: [input],
+      absWorkingDir: process.cwd(),
+      platform: "browser",
+      target: "es2022",
+      minify: true,
+      format: "esm",
+      outfile,
+    };
+
+    await esbuild.build(options);
+  }
+
+  private static async _buildSource(input: string, outfile: string) {
+    // Build & bundle js source file
+    const options: esbuild.BuildOptions = {
+      bundle: true,
+      entryPoints: [input],
+      absWorkingDir: process.cwd(),
+      packages: "external", // exclude all npm packages
+      target: "es2022",
+      platform: "browser",
+      format: "esm",
+      outfile,
+    };
+
+    await esbuild.build(options);
   }
 
   public static async build(
     input: string,
     debug = false,
-    filePath = "./.tmp/resolver.cjs"
+    filePath = "./.tmp/index.js",
+    sourcePath = "./.tmp/source.js"
   ): Promise<JsResolverBuildResult> {
     try {
-      // Build & bundle js resolver
-      const options: esbuild.BuildOptions = {
-        bundle: true,
-        entryPoints: [input],
-        absWorkingDir: process.cwd(),
-        platform: "browser",
-        outfile: filePath,
-      };
-
       const start = performance.now();
-      await esbuild.build(options);
+      await Promise.all([
+        JsResolverBuilder._buildBundle(input, filePath),
+        JsResolverBuilder._buildSource(input, sourcePath),
+      ]);
       const buildTime = performance.now() - start; // in ms
 
       const stats = fs.statSync(filePath);
@@ -64,6 +93,7 @@ export class JsResolverBuilder {
       return {
         success: true,
         schemaPath,
+        sourcePath,
         filePath,
         fileSize,
         buildTime,
