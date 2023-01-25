@@ -1,5 +1,5 @@
 import {
-  Web3FunctionSdk,
+  Web3Function,
   Web3FunctionContext,
 } from "@gelatonetwork/web3-functions-sdk";
 import ky from "ky";
@@ -25,7 +25,7 @@ const ORACLE_ABI = [
   "function updatePrice(uint256)",
 ];
 
-Web3FunctionSdk.onChecker(async (context: Web3FunctionContext) => {
+Web3Function.onChecker(async (context: Web3FunctionContext) => {
   const { provider } = context;
 
   // Test sending invalid request

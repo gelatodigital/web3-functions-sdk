@@ -1,5 +1,5 @@
 import {
-  Web3FunctionSdk,
+  Web3Function,
   Web3FunctionContext,
 } from "@gelatonetwork/web3-functions-sdk";
 import { Contract } from "ethers";
@@ -10,7 +10,7 @@ const ORACLE_ABI = [
   "function updatePrice(uint256)",
 ];
 
-Web3FunctionSdk.onChecker(async (context: Web3FunctionContext) => {
+Web3Function.onChecker(async (context: Web3FunctionContext) => {
   const { userArgs, gelatoArgs, provider } = context;
 
   // Retrieve Last oracle update time

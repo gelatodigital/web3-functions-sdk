@@ -10,8 +10,8 @@ import {
   Web3FunctionStorage,
 } from "./types/Web3FunctionEvent";
 import objectHash = require("object-hash");
-export class Web3FunctionSdk {
-  private static Instance?: Web3FunctionSdk;
+export class Web3Function {
+  private static Instance?: Web3Function;
   private static _debug = false;
   private _server: Web3FunctionHttpServer;
   private _checker?: (ctx: Web3FunctionContext) => Promise<Web3FunctionResult>;
@@ -20,7 +20,7 @@ export class Web3FunctionSdk {
     const port = Number(Deno.env.get("WEB3_FUNCTION_SERVER_PORT") ?? 80);
     this._server = new Web3FunctionHttpServer(
       port,
-      Web3FunctionSdk._debug,
+      Web3Function._debug,
       this._onEvent.bind(this)
     );
   }
@@ -73,7 +73,7 @@ export class Web3FunctionSdk {
         break;
       }
       default:
-        Web3FunctionSdk._log(
+        Web3Function._log(
           `Unrecognized parent process event: ${event.action}`
         );
         throw new Error(`Unrecognized parent process event: ${event.action}`);
@@ -95,24 +95,24 @@ export class Web3FunctionSdk {
       userArgs: ctxData.userArgs,
       secrets: {
         get: async (key: string) => {
-          Web3FunctionSdk._log(`secrets.get(${key})`);
+          Web3Function._log(`secrets.get(${key})`);
           return ctxData.secrets[key];
         },
       },
       storage: {
         get: async (key: string) => {
-          Web3FunctionSdk._log(`storage.get(${key})`);
+          Web3Function._log(`storage.get(${key})`);
           return ctxData.storage[key];
         },
         set: async (key: string, value: string) => {
           if (typeof value !== "string") {
             throw new Error("Web3FunctionStorageError: value must be a string");
           }
-          Web3FunctionSdk._log(`storage.set(${key},${value})`);
+          Web3Function._log(`storage.set(${key},${value})`);
           ctxData.storage[key] = value;
         },
         delete: async (key: string) => {
-          Web3FunctionSdk._log(`storage.delete(${key})`);
+          Web3Function._log(`storage.delete(${key})`);
           ctxData.storage[key] = undefined;
         },
       },
@@ -129,25 +129,25 @@ export class Web3FunctionSdk {
     });
   }
 
-  static getInstance(): Web3FunctionSdk {
-    if (!Web3FunctionSdk.Instance) {
-      Web3FunctionSdk.Instance = new Web3FunctionSdk();
+  static getInstance(): Web3Function {
+    if (!Web3Function.Instance) {
+      Web3Function.Instance = new Web3Function();
     }
-    return Web3FunctionSdk.Instance;
+    return Web3Function.Instance;
   }
 
   static onChecker(
     checker: (ctx: Web3FunctionContext) => Promise<Web3FunctionResult>
   ): void {
-    Web3FunctionSdk._log("Registering checker function");
-    Web3FunctionSdk.getInstance()._checker = checker;
+    Web3Function._log("Registering checker function");
+    Web3Function.getInstance()._checker = checker;
   }
 
   static setDebug(debug: boolean) {
-    Web3FunctionSdk._debug = debug;
+    Web3Function._debug = debug;
   }
 
   private static _log(message: string) {
-    if (Web3FunctionSdk._debug) console.log(`Web3FunctionSdk: ${message}`);
+    if (Web3Function._debug) console.log(`Web3Function: ${message}`);
   }
 }

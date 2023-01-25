@@ -18,10 +18,10 @@ yarn install
 ## Write a Web3Function
 
 - Create a new file in `src/web3Functions`
-- Register your web3Function main function using `Web3FunctionSdk.onChecker`
+- Register your web3Function main function using `Web3Function.onChecker`
 - Example:
 ```typescript
-import { Web3FunctionSdk, Web3FunctionContext } from "../lib";
+import { Web3Function, Web3FunctionContext } from "../lib";
 import { Contract, ethers } from "ethers";
 import ky from "ky"; // we recommend using ky as axios doesn't support fetch by default
 
@@ -30,7 +30,7 @@ const ORACLE_ABI = [
   "function updatePrice(uint256)",
 ];
 
-Web3FunctionSdk.onChecker(async (context: Web3FunctionContext) => {
+Web3Function.onChecker(async (context: Web3FunctionContext) => {
   const { userArgs, gelatoArgs, provider } = context;
 
   // Retrieve Last oracle update time
@@ -136,7 +136,7 @@ Use `yarn upload FILENAME` command to upload your web3Function.
 
 2. Access your `userArgs` from the Web3Function context:
 ```typescript
-Web3FunctionSdk.onChecker(async (context: Web3FunctionContext) => {
+Web3Function.onChecker(async (context: Web3FunctionContext) => {
   const { userArgs, gelatoArgs, secrets } = context;
 
   // User args:
@@ -165,11 +165,11 @@ See the above example to read & update values from your storage:
 
 ```typescript
 import {
-  Web3FunctionSdk,
+  Web3Function,
   Web3FunctionContext,
 } from "@gelatonetwork/web3-functions-sdk";
 
-Web3FunctionSdk.onChecker(async (context: Web3FunctionContext) => {
+Web3Function.onChecker(async (context: Web3FunctionContext) => {
   const { storage, provider } = context;
 
   // Use storage to retrieve previous state (stored values are always string)
@@ -231,7 +231,7 @@ Some example failing file to test error handling
   ✘ [ERROR] Could not resolve "nothing"
 
       src/web3Functions/fails/syntax-error.js:1:30:
-        1 │ import { Web3FunctionSdk } from "nothing";
+        1 │ import { Web3Function } from "nothing";
           ╵                               ~~~~~~~~~
 
     You can mark the path "nothing" as external to exclude it from the bundle, which will remove this
