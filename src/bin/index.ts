@@ -2,7 +2,7 @@
 import colors from "colors/safe";
 import benchmark from "../lib/binaries/benchmark";
 import fetch from "../lib/binaries/fetch";
-import upload from "../lib/binaries/upload";
+import deploy from "../lib/binaries/deploy";
 import schema from "../lib/binaries/schema";
 import test from "../lib/binaries/test";
 
@@ -24,9 +24,9 @@ switch (command) {
       console.error(` ${KO} Fetching Web3Function failed: ${err.message}`)
     );
     break;
-  case "upload":
-    upload().catch((err) =>
-      console.error(` ${KO} Uploading Web3Function failed: ${err.message}`)
+  case "deploy":
+    deploy().catch((err) =>
+      console.error(` ${KO} Deploying Web3Function failed: ${err.message}`)
     );
     break;
   case "schema":

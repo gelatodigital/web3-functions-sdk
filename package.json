@@ -53,7 +53,7 @@
     "lint": "eslint --cache .",
     "test": "ts-node src/bin/index.ts test",
     "benchmark": "ts-node src/bin/index.ts benchmark",
-    "upload": "ts-node src/bin/index.ts upload",
+    "deploy": "ts-node src/bin/index.ts deploy",
     "fetch": "ts-node src/bin/index.ts fetch",
     "schema": "ts-node src/bin/index.ts schema"
   },

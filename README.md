@@ -112,11 +112,12 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   ✓ Duration: 0.91s
   ✓ Memory: 57.77mb
   ```
-## Upload / fetch Web3Function
-Use `yarn upload FILENAME` command to upload your web3Function.
+
+## Deploy / Fetch Web3Function
+Use `yarn deploy FILENAME` command to upload your web3Function.
 
 ```
-> yarn upload ./src/web3Functions/index.ts
+> yarn deploy ./src/web3Functions/index.ts
 ```
 
 ## Use User arguments
