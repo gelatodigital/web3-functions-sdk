@@ -1,7 +1,7 @@
 import {
   Web3FunctionSdk,
   Web3FunctionContext,
-} from "@gelatonetwork/web3-function-sdk";
+} from "@gelatonetwork/web3-functions-sdk";
 import ky from "ky";
 import { Contract, ethers } from "ethers";
 

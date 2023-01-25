@@ -1,8 +1,8 @@
 {
-  "name": "@gelatonetwork/web3-function-sdk",
+  "name": "@gelatonetwork/web3-functions-sdk",
   "version": "0.1.12",
-  "description": "Gelato Automate Web3 Function sdk",
-  "url": "https://github.com/gelatodigital/js-resolver-sdk",
+  "description": "Gelato Automate Web3 Functions sdk",
+  "url": "https://github.com/gelatodigital/web3-functions-sdk",
   "main": "dist/lib/index.js",
   "types": "dist/lib/types/index.d.ts",
   "files": [
@@ -47,7 +47,7 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc --project tsconfig.build.json && yarn deps",
-    "deps": "yarn link && yarn link @gelatonetwork/web3-function-sdk",
+    "deps": "yarn link && yarn link @gelatonetwork/web3-functions-sdk",
     "format": "prettier --write '*/**/*.{js,json,md,ts}'",
     "format:check": "prettier --check '*/**/*.{js,json,md,ts}'",
     "lint": "eslint --cache .",

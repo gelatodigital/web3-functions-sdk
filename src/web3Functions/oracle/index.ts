@@ -1,7 +1,7 @@
 import {
   Web3FunctionSdk,
   Web3FunctionContext,
-} from "@gelatonetwork/web3-function-sdk";
+} from "@gelatonetwork/web3-functions-sdk";
 import { Contract } from "ethers";
 import ky from "ky"; // we recommend using ky as axios doesn't support fetch by default
 
