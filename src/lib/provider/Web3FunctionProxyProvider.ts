@@ -4,11 +4,12 @@ import bodyParser from "body-parser";
 import crypto from "crypto";
 import { ethers } from "ethers";
 import { ethErrors, serializeError } from "eth-rpc-errors";
-import { setTimeout as delay } from "timers/promises";
 
-export const SOFT_LIMIT = 5; // 5 rpc calls / second
-export const HARD_LIMIT = 10; // 10 rpc calls / second
-export const MAX_TIME_DIFFERENCE = 1_000;
+const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
+
+const SOFT_LIMIT = 5; // 5 rpc calls / second
+const HARD_LIMIT = 10; // 10 rpc calls / second
+const MAX_TIME_DIFFERENCE = 1_000;
 
 export class Web3FunctionProxyProvider {
   private _debug: boolean;

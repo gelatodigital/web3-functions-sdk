@@ -1,8 +1,10 @@
 import { performance } from "perf_hooks";
 import axios from "axios";
-import { setTimeout as delay } from "timers/promises";
 import { EventEmitter } from "stream";
 import { Web3FunctionEvent } from "../types/Web3FunctionEvent";
+
+const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
+
 export class Web3FunctionHttpClient extends EventEmitter {
   private _debug: boolean;
   private _host: string;
