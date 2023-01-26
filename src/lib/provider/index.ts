@@ -1,1 +1,1 @@
-export * from "./JsResolverProxyProvider";
+export * from "./Web3FunctionProxyProvider";

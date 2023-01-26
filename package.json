@@ -1,15 +1,15 @@
 {
-  "name": "@gelatonetwork/js-resolver-sdk",
-  "version": "0.1.12",
-  "description": "Gelato Automate JS resolvers sdk",
-  "url": "https://github.com/gelatodigital/js-resolver-sdk",
+  "name": "@gelatonetwork/web3-functions-sdk",
+  "version": "0.2.0",
+  "description": "Gelato Automate Web3 Functions sdk",
+  "url": "https://github.com/gelatodigital/web3-functions-sdk",
   "main": "dist/lib/index.js",
   "types": "dist/lib/types/index.d.ts",
   "files": [
     "dist/lib/**/*"
   ],
   "bin": {
-    "js-resolver": "./dist/bin/index.js"
+    "web3-function": "./dist/bin/index.js"
   },
   "exports": {
     ".": "./dist/lib/index.js",
@@ -47,13 +47,13 @@
   },
   "scripts": {
     "build": "rm -rf dist && tsc --project tsconfig.build.json && yarn deps",
-    "deps": "yarn link && yarn link @gelatonetwork/js-resolver-sdk",
+    "deps": "yarn link && yarn link @gelatonetwork/web3-functions-sdk",
     "format": "prettier --write '*/**/*.{js,json,md,ts}'",
     "format:check": "prettier --check '*/**/*.{js,json,md,ts}'",
     "lint": "eslint --cache .",
     "test": "ts-node src/bin/index.ts test",
     "benchmark": "ts-node src/bin/index.ts benchmark",
-    "upload": "ts-node src/bin/index.ts upload",
+    "deploy": "ts-node src/bin/index.ts deploy",
     "fetch": "ts-node src/bin/index.ts fetch",
     "schema": "ts-node src/bin/index.ts schema"
   },

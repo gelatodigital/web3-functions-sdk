@@ -1,8 +1,8 @@
 import "dotenv/config";
 import colors from "colors/safe";
-import { JsResolverContextData } from "../types";
-import { JsResolverRunner } from "../runtime";
-import { JsResolverBuilder } from "../builder";
+import { Web3FunctionContextData } from "../types";
+import { Web3FunctionRunner } from "../runtime";
+import { Web3FunctionBuilder } from "../builder";
 import { ethers } from "ethers";
 
 if (!process.env.PROVIDER_URL) {
@@ -10,7 +10,7 @@ if (!process.env.PROVIDER_URL) {
   process.exit();
 }
 
-const jsResolverSrcPath = process.argv[3] ?? "./src/resolvers/index.ts";
+const web3FunctionSrcPath = process.argv[3] ?? "./src/web3Functions/index.ts";
 let chainId = 5;
 let runtime: "docker" | "thread" = "thread";
 let debug = false;
@@ -44,11 +44,11 @@ if (process.argv.length > 2) {
 const OK = colors.green("✓");
 const KO = colors.red("✗");
 export default async function test() {
-  // Build JsResolver
-  console.log(`JsResolver building...`);
+  // Build Web3Function
+  console.log(`Web3Function building...`);
 
-  const buildRes = await JsResolverBuilder.build(jsResolverSrcPath, debug);
-  console.log(`\nJsResolver Build result:`);
+  const buildRes = await Web3FunctionBuilder.build(web3FunctionSrcPath, debug);
+  console.log(`\nWeb3Function Build result:`);
   if (buildRes.success) {
     console.log(` ${OK} Schema: ${buildRes.schemaPath}`);
     console.log(` ${OK} Built file: ${buildRes.filePath}`);
@@ -60,7 +60,7 @@ export default async function test() {
   }
 
   // Prepare mock content for test
-  const context: JsResolverContextData = {
+  const context: Web3FunctionContextData = {
     secrets: {},
     storage: {},
     gelatoArgs: {
@@ -78,8 +78,8 @@ export default async function test() {
       context.secrets[key.replace("SECRETS_", "")] = process.env[key];
     });
 
-  // Configure JsResolver runner
-  const runner = new JsResolverRunner(debug);
+  // Configure Web3Function runner
+  const runner = new Web3FunctionRunner(debug);
   const memory = buildRes.schema.memory;
   const timeout = buildRes.schema.timeout * 1000;
   const options = { runtime, showLogs, memory, timeout };
@@ -90,7 +90,7 @@ export default async function test() {
 
   // Validate input user args against schema
   if (Object.keys(inputUserArgs).length > 0) {
-    console.log(`\nJsResolver user args validation:`);
+    console.log(`\nWeb3Function user args validation:`);
     try {
       context.userArgs = await runner.validateUserArgs(
         buildRes.schema.userArgs,
@@ -105,20 +105,20 @@ export default async function test() {
     }
   }
 
-  // Run JsResolver
-  console.log(`\nJsResolver running${showLogs ? " logs:" : "..."}`);
+  // Run Web3Function
+  console.log(`\nWeb3Function running${showLogs ? " logs:" : "..."}`);
   const res = await runner.run({ script, context, options, provider });
 
   // Show storage update
   if (res.storage?.state === "updated") {
-    console.log(`\nJsResolver Storage updated:`);
+    console.log(`\nWeb3Function Storage updated:`);
     Object.entries(res.storage.storage).forEach(([key, value]) =>
       console.log(` ${OK} ${key}: ${colors.green(`'${value}'`)}`)
     );
   }
 
-  // Show JsResolver result
-  console.log(`\nJsResolver Result:`);
+  // Show Web3Function result
+  console.log(`\nWeb3Function Result:`);
   if (res.success) {
     console.log(` ${OK} Return value:`, res.result);
   } else {
@@ -126,7 +126,7 @@ export default async function test() {
   }
 
   // Show runtime stats
-  console.log(`\nJsResolver Runtime stats:`);
+  console.log(`\nWeb3Function Runtime stats:`);
   const durationStatus = res.duration < 0.9 * buildRes.schema.timeout ? OK : KO;
   console.log(` ${durationStatus} Duration: ${res.duration.toFixed(2)}s`);
   const memoryStatus = res.memory < 0.9 * memory ? OK : KO;

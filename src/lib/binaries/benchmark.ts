@@ -4,20 +4,20 @@ import { setTimeout as delay } from "timers/promises";
 import { performance } from "perf_hooks";
 import { ethers } from "ethers";
 
-import { JsResolverContextData } from "../types";
+import { Web3FunctionContextData } from "../types";
 import {
-  JsResolverExec,
-  JsResolverRunnerPool,
-  JsResolverRunner,
+  Web3FunctionExec,
+  Web3FunctionRunnerPool,
+  Web3FunctionRunner,
 } from "../runtime";
-import { JsResolverBuilder } from "../builder";
+import { Web3FunctionBuilder } from "../builder";
 
 if (!process.env.PROVIDER_URL) {
   console.error(`Missing PROVIDER_URL in .env file`);
   process.exit();
 }
 
-const jsResolverSrcPath = process.argv[3] ?? "./src/resolvers/index.ts";
+const web3FunctionSrcPath = process.argv[3] ?? "./src/web3Functions/index.ts";
 let chainId = 5;
 let runtime: "docker" | "thread" = "thread";
 let debug = false;
@@ -56,16 +56,16 @@ if (process.argv.length > 2) {
 const OK = colors.green("✓");
 const KO = colors.red("✗");
 export default async function benchmark() {
-  // Build JsResolver
-  const buildRes = await JsResolverBuilder.build(jsResolverSrcPath, debug);
+  // Build Web3Function
+  const buildRes = await Web3FunctionBuilder.build(web3FunctionSrcPath, debug);
   if (!buildRes.success) {
-    console.log(`\nJsResolver Build result:`);
+    console.log(`\nWeb3Function Build result:`);
     console.log(` ${KO} Error: ${buildRes.error.message}`);
     return;
   }
 
   // Prepare mock content for test
-  const context: JsResolverContextData = {
+  const context: Web3FunctionContextData = {
     secrets: {},
     storage: {},
     gelatoArgs: {
@@ -85,8 +85,8 @@ export default async function benchmark() {
 
   // Validate input user args against schema
   if (Object.keys(inputUserArgs).length > 0) {
-    const runner = new JsResolverRunner(debug);
-    console.log(`\nJsResolver user args validation:`);
+    const runner = new Web3FunctionRunner(debug);
+    console.log(`\nWeb3Function user args validation:`);
     try {
       context.userArgs = await runner.validateUserArgs(
         buildRes.schema.userArgs,
@@ -101,7 +101,7 @@ export default async function benchmark() {
     }
   }
 
-  // Run JsResolver
+  // Run Web3Function
   const start = performance.now();
   const memory = buildRes.schema.memory;
   const timeout = buildRes.schema.timeout * 1000;
@@ -110,11 +110,11 @@ export default async function benchmark() {
   const provider = new ethers.providers.StaticJsonRpcProvider(
     process.env.PROVIDER_URL
   );
-  const runner = new JsResolverRunnerPool(pool, debug);
+  const runner = new Web3FunctionRunnerPool(pool, debug);
   await runner.init();
-  const promises: Promise<JsResolverExec>[] = [];
+  const promises: Promise<Web3FunctionExec>[] = [];
   for (let i = 0; i < load; i++) {
-    console.log(`#${i} Queuing JsResolver`);
+    console.log(`#${i} Queuing Web3Function`);
     promises.push(runner.run({ script, context, options, provider }));
     await delay(100);
   }
@@ -122,7 +122,7 @@ export default async function benchmark() {
   const results = await Promise.all(promises);
   const duration = (performance.now() - start) / 1000;
 
-  console.log(`\nJsResolver results:`);
+  console.log(`\nWeb3Function results:`);
   results.forEach((res, i) => {
     if (res.success) console.log(` ${OK} #${i} Success`);
     else console.log(` ${KO} #${i} Error:`, res.error);

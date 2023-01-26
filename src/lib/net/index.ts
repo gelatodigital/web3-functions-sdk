@@ -1,3 +1,3 @@
-export * from "./JsResolverHttpClient";
-export * from "./JsResolverHttpServer";
-export * from "./JsResolverNetHelper";
+export * from "./Web3FunctionHttpClient";
+export * from "./Web3FunctionHttpServer";
+export * from "./Web3FunctionNetHelper";

@@ -1,3 +1,3 @@
-export * from "./JsResolverRunner";
-export * from "./JsResolverRunnerPool";
+export * from "./Web3FunctionRunner";
+export * from "./Web3FunctionRunnerPool";
 export * from "./types";

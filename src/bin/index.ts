@@ -2,7 +2,7 @@
 import colors from "colors/safe";
 import benchmark from "../lib/binaries/benchmark";
 import fetch from "../lib/binaries/fetch";
-import upload from "../lib/binaries/upload";
+import deploy from "../lib/binaries/deploy";
 import schema from "../lib/binaries/schema";
 import test from "../lib/binaries/test";
 
@@ -11,7 +11,7 @@ const command = process.argv[2];
 switch (command) {
   case "test":
     test().catch((err) =>
-      console.error(` ${KO} Error running JsResolver: ${err.message}`)
+      console.error(` ${KO} Error running Web3Function: ${err.message}`)
     );
     break;
   case "benchmark":
@@ -21,12 +21,12 @@ switch (command) {
     break;
   case "fetch":
     fetch().catch((err) =>
-      console.error(` ${KO} Fetching JsResolver failed: ${err.message}`)
+      console.error(` ${KO} Fetching Web3Function failed: ${err.message}`)
     );
     break;
-  case "upload":
-    upload().catch((err) =>
-      console.error(` ${KO} Uploading JsResolver failed: ${err.message}`)
+  case "deploy":
+    deploy().catch((err) =>
+      console.error(` ${KO} Deploying Web3Function failed: ${err.message}`)
     );
     break;
   case "schema":

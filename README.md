@@ -1,5 +1,5 @@
-# JsResolver Proof Of Concept
-Playground repo to prototype JsResolvers
+# Web3 Functions SDK
+SDK to build & run Web3 Functions
 <br /><br />
 
 ## Project Setup
@@ -15,13 +15,13 @@ yarn install
   ```
    - Complete your `.env` file with your private settings
 
-## Write a Js Resolver
+## Write a Web3Function
 
-- Create a new file in `src/resolvers`
-- Register your resolver main function using `JsResolverSdk.onChecker`
+- Create a new file in `src/web3Functions`
+- Register your web3Function main function using `Web3Function.onRun`
 - Example:
 ```typescript
-import { JsResolverSdk, JsResolverContext } from "../lib";
+import { Web3Function, Web3FunctionContext } from "../lib";
 import { Contract, ethers } from "ethers";
 import ky from "ky"; // we recommend using ky as axios doesn't support fetch by default
 
@@ -30,7 +30,7 @@ const ORACLE_ABI = [
   "function updatePrice(uint256)",
 ];
 
-JsResolverSdk.onChecker(async (context: JsResolverContext) => {
+Web3Function.onRun(async (context: Web3FunctionContext) => {
   const { userArgs, gelatoArgs, provider } = context;
 
   // Retrieve Last oracle update time
@@ -65,68 +65,69 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
   };
 });
 ```
-- create your resolver `schema.json` to specify your runtime configuration:
+- create your web3Function `schema.json` to specify your runtime configuration:
 ```json
 {
-  "jsResolverVersion": "1.0.0",
+  "web3FunctionVersion": "1.0.0",
   "runtime": "js-1.0",
   "memory": 128, 
-  "timeout": 60,
+  "timeout": 30,
   "userArgs": {}
 }
 ```
 
 
-## Test your resolver
+## Test your web3Function
 
-- Use `yarn test FILENAME` command to test your resolver
+- Use `yarn test FILENAME` command to test your web3Function
 
 - Options:
-  - `--show-logs` Show internal Resolver logs
+  - `--show-logs` Show internal Web3Function logs
   - `--runtime=thread|docker` Use `thread` if you don't have `docker`set up locally (default: `docker`)
   - `--debug` Show Runtime debug messages
-  - `--chain-id=[number]` Specify the chainId to be used for your Resolver (default: `5`)
-  - `--user-args=[key]:[value]` Set your Resolver user args
+  - `--chain-id=[number]` Specify the chainId to be used for your Web3Function (default: `5`)
+  - `--user-args=[key]:[value]` Set your Web3Function user args
 
-- Example: `yarn test src/resolvers/index.ts --show-logs --runtime=thread`
+- Example: `yarn test src/web3Functions/index.ts --show-logs --runtime=thread`
 - Output:
   ```
-  JsResolver Build result:
+  Web3Function Build result:
   ✓ File: ./.tmp/index.js
   ✓ File size: 1.70mb
   ✓ Build time: 109.93ms
 
-  JsResolver running logs:
+  Web3Function running logs:
   > ChainId: 5
   > Last oracle update: 1665512172
   > Next oracle update: 1665512472
   > Updating price: 1586
 
-  JsResolver Result:
+  Web3Function Result:
   ✓ Return value: {
     canExec: true,
     callData: '0x8d6cc56d0000000000000000000000000000000000000000000000000000000000000632'
   }
 
-  JsResolver Runtime stats:
+  Web3Function Runtime stats:
   ✓ Duration: 0.91s
   ✓ Memory: 57.77mb
   ```
-## Upload / fetch Js Resolver
-Use `yarn upload FILENAME` command to upload your resolver.
+
+## Deploy / Fetch Web3Function
+Use `yarn deploy FILENAME` command to upload your web3Function.
 
 ```
-> yarn upload ./src/resolvers/index.ts
+> yarn deploy ./src/web3Functions/index.ts
 ```
 
 ## Use User arguments
 1. Declare your expected `userArgs` in you schema, accepted types are 'string', 'string[]', 'number', 'number[]', 'boolean', 'boolean[]':
 ```json
 {
-  "jsResolverVersion": "1.0.0",
+  "web3FunctionVersion": "1.0.0",
   "runtime": "js-1.0",
   "memory": 128, 
-  "timeout": 60,
+  "timeout": 30,
   "userArgs": {
     "currency": "string",
     "oracle": "string"
@@ -134,9 +135,9 @@ Use `yarn upload FILENAME` command to upload your resolver.
 }
 ```
 
-2. Access your `userArgs` from the JsResolver context:
+2. Access your `userArgs` from the Web3Function context:
 ```typescript
-JsResolverSdk.onChecker(async (context: JsResolverContext) => {
+Web3Function.onRun(async (context: Web3FunctionContext) => {
   const { userArgs, gelatoArgs, secrets } = context;
 
   // User args:
@@ -146,9 +147,9 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
 });
 ```
 
-3. Pass `user-args` to the CLI to test your resolver:
+3. Pass `user-args` to the CLI to test your web3Function:
 ```
-yarn test src/resolvers/oracle/index.ts --show-logs --user-args=currency:ethereum --user-args=oracle:0x6a3c82330164822A8a39C7C0224D20DB35DD030a
+yarn test src/web3Function/oracle/index.ts --show-logs --user-args=currency:ethereum --user-args=oracle:0x6a3c82330164822A8a39C7C0224D20DB35DD030a
 ```
 
 To pass array argument (eg `string[]`), you can use:
@@ -158,18 +159,18 @@ To pass array argument (eg `string[]`), you can use:
 
 ## Use State / Storage
 
-JsResolvers are stateless scripts, that will run in a new & empty memory context on every execution.
-If you need to manage some state variable, we provide a simple key/value store that you can access from your resolver `context`.
+Web3Functions are stateless scripts, that will run in a new & empty memory context on every execution.
+If you need to manage some state variable, we provide a simple key/value store that you can access from your web3Function `context`.
 
 See the above example to read & update values from your storage:
 
 ```typescript
 import {
-  JsResolverSdk,
-  JsResolverContext,
-} from "@gelatonetwork/js-resolver-sdk";
+  Web3Function,
+  Web3FunctionContext,
+} from "@gelatonetwork/web3-functions-sdk";
 
-JsResolverSdk.onChecker(async (context: JsResolverContext) => {
+Web3Function.onRun(async (context: Web3FunctionContext) => {
   const { storage, provider } = context;
 
   // Use storage to retrieve previous state (stored values are always string)
@@ -193,12 +194,12 @@ JsResolverSdk.onChecker(async (context: JsResolverContext) => {
 
 Test storage execution:
 ```
-yarn test src/resolvers/storage/index.ts --show-logs
+yarn test src/web3Functions/storage/index.ts --show-logs
 ```
 
 You will see your updated key/values:
 ```
-JsResolver Storage updated:
+Web3Function Storage updated:
  ✓ lastBlockNumber: '8321923'
 ```
 
@@ -208,10 +209,10 @@ JsResolver Storage updated:
 
 - Options:
   - all `test` command options
-  - `--load=100` configure the number of resolver you want to run for your load test (default: `10`)
+  - `--load=100` configure the number of web3Functions you want to run for your load test (default: `10`)
   - `--pool=10` configure the pool size, ie max number of concurrent worker (default: `10`)
 
-- Example: `yarn benchmark src/resolvers/index.ts --load=100 --pool=10`
+- Example: `yarn benchmark src/web3Functions/index.ts --load=100 --pool=10`
 - Output:
   ```  
   Benchmark result:
@@ -223,95 +224,95 @@ JsResolver Storage updated:
 
 ## Failure tests
 Some example failing file to test error handling
-- Syntax error in the resolver:
-  - Run: `yarn test src/resolvers/fails/syntax-error.js`
+- Syntax error in the web3Function:
+  - Run: `yarn test src/web3Functions/fails/syntax-error.js`
   - Result:
   ```
-  JsResolver building...
+  Web3Function building...
   ✘ [ERROR] Could not resolve "nothing"
 
-      src/resolvers/fails/syntax-error.js:1:30:
-        1 │ import { JsResolverSdk } from "nothing";
+      src/web3Functions/fails/syntax-error.js:1:30:
+        1 │ import { Web3Function } from "nothing";
           ╵                               ~~~~~~~~~
 
     You can mark the path "nothing" as external to exclude it from the bundle, which will remove this
     error.
 
 
-  JsResolver Build result:
+  Web3Function Build result:
   ✗ Error: Build failed with 1 error:
-  src/resolvers/fails/syntax-error.js:1:30: ERROR: Could not resolve "nothing"
+  src/web3Functions/fails/syntax-error.js:1:30: ERROR: Could not resolve "nothing"
   ```
 
-- No checker function registered in the resolver:
-  - Run: `yarn test src/resolvers/fails/not-registered.ts`
+- No `onRun` function registered in the web3Function:
+  - Run: `yarn test src/web3Functions/fails/not-registered.ts`
   - Result:
   ```
-  JsResolver Result:
-  ✗ Error: JsResolver start-up timeout (5s)
-  Make sure you registered your checker function correctly in your script.
+  Web3Function Result:
+  ✗ Error: Web3Function start-up timeout (5s)
+  Make sure you registered your web3 function correctly in your script.
   ```
 
-- Resolver run out of memory:
-  - Run: `yarn test src/resolvers/fails/escape-memory.ts`
+- Web3Function run out of memory:
+  - Run: `yarn test src/web3Functions/fails/escape-memory.ts`
   - Result
   ```
-  JsResolver Result:
-  ✗ Error: JsResolver sandbox exited with code=137
+  Web3Function Result:
+  ✗ Error: Web3Function sandbox exited with code=137
 
-  JsResolver Runtime stats:
+  Web3Function Runtime stats:
   ✓ Duration: 1.91s
   ✗ Memory: 31.97mb
   ```
 
-- Resolver exceed timeout:
-   - Run: `yarn test src/resolvers/fails/escape-timeout.ts`
+- Web3Function exceed timeout:
+   - Run: `yarn test src/web3Functions/fails/escape-timeout.ts`
    - Result:
   ```
-  JsResolver Result:
-  ✗ Error: JsResolver exceed execution timeout (10s)
+  Web3Function Result:
+  ✗ Error: Web3Function exceed execution timeout (10s)
 
-  JsResolver Runtime stats:
+  Web3Function Runtime stats:
   ✗ Duration: 10.97s
   ✓ Memory: 25.34mb
   ```
 
-- Resolver ends without returning result:
-  - Run: `yarn test src/resolvers/fails/no-result.ts`
+- Web3Function ends without returning result:
+  - Run: `yarn test src/web3Functions/fails/no-result.ts`
   - Result:
   ```
-  JsResolver Result:
-  ✗ Error: JsResolver exited without returning result
+  Web3Function Result:
+  ✗ Error: Web3Function exited without returning result
   ```
 
-- Resolver try to access env:
-  - Run: `yarn test src/resolvers/fails/escape-env.ts`
+- Web3Function try to access env:
+  - Run: `yarn test src/web3Functions/fails/escape-env.ts`
   - Result:
   ```
-  JsResolver Result:
+  Web3Function Result:
   ✗ Error: PermissionDenied: Requires env access to all, run again with the --allow-env flag
   ```
 
-- Resolver try to access file system:
-  - Run: `yarn test src/resolvers/fails/escape-file.ts`
+- Web3Function try to access file system:
+  - Run: `yarn test src/web3Functions/fails/escape-file.ts`
   - Result:
   ```
-  JsResolver Result:
+  Web3Function Result:
   ✗ Error: PermissionDenied: Requires read access to "./.env", run again with the --allow-read flag
   ```
 
-- Resolver try to access os:
-  - Run: `yarn test src/resolvers/fails/escape-os.ts`
+- Web3Function try to access os:
+  - Run: `yarn test src/web3Functions/fails/escape-os.ts`
   - Result:
   ```
-  JsResolver Result:
+  Web3Function Result:
   ✗ Error: PermissionDenied: Requires sys access to "osRelease", run again with the --allow-sys flag
   ```
 
-- Resolver try to access cpu:
-  - Run: `yarn test src/resolvers/fails/escape-cpu.ts`
+- Web3Function try to access cpu:
+  - Run: `yarn test src/web3Functions/fails/escape-cpu.ts`
   - Result:
   ```
-  JsResolver Result:
+  Web3Function Result:
   ✗ Error: PermissionDenied: Requires run access to "whoami", run again with the --allow-run flag
   ```

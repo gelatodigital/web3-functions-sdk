@@ -1,2 +1,2 @@
-export * from "./JsResolverSdk";
+export * from "./Web3Function";
 export * from "./types";
