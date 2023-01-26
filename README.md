@@ -1,5 +1,5 @@
-# Web3Function Proof Of Concept
-Playground repo to prototype Web3Functions
+# Web3 Functions SDK
+SDK to build & run Web3 Functions
 <br /><br />
 
 ## Project Setup
