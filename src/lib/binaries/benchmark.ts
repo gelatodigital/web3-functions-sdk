@@ -1,6 +1,5 @@
 import "dotenv/config";
 import colors from "colors/safe";
-import { setTimeout as delay } from "timers/promises";
 import { performance } from "perf_hooks";
 import { ethers } from "ethers";
 
@@ -11,6 +10,8 @@ import {
   Web3FunctionRunner,
 } from "../runtime";
 import { Web3FunctionBuilder } from "../builder";
+
+const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
 
 if (!process.env.PROVIDER_URL) {
   console.error(`Missing PROVIDER_URL in .env file`);
