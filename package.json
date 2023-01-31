@@ -1,6 +1,6 @@
 {
   "name": "@gelatonetwork/web3-functions-sdk",
-  "version": "0.2.1",
+  "version": "0.3.1",
   "description": "Gelato Automate Web3 Functions sdk",
   "url": "https://github.com/gelatodigital/web3-functions-sdk",
   "main": "dist/lib/index.js",
@@ -9,7 +9,7 @@
     "dist/lib/**/*"
   ],
   "bin": {
-    "web3-function": "./dist/bin/index.js"
+    "w3f": "./dist/bin/index.js"
   },
   "exports": {
     ".": "./dist/lib/index.js",
