@@ -77,14 +77,15 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   assert.match(value.toString(), /\d+/);
 
   // Test hard rate limits
-  try {
-    const promises: Promise<any>[] = [];
-    for (let i = 0; i < 100; i++) promises.push(oracle.lastUpdated());
-    const values = await Promise.all(promises);
-    console.log(`Call results:`, values);
-  } catch (err) {
-    failure = err.message;
-    console.log("Throttling RPC calls error:", err.message);
+  for (let j = 0; j < 20; j++) {
+    try {
+      const promises: Promise<any>[] = [];
+      for (let i = 0; i < 10; i++) promises.push(oracle.lastUpdated());
+      const values = await Promise.all(promises);
+    } catch (err) {
+      failure = err.message;
+      console.log("Throttling RPC calls error:", err.message);
+    }
   }
   assert.match(failure, /\"code\":-32005/);
   assert.match(failure, /Request limit exceeded/);
