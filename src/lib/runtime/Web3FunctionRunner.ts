@@ -223,6 +223,7 @@ export class Web3FunctionRunner {
         : "http://host.docker.internal",
       proxyProviderPort,
       provider,
+      options.rpcLimit,
       this._debug
     );
     await this._proxyProvider.start();
@@ -288,10 +289,14 @@ export class Web3FunctionRunner {
         if (!isResolved)
           if (signal === 0) {
             reject(new Error(`Web3Function exited without returning result`));
-          } else {
+          } else if (signal === 250) {
             reject(
-              new Error(`Web3Function sandbox exited with code=${signal}`)
+              new Error(
+                `Web3Function exited with code=${signal} (RPC requests limit exceeded)`
+              )
             );
+          } else {
+            reject(new Error(`Web3Function exited with code=${signal}`));
           }
       });
     });

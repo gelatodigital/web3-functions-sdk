@@ -4,6 +4,7 @@ import { Web3FunctionContextData } from "../../types/Web3FunctionContext";
 export interface Web3FunctionRunnerOptions {
   memory: number;
   timeout: number;
+  rpcLimit: number;
   runtime: "thread" | "docker";
   showLogs: boolean;
   serverPort?: number;
