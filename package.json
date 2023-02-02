@@ -57,6 +57,9 @@
     "fetch": "ts-node src/bin/index.ts fetch",
     "schema": "ts-node src/bin/index.ts schema"
   },
+  "engines": {
+    "node": ">=16.0.0"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
