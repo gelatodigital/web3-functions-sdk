@@ -117,7 +117,7 @@ export default async function test() {
 
   // Show storage update
   if (res.storage?.state === "updated") {
-    console.log(`\nWeb3Function Storage updated:`);
+    console.log(`\nSimulated Web3Function Storage update:`);
     Object.entries(res.storage.storage).forEach(([key, value]) =>
       console.log(` ${OK} ${key}: ${colors.green(`'${value}'`)}`)
     );
