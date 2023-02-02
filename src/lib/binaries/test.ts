@@ -41,8 +41,13 @@ if (process.argv.length > 2) {
   });
 }
 
+const STD_TIMEOUT = 10;
+const STD_RPC_LIMIT = 10;
+const MAX_RPC_LIMIT = 100;
+
 const OK = colors.green("✓");
 const KO = colors.red("✗");
+const WARN = colors.yellow("⚠");
 export default async function test() {
   // Build Web3Function
   console.log(`Web3Function building...`);
@@ -82,7 +87,8 @@ export default async function test() {
   const runner = new Web3FunctionRunner(debug);
   const memory = buildRes.schema.memory;
   const timeout = buildRes.schema.timeout * 1000;
-  const options = { runtime, showLogs, memory, timeout };
+  const rpcLimit = MAX_RPC_LIMIT;
+  const options = { runtime, showLogs, memory, rpcLimit, timeout };
   const script = buildRes.filePath;
   const provider = new ethers.providers.StaticJsonRpcProvider(
     process.env.PROVIDER_URL
@@ -127,15 +133,32 @@ export default async function test() {
 
   // Show runtime stats
   console.log(`\nWeb3Function Runtime stats:`);
-  const durationStatus = res.duration < 0.9 * buildRes.schema.timeout ? OK : KO;
-  console.log(` ${durationStatus} Duration: ${res.duration.toFixed(2)}s`);
+  if (res.duration > 0.9 * buildRes.schema.timeout) {
+    console.log(` ${KO} Duration: ${res.duration.toFixed(2)}s`);
+  } else if (res.duration > STD_TIMEOUT) {
+    console.log(
+      ` ${WARN} Duration: ${res.duration.toFixed(
+        2
+      )}s (Runtime is above Standard plan limit: ${STD_TIMEOUT}s!)`
+    );
+  } else {
+    console.log(` ${OK} Duration: ${res.duration.toFixed(2)}s`);
+  }
   const memoryStatus = res.memory < 0.9 * memory ? OK : KO;
   console.log(` ${memoryStatus} Memory: ${res.memory.toFixed(2)}mb`);
-  const rpcCallsStatus =
-    res.rpcCalls.throttled > 0.1 * res.rpcCalls.total ? KO : OK;
-  console.log(
-    ` ${rpcCallsStatus} Rpc calls: ${res.rpcCalls.total} ${
-      res.rpcCalls.throttled > 0 ? `(${res.rpcCalls.throttled} throttled)` : ""
-    }`
-  );
+  if (res.rpcCalls.throttled > 0) {
+    console.log(
+      ` ${KO} Rpc calls: ${
+        res.rpcCalls.total
+      } ${`(${res.rpcCalls.throttled} throttled - Please reduce your rpc usage!)`}`
+    );
+  } else if (res.rpcCalls.total > STD_RPC_LIMIT) {
+    console.log(
+      ` ${WARN} Rpc calls: ${
+        res.rpcCalls.total
+      } ${`(RPC usage is above Standard plan limit: ${STD_RPC_LIMIT}!)`}`
+    );
+  } else {
+    console.log(` ${OK} Rpc calls: ${res.rpcCalls.total}`);
+  }
 }
