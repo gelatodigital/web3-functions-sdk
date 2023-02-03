@@ -1,6 +1,6 @@
 {
   "name": "@gelatonetwork/web3-functions-sdk",
-  "version": "0.3.1",
+  "version": "0.4.1",
   "description": "Gelato Automate Web3 Functions sdk",
   "url": "https://github.com/gelatodigital/web3-functions-sdk",
   "main": "dist/lib/index.js",
@@ -56,6 +56,9 @@
     "deploy": "ts-node src/bin/index.ts deploy",
     "fetch": "ts-node src/bin/index.ts fetch",
     "schema": "ts-node src/bin/index.ts schema"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   },
   "keywords": [],
   "author": "",

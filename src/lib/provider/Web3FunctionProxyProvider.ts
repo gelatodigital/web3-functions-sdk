@@ -5,12 +5,6 @@ import crypto from "crypto";
 import { ethers } from "ethers";
 import { ethErrors, serializeError } from "eth-rpc-errors";
 
-const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
-
-const SOFT_LIMIT = 5; // 5 rpc calls / second
-const HARD_LIMIT = 10; // 10 rpc calls / second
-const MAX_TIME_DIFFERENCE = 1_000;
-
 export class Web3FunctionProxyProvider {
   private _debug: boolean;
   private _host: string;
@@ -23,45 +17,31 @@ export class Web3FunctionProxyProvider {
   private _isStopped = false;
   private _nbRpcCalls = 0;
   private _nbThrottledRpcCalls = 0;
-  private _throttlingRequests = 0;
-  private _lastIntervalStarted = new Date();
+  private _limit: number;
   private _whitelistedMethods = ["eth_chainId", "net_version"];
 
   constructor(
     host: string,
     port: number,
     provider: ethers.providers.StaticJsonRpcProvider,
+    limit: number,
     debug = true
   ) {
     this._host = host;
     this._port = port;
     this._provider = provider;
     this._debug = debug;
+    this._limit = limit;
     this._mountPath = crypto.randomUUID();
     this._proxyUrl = `${this._host}:${this._port}/${this._mountPath}/`;
   }
 
   protected async _checkRateLimit() {
-    const now = new Date();
-    const timeSinceLastIntervalStarted =
-      now.getTime() - this._lastIntervalStarted.getTime();
-    if (timeSinceLastIntervalStarted > MAX_TIME_DIFFERENCE) {
-      this._lastIntervalStarted = now;
-      this._throttlingRequests = 1;
-    } else {
-      this._throttlingRequests++;
-    }
-    this._log(`throttlingRequests: ${this._throttlingRequests}`);
-
-    if (this._throttlingRequests > HARD_LIMIT) {
+    if (this._nbRpcCalls > this._limit) {
       // Reject requests when reaching hard limit
       this._log(`Too many requests, blocking rpc call`);
       this._nbThrottledRpcCalls++;
       throw ethErrors.rpc.limitExceeded();
-    } else if (this._throttlingRequests > SOFT_LIMIT) {
-      // Slow down requests when reaching soft limit
-      this._log(`Too many requests, slowing down`);
-      await delay(Math.floor(MAX_TIME_DIFFERENCE / 2));
     }
   }
 

@@ -199,7 +199,7 @@ yarn test src/web3Functions/storage/index.ts --show-logs
 
 You will see your updated key/values:
 ```
-Web3Function Storage updated:
+Simulated Web3Function Storage update:
  ✓ lastBlockNumber: '8321923'
 ```
 

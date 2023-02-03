@@ -34,9 +34,7 @@ export class Web3Function {
         };
 
         try {
-          const { result, ctxData } = await this._run(
-            event.data.context
-          );
+          const { result, ctxData } = await this._run(event.data.context);
 
           const lastStorageHash = objectHash(storage.storage, {
             algorithm: "md5",
@@ -73,9 +71,7 @@ export class Web3Function {
         break;
       }
       default:
-        Web3Function._log(
-          `Unrecognized parent process event: ${event.action}`
-        );
+        Web3Function._log(`Unrecognized parent process event: ${event.action}`);
         throw new Error(`Unrecognized parent process event: ${event.action}`);
     }
   }
@@ -89,9 +85,7 @@ export class Web3Function {
         ...ctxData.gelatoArgs,
         gasPrice: BigNumber.from(ctxData.gelatoArgs.gasPrice),
       },
-      provider: new ethers.providers.StaticJsonRpcProvider(
-        ctxData.rpcProviderUrl
-      ),
+      provider: this._initProvider(ctxData.rpcProviderUrl),
       userArgs: ctxData.userArgs,
       secrets: {
         get: async (key: string) => {
@@ -149,5 +143,21 @@ export class Web3Function {
 
   private static _log(message: string) {
     if (Web3Function._debug) console.log(`Web3Function: ${message}`);
+  }
+
+  private _initProvider(
+    providerUrl: string | undefined
+  ): ethers.providers.StaticJsonRpcProvider {
+    const provider = new ethers.providers.StaticJsonRpcProvider(providerUrl);
+    // Listen to response to check for rate limit error
+    provider.on("debug", (data) => {
+      if (data.action === "response" && data.error) {
+        if (/Request limit exceeded/.test(data.error.message)) {
+          console.error("Web3FunctionError: RPC requests limit exceeded");
+          this._exit(250);
+        }
+      }
+    });
+    return provider;
   }
 }

@@ -106,7 +106,8 @@ export default async function benchmark() {
   const start = performance.now();
   const memory = buildRes.schema.memory;
   const timeout = buildRes.schema.timeout * 1000;
-  const options = { runtime, showLogs, memory, timeout };
+  const rpcLimit = 100;
+  const options = { runtime, showLogs, memory, timeout, rpcLimit };
   const script = buildRes.filePath;
   const provider = new ethers.providers.StaticJsonRpcProvider(
     process.env.PROVIDER_URL
