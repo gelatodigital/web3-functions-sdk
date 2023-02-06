@@ -9,15 +9,15 @@ yarn install
 ```
 
 2. If you want to use a private RPC provider, 
-   - Copy `.env_example` to init your own `.env` file
+   - Copy `.env.example` to init your own `.env` file
   ```
-  cp .env_example .env
+  cp .env.example .env
   ```
    - Complete your `.env` file with your private settings
 
 ## Write a Web3Function
 
-- Create a new file in `src/web3Functions`
+- Create a new file in `src/web3-functions`
 - Register your web3Function main function using `Web3Function.onRun`
 - Example:
 ```typescript
@@ -88,7 +88,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   - `--chain-id=[number]` Specify the chainId to be used for your Web3Function (default: `5`)
   - `--user-args=[key]:[value]` Set your Web3Function user args
 
-- Example: `yarn test src/web3Functions/index.ts --show-logs --runtime=thread`
+- Example: `yarn test src/web3-functions/index.ts --show-logs --runtime=thread`
 - Output:
   ```
   Web3Function Build result:
@@ -117,7 +117,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 Use `yarn deploy FILENAME` command to upload your web3Function.
 
 ```
-> yarn deploy ./src/web3Functions/index.ts
+> yarn deploy ./src/web3-functions/index.ts
 ```
 
 ## Use User arguments
@@ -194,7 +194,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 
 Test storage execution:
 ```
-yarn test src/web3Functions/storage/index.ts --show-logs
+yarn test src/web3-functions/storage/index.ts --show-logs
 ```
 
 You will see your updated key/values:
@@ -212,7 +212,7 @@ Simulated Web3Function Storage update:
   - `--load=100` configure the number of web3Functions you want to run for your load test (default: `10`)
   - `--pool=10` configure the pool size, ie max number of concurrent worker (default: `10`)
 
-- Example: `yarn benchmark src/web3Functions/index.ts --load=100 --pool=10`
+- Example: `yarn benchmark src/web3-functions/index.ts --load=100 --pool=10`
 - Output:
   ```  
   Benchmark result:
@@ -225,13 +225,13 @@ Simulated Web3Function Storage update:
 ## Failure tests
 Some example failing file to test error handling
 - Syntax error in the web3Function:
-  - Run: `yarn test src/web3Functions/fails/syntax-error.js`
+  - Run: `yarn test src/web3-functions/fails/syntax-error.js`
   - Result:
   ```
   Web3Function building...
   ✘ [ERROR] Could not resolve "nothing"
 
-      src/web3Functions/fails/syntax-error.js:1:30:
+      src/web3-functions/fails/syntax-error.js:1:30:
         1 │ import { Web3Function } from "nothing";
           ╵                               ~~~~~~~~~
 
@@ -241,11 +241,11 @@ Some example failing file to test error handling
 
   Web3Function Build result:
   ✗ Error: Build failed with 1 error:
-  src/web3Functions/fails/syntax-error.js:1:30: ERROR: Could not resolve "nothing"
+  src/web3-functions/fails/syntax-error.js:1:30: ERROR: Could not resolve "nothing"
   ```
 
 - No `onRun` function registered in the web3Function:
-  - Run: `yarn test src/web3Functions/fails/not-registered.ts`
+  - Run: `yarn test src/web3-functions/fails/not-registered.ts`
   - Result:
   ```
   Web3Function Result:
@@ -254,7 +254,7 @@ Some example failing file to test error handling
   ```
 
 - Web3Function run out of memory:
-  - Run: `yarn test src/web3Functions/fails/escape-memory.ts`
+  - Run: `yarn test src/web3-functions/fails/escape-memory.ts`
   - Result
   ```
   Web3Function Result:
@@ -266,7 +266,7 @@ Some example failing file to test error handling
   ```
 
 - Web3Function exceed timeout:
-   - Run: `yarn test src/web3Functions/fails/escape-timeout.ts`
+   - Run: `yarn test src/web3-functions/fails/escape-timeout.ts`
    - Result:
   ```
   Web3Function Result:
@@ -278,7 +278,7 @@ Some example failing file to test error handling
   ```
 
 - Web3Function ends without returning result:
-  - Run: `yarn test src/web3Functions/fails/no-result.ts`
+  - Run: `yarn test src/web3-functions/fails/no-result.ts`
   - Result:
   ```
   Web3Function Result:
@@ -286,7 +286,7 @@ Some example failing file to test error handling
   ```
 
 - Web3Function try to access env:
-  - Run: `yarn test src/web3Functions/fails/escape-env.ts`
+  - Run: `yarn test src/web3-functions/fails/escape-env.ts`
   - Result:
   ```
   Web3Function Result:
@@ -294,7 +294,7 @@ Some example failing file to test error handling
   ```
 
 - Web3Function try to access file system:
-  - Run: `yarn test src/web3Functions/fails/escape-file.ts`
+  - Run: `yarn test src/web3-functions/fails/escape-file.ts`
   - Result:
   ```
   Web3Function Result:
@@ -302,7 +302,7 @@ Some example failing file to test error handling
   ```
 
 - Web3Function try to access os:
-  - Run: `yarn test src/web3Functions/fails/escape-os.ts`
+  - Run: `yarn test src/web3-functions/fails/escape-os.ts`
   - Result:
   ```
   Web3Function Result:
@@ -310,7 +310,7 @@ Some example failing file to test error handling
   ```
 
 - Web3Function try to access cpu:
-  - Run: `yarn test src/web3Functions/fails/escape-cpu.ts`
+  - Run: `yarn test src/web3-functions/fails/escape-cpu.ts`
   - Result:
   ```
   Web3Function Result:
