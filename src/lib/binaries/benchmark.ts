@@ -18,7 +18,7 @@ if (!process.env.PROVIDER_URL) {
   process.exit();
 }
 
-const web3FunctionSrcPath = process.argv[3] ?? "./src/web3Functions/index.ts";
+const web3FunctionSrcPath = process.argv[3] ?? "./src/web3-functions/index.ts";
 let chainId = 5;
 let runtime: "docker" | "thread" = "thread";
 let debug = false;
