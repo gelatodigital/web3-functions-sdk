@@ -47,7 +47,6 @@ export class Web3FunctionBuilder {
       absWorkingDir: process.cwd(),
       platform: "browser",
       target: "es2022",
-      minify: true,
       format: "esm",
       outfile,
     };
