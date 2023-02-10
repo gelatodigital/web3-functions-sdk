@@ -10,6 +10,8 @@ import {
   Web3FunctionStorage,
 } from "./types/Web3FunctionEvent";
 import objectHash = require("object-hash");
+import "./polyfill/XMLHttpRequest";
+
 export class Web3Function {
   private static Instance?: Web3Function;
   private static _debug = false;
