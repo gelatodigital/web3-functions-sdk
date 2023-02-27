@@ -43,6 +43,7 @@ if (process.argv.length > 2) {
 
 const STD_TIMEOUT = 10;
 const STD_RPC_LIMIT = 10;
+const STD_STORAGE_LIMIT = 1024;
 const MAX_RPC_LIMIT = 100;
 
 const OK = colors.green("✓");
@@ -146,6 +147,17 @@ export default async function test() {
   }
   const memoryStatus = res.memory < 0.9 * memory ? OK : KO;
   console.log(` ${memoryStatus} Memory: ${res.memory.toFixed(2)}mb`);
+
+  if (res.storage?.size > STD_STORAGE_LIMIT) {
+    console.log(
+      ` ${KO} Storage: ${res.storage.size.toFixed(
+        2
+      )}kb (Storage usage is above Standard plan limit: ${STD_STORAGE_LIMIT}kb!)`
+    );
+  } else if (res.storage?.size > 0) {
+    console.log(` ${OK} Storage: ${res.storage.size.toFixed(2)}kb`);
+  }
+
   if (res.rpcCalls.throttled > 0) {
     console.log(
       ` ${KO} Rpc calls: ${

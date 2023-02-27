@@ -145,6 +145,8 @@ export class Web3FunctionRunner {
       const data = await this._runInSandbox(script, context, options, provider);
       result = data.result;
       storage = data.storage;
+      storage.size =
+        Buffer.byteLength(JSON.stringify(storage.storage), "utf-8") / 1024;
       success = true;
     } catch (err) {
       error = err;
@@ -163,6 +165,7 @@ export class Web3FunctionRunner {
     this._log(`Runtime duration=${duration.toFixed(2)}s`);
     this._log(`Runtime memory=${memory.toFixed(2)}mb`);
     this._log(`Runtime rpc calls=${JSON.stringify(rpcCalls)}`);
+    this._log(`Runtime storage size=${storage?.size.toFixed(2)}kb`);
     if (success) {
       return {
         success,
