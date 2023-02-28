@@ -34,5 +34,11 @@
       "additionalProperties": false
     }
   },
-  "required": ["web3FunctionVersion", "runtime", "memory", "timeout"]
+  "required": [
+    "web3FunctionVersion",
+    "runtime",
+    "memory",
+    "timeout",
+    "userArgs"
+  ]
 }

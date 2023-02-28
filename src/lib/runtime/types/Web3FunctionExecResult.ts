@@ -6,7 +6,7 @@ type Web3FunctionExecStats = {
   memory: number;
   rpcCalls: { total: number; throttled: number };
   logs: string[];
-  storage: Web3FunctionStorage;
+  storage: Web3FunctionStorage & { size: number };
 };
 
 type Web3FunctionExecSuccess = Web3FunctionExecStats & {
