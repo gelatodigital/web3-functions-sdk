@@ -30,7 +30,7 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
     });
 
     let processExitCodeFunction;
-    this._processExitCode = new Promise((resolve) => {
+    this._processExitCodePromise = new Promise((resolve) => {
       processExitCodeFunction = resolve;
     });
 

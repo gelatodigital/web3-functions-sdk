@@ -81,7 +81,7 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
     };
 
     let processExitCodeFunction;
-    this._processExitCode = new Promise((resolve) => {
+    this._processExitCodePromise = new Promise((resolve) => {
       processExitCodeFunction = resolve;
     });
 
