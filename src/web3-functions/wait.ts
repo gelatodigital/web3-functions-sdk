@@ -2,7 +2,7 @@ import {
   Web3Function,
   Web3FunctionContext,
 } from "@gelatonetwork/web3-functions-sdk";
-import { setTimeout as delay } from "timers/promises";
+const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
 
 Web3Function.onRun(async (context: Web3FunctionContext) => {
   await delay(5_000);
