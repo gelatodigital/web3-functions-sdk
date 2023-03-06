@@ -5,7 +5,7 @@ import { Web3FunctionSandboxOptions } from "../types";
 export abstract class Web3FunctionAbstractSandbox extends EventEmitter {
   protected _memoryLimit: number;
   protected _isStopped = false;
-  protected _processExitCode = Promise.resolve(0);
+  protected _processExitCodePromise = Promise.resolve(0);
   protected _showStdout: boolean;
   protected _debug: boolean;
   protected _logs: string[] = [];
@@ -62,7 +62,7 @@ export abstract class Web3FunctionAbstractSandbox extends EventEmitter {
   }
 
   public async waitForProcessEnd() {
-    return await this._processExitCode;
+    return await this._processExitCodePromise;
   }
 
   protected _log(message: string) {

@@ -21,6 +21,7 @@ import {
 } from "../types";
 import { Web3FunctionProxyProvider } from "../provider/Web3FunctionProxyProvider";
 import { ethers } from "ethers";
+import onExit from "signal-exit";
 
 const START_TIMEOUT = 5_000;
 
@@ -32,6 +33,8 @@ export class Web3FunctionRunner {
   private _sandbox?: Web3FunctionAbstractSandbox;
   private _execTimeoutId?: NodeJS.Timeout;
   private _memoryIntervalId?: NodeJS.Timer;
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  private _exitRemover: () => void = () => {};
 
   constructor(debug = false) {
     this._debug = debug;
@@ -216,7 +219,7 @@ export class Web3FunctionRunner {
     }
 
     // Attach process exit handler to clean runtime environment
-    process.on("SIGINT", this.stop.bind(this));
+    this._exitRemover = onExit(() => this.stop());
 
     // Proxy RPC provider
     const proxyProviderPort = await Web3FunctionNetHelper.getAvailablePort();
@@ -241,7 +244,10 @@ export class Web3FunctionRunner {
       this._debug
     );
     try {
-      await this._client.connect(START_TIMEOUT);
+      await Promise.race([
+        this._client.connect(START_TIMEOUT),
+        this._sandbox?.waitForProcessEnd(), // Early exit if sandbox is crashed
+      ]);
     } catch (err) {
       this._log(`Fail to connect to Web3Function ${err.message}`);
       throw new Error(
@@ -324,7 +330,7 @@ export class Web3FunctionRunner {
     if (this._execTimeoutId) clearTimeout(this._execTimeoutId);
     if (this._memoryIntervalId) clearInterval(this._memoryIntervalId);
     // Remove process exit handler
-    process.off("SIGINT", this.stop.bind(this));
+    this._exitRemover();
   }
 
   private _log(message: string) {
