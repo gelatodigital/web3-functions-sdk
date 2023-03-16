@@ -1,4 +1,4 @@
-import "dotenv/config";
+import * as dotenv from "dotenv";
 import colors from "colors/safe";
 import { Web3FunctionContextData } from "../types";
 import { Web3FunctionRunner } from "../runtime";
@@ -6,44 +6,7 @@ import { Web3FunctionBuilder } from "../builder";
 import path from "path";
 import { MultiChainProviderConfig } from "../provider";
 import { ethers } from "ethers";
-
-if (!process.env.PROVIDER_URLS) {
-  console.error(`Missing PROVIDER_URLS in .env file`);
-  process.exit();
-}
-const providerUrls = (process.env.PROVIDER_URLS as string).split(",");
-const web3FunctionSrcPath =
-  process.argv[3] ??
-  path.join(process.cwd(), "src", "web3-functions", "index.ts");
-let chainId = 5;
-let runtime: "docker" | "thread" = "thread";
-let debug = false;
-let showLogs = false;
-const inputUserArgs: { [key: string]: string } = {};
-if (process.argv.length > 2) {
-  process.argv.slice(3).forEach((arg) => {
-    if (arg.startsWith("--debug")) {
-      debug = true;
-    } else if (arg.startsWith("--show-logs")) {
-      showLogs = true;
-    } else if (arg.startsWith("--runtime=")) {
-      const type = arg.split("=")[1];
-      runtime = type === "docker" ? "docker" : "thread";
-    } else if (arg.startsWith("--chain-id")) {
-      chainId = parseInt(arg.split("=")[1]) ?? chainId;
-    } else if (arg.startsWith("--user-args=")) {
-      const userArgParts = arg.split("=")[1].split(":");
-      if (userArgParts.length < 2) {
-        console.error("Invalid user-args:", arg);
-        console.error("Please use format: --user-args=[key]:[value]");
-        process.exit(1);
-      }
-      const key = userArgParts.shift() as string;
-      const value = userArgParts.join(":");
-      inputUserArgs[key] = value;
-    }
-  });
-}
+import { EthereumProvider } from "hardhat/types";
 
 const STD_TIMEOUT = 10;
 const STD_RPC_LIMIT = 10;
@@ -53,11 +16,72 @@ const MAX_RPC_LIMIT = 100;
 const OK = colors.green("✓");
 const KO = colors.red("✗");
 const WARN = colors.yellow("⚠");
-export default async function test() {
+
+export interface CallConfig {
+  w3fPath: string;
+  w3fEnvPath: string;
+  debug: boolean;
+  showLogs: boolean;
+  runtime: RunTime;
+  userArgs: { [key: string]: string };
+  provider: EthereumProvider;
+  chainId: number;
+}
+
+export type RunTime = "docker" | "thread";
+
+export default async function test(callConfig?: Partial<CallConfig>) {
+  const inputUserArgs: { [key: string]: string } = callConfig?.userArgs ?? {};
+  let provider =
+    callConfig?.provider ??
+    new ethers.providers.JsonRpcProvider(
+      "https://eth-goerli.public.blastapi.io"
+    );
+  let chainId = callConfig?.chainId ?? 5;
+  let runtime: RunTime = callConfig?.runtime ?? "thread";
+  let debug = callConfig?.debug ?? false;
+  let showLogs = callConfig?.showLogs ?? false;
+  const web3FunctionPath =
+    callConfig?.w3fPath ?? process.argv[3] ?? "./src/web3-functions/index.ts";
+
+  if (!callConfig) {
+    if (!process.env.PROVIDER_URL) {
+      console.error(`Missing PROVIDER_URL in .env file`);
+      process.exit();
+    }
+
+    provider = new ethers.providers.JsonRpcProvider(process.env.PROVIDER_URL);
+
+    if (process.argv.length > 2) {
+      process.argv.slice(3).forEach((arg) => {
+        if (arg.startsWith("--debug")) {
+          debug = true;
+        } else if (arg.startsWith("--show-logs")) {
+          showLogs = true;
+        } else if (arg.startsWith("--runtime=")) {
+          const type = arg.split("=")[1];
+          runtime = type === "docker" ? "docker" : "thread";
+        } else if (arg.startsWith("--chain-id")) {
+          chainId = parseInt(arg.split("=")[1]) ?? chainId;
+        } else if (arg.startsWith("--user-args=")) {
+          const userArgParts = arg.split("=")[1].split(":");
+          if (userArgParts.length < 2) {
+            console.error("Invalid user-args:", arg);
+            console.error("Please use format: --user-args=[key]:[value]");
+            process.exit(1);
+          }
+          const key = userArgParts.shift() as string;
+          const value = userArgParts.join(":");
+          inputUserArgs[key] = value;
+        }
+      });
+    }
+  }
+
   // Build Web3Function
   console.log(`Web3Function building...`);
 
-  const buildRes = await Web3FunctionBuilder.build(web3FunctionSrcPath, debug);
+  const buildRes = await Web3FunctionBuilder.build(web3FunctionPath, debug);
   console.log(`\nWeb3Function Build result:`);
   if (buildRes.success) {
     console.log(` ${OK} Schema: ${buildRes.schemaPath}`);
@@ -80,12 +104,24 @@ export default async function test() {
     userArgs: {},
   };
 
-  // Fill up test secrets with `SECRETS_*` env
-  Object.keys(process.env)
-    .filter((key) => key.startsWith("SECRETS_"))
-    .forEach((key) => {
-      context.secrets[key.replace("SECRETS_", "")] = process.env[key];
+  /**
+   * Fill up test secrets with
+   * `SECRETS_*` in .env (cli)
+   * all variables in .env.w3f (hardhat)
+   */
+  if (callConfig) {
+    const config = dotenv.config({ path: callConfig.w3fEnvPath }).parsed ?? {};
+
+    Object.keys(config).forEach((key) => {
+      context.secrets[key] = config[key];
     });
+  } else {
+    Object.keys(process.env)
+      .filter((key) => key.startsWith("SECRETS_"))
+      .forEach((key) => {
+        context.secrets[key.replace("SECRETS_", "")] = process.env[key];
+      });
+  }
 
   // Configure Web3Function runner
   const runner = new Web3FunctionRunner(debug);
