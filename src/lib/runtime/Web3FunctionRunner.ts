@@ -146,6 +146,8 @@ export class Web3FunctionRunner {
     try {
       const { script, context, options, provider } = payload;
       const data = await this._runInSandbox(script, context, options, provider);
+      this._validateResult(data.result);
+
       result = data.result;
       storage = data.storage;
       storage.size =
@@ -320,6 +322,39 @@ export class Web3FunctionRunner {
         // Ignore
       }
     }, 100);
+  }
+
+  private _validateResult(result: Web3FunctionResult) {
+    if (!Object.keys(result).includes("canExec"))
+      throw new Error(
+        `Web3Function must return {canExec: bool, callData: string} or {canExec: bool, message: string}. Instead returned: ${JSON.stringify(
+          result
+        )}`
+      );
+
+    if (result.canExec) {
+      if (!Object.keys(result).includes("callData"))
+        throw new Error(
+          `Web3Function must return {canExec: bool, callData: string}. Instead returned: ${JSON.stringify(
+            result
+          )}`
+        );
+
+      if (result.callData.length < 10 || result.callData.slice(0, 2) !== "0x") {
+        throw new Error(
+          `Web3Function returned invalid callData. Returned: ${JSON.stringify(
+            result
+          )}`
+        );
+      }
+    }
+
+    if (!result.canExec && !Object.keys(result).includes("message"))
+      throw new Error(
+        `Web3Function must return {canExec: bool, message: string}. Instead returned: ${JSON.stringify(
+          result
+        )}`
+      );
   }
 
   public async stop() {
