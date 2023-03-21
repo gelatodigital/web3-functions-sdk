@@ -62,7 +62,7 @@ export class W3fHardhatPlugin {
     const res = await runner.run({ script, context, options, provider });
 
     if (!res.success)
-      throw new Error(`Fail to run web3 function: ${res.error}`);
+      throw new Error(`Fail to run web3 function: ${res.error.message}`);
 
     return res;
   }
