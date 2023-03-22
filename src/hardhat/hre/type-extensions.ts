@@ -1,10 +1,16 @@
 import "hardhat/types/config";
 import "hardhat/types/runtime";
+import { Web3FunctionUserArgs } from "../../lib";
 
 import { W3fHardhatPlugin } from "./W3fHardhatPlugin";
 
 interface W3fConfig {
-  functions: { [name: string]: { path: string } };
+  functions: {
+    [name: string]: {
+      path: string;
+      userArgs?: Web3FunctionUserArgs;
+    };
+  };
   debug: boolean;
 }
 

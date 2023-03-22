@@ -1,17 +1,11 @@
 import { task } from "hardhat/config";
-import test, { CallConfig, RunTime } from "../../lib/binaries/test";
+import test, { CallConfig } from "../../lib/binaries/test";
 import { W3F_ENV_PATH } from "../constants";
 import { EthersProviderWrapper } from "../provider";
-import { getUserArgsFromJsonFile } from "../utils";
 
 task("w3f-run", "Runs Gelato Web3 Function")
   .addFlag("debug", "Enable debug mode")
   .addFlag("logs", "Show Web3 Function logs")
-  .addOptionalParam<RunTime>(
-    "runtime",
-    "Run Web3 Function in 'docker' | 'thread'",
-    "thread" //default
-  )
   .addOptionalParam<string>(
     "userargs",
     "Web3 Function user arguments",
@@ -31,7 +25,7 @@ task("w3f-run", "Runs Gelato Web3 Function")
     const userArgsStr = taskArgs.userargs;
 
     if (!userArgsStr) {
-      userArgs = await getUserArgsFromJsonFile(w3fPath);
+      userArgs = hre.config.w3f.functions[taskArgs.name].userArgs ?? {};
     } else {
       const kvs = userArgsStr.split("-");
 
@@ -51,7 +45,7 @@ task("w3f-run", "Runs Gelato Web3 Function")
       w3fEnvPath: W3F_ENV_PATH,
       debug,
       showLogs: taskArgs.logs,
-      runtime: taskArgs.runtime,
+      runtime: "thread",
       userArgs,
       provider: hre.network.provider,
       chainId,

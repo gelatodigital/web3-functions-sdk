@@ -6,7 +6,6 @@ import { Web3FunctionBuilder } from "../../lib/builder";
 import { Web3FunctionExecSuccess, Web3FunctionRunner } from "../../lib/runtime";
 import { GAS_PRICE_ARG, W3F_ENV_PATH } from "../constants";
 import { EthersProviderWrapper } from "../provider";
-import { getUserArgsFromJsonFile } from "../utils";
 
 export class W3fHardhatPlugin {
   private hre: HardhatRuntimeEnvironment;
@@ -25,7 +24,7 @@ export class W3fHardhatPlugin {
     const w3fPath = this.hre.config.w3f.functions[name].path;
 
     const userArgs =
-      userArgsOverride ?? (await getUserArgsFromJsonFile(w3fPath));
+      userArgsOverride ?? this.hre.config.w3f.functions[name].userArgs ?? {};
     const debug = this.hre.config.w3f.debug;
 
     const buildRes = await Web3FunctionBuilder.build(w3fPath, debug);
@@ -74,13 +73,6 @@ export class W3fHardhatPlugin {
     const cid = await Web3FunctionBuilder.deploy(w3fPath);
 
     return cid;
-  }
-
-  public async getUserArgsFromJsonFile(name: string) {
-    const w3fPath = this.hre.config.w3f.functions[name].path;
-    const userArgs = await getUserArgsFromJsonFile(w3fPath);
-
-    return userArgs;
   }
 
   public async getGelatoArgs(gasPriceOverride?: string) {
