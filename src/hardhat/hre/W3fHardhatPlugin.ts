@@ -34,6 +34,8 @@ export class W3fHardhatPlugin {
       throw new Error(`Fail to build web3Function: ${buildRes.error}`);
 
     const runner = new Web3FunctionRunner(debug);
+    runner.validateUserArgs(buildRes.schema.userArgs, userArgs);
+
     const runtime: "docker" | "thread" = "thread";
     const memory = buildRes.schema.memory;
     const rpcLimit = 100;

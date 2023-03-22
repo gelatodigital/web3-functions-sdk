@@ -45,10 +45,52 @@ export class Web3FunctionRunner {
     this._debug = debug;
   }
 
-  public async validateUserArgs(
+  public validateUserArgs(
+    userArgsSchema: Web3FunctionUserArgsSchema,
+    userArgs: Web3FunctionUserArgs
+  ) {
+    for (const key in userArgsSchema) {
+      const value = userArgs[key];
+      if (typeof value === "undefined") {
+        throw new Error(`Web3FunctionSchemaError: Missing user arg '${key}'`);
+      }
+      const type = userArgsSchema[key];
+      switch (type) {
+        case "boolean":
+        case "string":
+        case "number":
+          if (typeof value !== type) {
+            throw new Error(
+              `Web3FunctionSchemaError: Invalid ${type} value '${value.toString()}' for user arg '${key}'`
+            );
+          }
+          break;
+        case "boolean[]":
+        case "string[]":
+        case "number[]": {
+          const itemType = type.slice(0, -2);
+          if (
+            !Array.isArray(value) ||
+            value.some((a) => typeof a !== itemType)
+          ) {
+            throw new Error(
+              `Web3FunctionSchemaError: Invalid ${type} value '${value}' for user arg '${key}'`
+            );
+          }
+          break;
+        }
+        default:
+          throw new Error(
+            `Web3FunctionSchemaError: Unrecognized type '${type}' for user arg '${key}'`
+          );
+      }
+    }
+  }
+
+  public parseUserArgs(
     userArgsSchema: Web3FunctionUserArgsSchema,
     inputUserArgs: { [key: string]: string }
-  ): Promise<Web3FunctionUserArgs> {
+  ): Web3FunctionUserArgs {
     const typedUserArgs: Web3FunctionUserArgs = {};
     for (const key in userArgsSchema) {
       const value = inputUserArgs[key];

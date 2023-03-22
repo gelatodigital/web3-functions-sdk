@@ -93,7 +93,7 @@ export default async function benchmark() {
     const runner = new Web3FunctionRunner(debug);
     console.log(`\nWeb3Function user args validation:`);
     try {
-      context.userArgs = await runner.validateUserArgs(
+      context.userArgs = runner.parseUserArgs(
         buildRes.schema.userArgs,
         inputUserArgs
       );
