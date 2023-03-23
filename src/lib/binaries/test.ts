@@ -143,10 +143,16 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   if (Object.keys(inputUserArgs).length > 0) {
     console.log(`\nWeb3Function user args validation:`);
     try {
-      context.userArgs = runner.parseUserArgs(
-        buildRes.schema.userArgs,
-        inputUserArgs
-      );
+      if (!callConfig) {
+        context.userArgs = runner.parseUserArgs(
+          buildRes.schema.userArgs,
+          inputUserArgs
+        );
+      } else {
+        context.userArgs = inputUserArgs;
+        runner.validateUserArgs(buildRes.schema.userArgs, inputUserArgs);
+      }
+
       Object.keys(context.userArgs).forEach((key) => {
         console.log(` ${OK} ${key}:`, context.userArgs[key]);
       });
