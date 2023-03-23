@@ -4,7 +4,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { Web3FunctionContextData, Web3FunctionUserArgs } from "../../lib";
 import { Web3FunctionBuilder } from "../../lib/builder";
 import { Web3FunctionExecSuccess, Web3FunctionRunner } from "../../lib/runtime";
-import { GAS_PRICE_ARG, W3F_ENV_PATH } from "../constants";
+import { MAX_RPC_LIMIT, W3F_ENV_PATH } from "../constants";
 import { EthersProviderWrapper } from "../provider";
 
 export class W3fHardhatPlugin {
@@ -37,14 +37,13 @@ export class W3fHardhatPlugin {
 
     const runtime: "docker" | "thread" = "thread";
     const memory = buildRes.schema.memory;
-    const rpcLimit = 100;
     const timeout = buildRes.schema.timeout * 1000;
 
     const options = {
       runtime,
       showLogs: true,
       memory,
-      rpcLimit,
+      rpcLimit: MAX_RPC_LIMIT,
       timeout,
     };
     const script = buildRes.filePath;
@@ -83,7 +82,8 @@ export class W3fHardhatPlugin {
       this.hre.network.config.chainId ??
       (await this.provider.getNetwork()).chainId;
 
-    const gasPrice = gasPriceOverride ?? GAS_PRICE_ARG;
+    const gasPrice =
+      gasPriceOverride ?? (await this.provider.getGasPrice()).toString();
 
     return { blockTime, chainId, gasPrice };
   }
