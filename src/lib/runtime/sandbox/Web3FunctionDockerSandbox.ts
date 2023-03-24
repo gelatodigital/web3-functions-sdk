@@ -52,6 +52,7 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
     args.push("run");
     args.push(`--allow-env=WEB3_FUNCTION_SERVER_PORT`);
     args.push(`--allow-net`);
+    args.push(`--unstable`);
     args.push(`--no-prompt`);
     args.push(`--no-npm`);
     args.push(`--no-remote`);
