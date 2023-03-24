@@ -348,13 +348,6 @@ export class Web3FunctionRunner {
         );
       }
     }
-
-    if (!result.canExec && !Object.keys(result).includes("message"))
-      throw new Error(
-        `Web3Function must return {canExec: bool, message: string}. Instead returned: ${JSON.stringify(
-          result
-        )}`
-      );
   }
 
   public async stop() {
