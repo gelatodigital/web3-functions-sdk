@@ -1,4 +1,5 @@
 /* eslint-disable no-empty */
+import path from "path";
 import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import pidusage from "pidusage";
 import { Web3FunctionAbstractSandbox } from "./Web3FunctionAbstractSandbox";
@@ -12,7 +13,9 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
   }
 
   protected async _start(script: string, serverPort: number): Promise<void> {
-    const cmd = process.env.DENO_PATH ?? `./node_modules/deno-bin/bin/deno`;
+    const cmd =
+      process.env.DENO_PATH ??
+      path.join(process.cwd(), "node_modules", "deno-bin", "bin", "deno");
     const args: string[] = [];
     args.push("run");
     args.push(`--allow-env=WEB3_FUNCTION_SERVER_PORT`);

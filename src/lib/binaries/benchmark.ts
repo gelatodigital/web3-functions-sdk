@@ -2,6 +2,7 @@ import "dotenv/config";
 import colors from "colors/safe";
 import { performance } from "perf_hooks";
 import { ethers } from "ethers";
+import path from "path";
 
 import { Web3FunctionContextData } from "../types";
 import {
@@ -18,7 +19,9 @@ if (!process.env.PROVIDER_URL) {
   process.exit();
 }
 
-const web3FunctionSrcPath = process.argv[3] ?? "./src/web3-functions/index.ts";
+const web3FunctionSrcPath =
+  process.argv[3] ??
+  path.join(process.cwd(), "src", "web3-functions", "index.ts");
 let chainId = 5;
 let runtime: "docker" | "thread" = "thread";
 let debug = false;

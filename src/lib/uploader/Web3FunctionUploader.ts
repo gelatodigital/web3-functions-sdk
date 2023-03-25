@@ -32,7 +32,7 @@ export class Web3FunctionUploader {
 
   public static async fetch(
     cid: string,
-    destDir = "./.tmp"
+    destDir = path.join(process.cwd(), ".tmp")
   ): Promise<string> {
     try {
       const res = await axios.get(
@@ -47,7 +47,11 @@ export class Web3FunctionUploader {
       let web3FunctionPath: string;
 
       const web3FunctionFileName = `${cid}.tgz`;
-      const tempWeb3FunctionPath = `.tmp/${web3FunctionFileName}`;
+      const tempWeb3FunctionPath = path.join(
+        process.cwd(),
+        ".tmp",
+        web3FunctionFileName
+      );
 
       if (!fs.existsSync(".tmp")) {
         fs.mkdirSync(".tmp", { recursive: true });
@@ -57,12 +61,12 @@ export class Web3FunctionUploader {
       web3FunctionPath = tempWeb3FunctionPath;
 
       // store web3Function to custom dir
-      if (destDir !== "./.tmp") {
+      if (destDir !== path.join(process.cwd(), ".tmp")) {
         if (!fs.existsSync(destDir)) {
           fs.mkdirSync(destDir, { recursive: true });
         }
 
-        const customWeb3FunctionPath = `${destDir}/${web3FunctionFileName}`;
+        const customWeb3FunctionPath = path.join(destDir, web3FunctionFileName);
         await fsp.rename(web3FunctionPath, customWeb3FunctionPath);
         web3FunctionPath = customWeb3FunctionPath;
       }
@@ -95,11 +99,14 @@ export class Web3FunctionUploader {
         `Web3Function build file not found at path. ${web3FunctionBuildPath} \n${err.message}`
       );
     }
-    const { base } = path.parse(web3FunctionBuildPath);
 
     // create directory with index.js, source.js & schema.json
     const folderCompressedName = `web3Function`;
-    const folderCompressedPath = `.tmp/${folderCompressedName}`;
+    const folderCompressedPath = path.join(
+      process.cwd(),
+      ".tmp",
+      folderCompressedName
+    );
     const folderCompressedTar = `${folderCompressedPath}.tgz`;
 
     if (!fs.existsSync(folderCompressedPath)) {
@@ -107,10 +114,16 @@ export class Web3FunctionUploader {
     }
 
     // move files to directory
-    await fsp.rename(web3FunctionBuildPath, `${folderCompressedPath}/index.js`);
-    await fsp.rename(sourcePath, `${folderCompressedPath}/source.js`);
+    await fsp.rename(
+      web3FunctionBuildPath,
+      path.join(folderCompressedPath, "index.js")
+    );
+    await fsp.rename(sourcePath, path.join(folderCompressedPath, "source.js"));
     try {
-      await fsp.copyFile(schemaPath, `${folderCompressedPath}/schema.json`);
+      await fsp.copyFile(
+        schemaPath,
+        path.join(folderCompressedPath, "schema.json")
+      );
     } catch (err) {
       throw new Error(
         `Schema not found at path: ${schemaPath}. \n${err.message}`
@@ -121,7 +134,7 @@ export class Web3FunctionUploader {
       .c(
         {
           gzip: true,
-          cwd: `${process.cwd()}/.tmp`,
+          cwd: path.join(process.cwd(), ".tmp"),
           noMtime: true,
           portable: true,
         },
@@ -149,7 +162,7 @@ export class Web3FunctionUploader {
       const { dir, name } = path.parse(input);
 
       // rename directory to ipfs cid of web3Function if possible.
-      const cidDirectory = `${dir}/${name}`;
+      const cidDirectory = path.join(dir, name);
       if (!fs.existsSync(cidDirectory)) {
         fs.mkdirSync(cidDirectory, { recursive: true });
       }
@@ -161,26 +174,28 @@ export class Web3FunctionUploader {
 
       // move web3Function & schema to root ipfs cid directory
       fs.renameSync(
-        `${cidDirectory}/web3Function/schema.json`,
-        `${cidDirectory}/schema.json`
+        path.join(cidDirectory, "web3Function", "schema.json"),
+        path.join(cidDirectory, "schema.json")
       );
       fs.renameSync(
-        `${cidDirectory}/web3Function/index.js`,
-        `${cidDirectory}/index.js`
+        path.join(cidDirectory, "web3Function", "index.js"),
+        path.join(cidDirectory, "index.js")
       );
       fs.renameSync(
-        `${cidDirectory}/web3Function/source.js`,
-        `${cidDirectory}/source.js`
+        path.join(cidDirectory, "web3Function", "source.js"),
+        path.join(cidDirectory, "source.js")
       );
 
       // remove web3Function directory
-      fs.rmSync(`${cidDirectory}/web3Function`, { recursive: true });
+      fs.rmSync(path.join(cidDirectory, "web3Function"), {
+        recursive: true,
+      });
 
       return {
-        dir: `${cidDirectory}`,
-        schemaPath: `${cidDirectory}/schema.json`,
-        sourcePath: `${cidDirectory}/source.js`,
-        web3FunctionPath: `${cidDirectory}/index.js`,
+        dir: cidDirectory,
+        schemaPath: path.join(cidDirectory, "schema.json"),
+        sourcePath: path.join(cidDirectory, "source.js"),
+        web3FunctionPath: path.join(cidDirectory, "index.js"),
       };
     } catch (err) {
       throw new Error(
@@ -229,7 +244,7 @@ export class Web3FunctionUploader {
 
       // rename file with cid
       const { dir, ext } = path.parse(compressedPath);
-      await fsp.rename(compressedPath, `${dir}/${cid}${ext}`);
+      await fsp.rename(compressedPath, path.join(dir, `${cid}${ext}`));
 
       return cid;
     } catch (err) {

@@ -4,13 +4,16 @@ import { Web3FunctionContextData } from "../types";
 import { Web3FunctionRunner } from "../runtime";
 import { Web3FunctionBuilder } from "../builder";
 import { ethers } from "ethers";
+import path from "path";
 
 if (!process.env.PROVIDER_URL) {
   console.error(`Missing PROVIDER_URL in .env file`);
   process.exit();
 }
 
-const web3FunctionSrcPath = process.argv[3] ?? "./src/web3-functions/index.ts";
+const web3FunctionSrcPath =
+  process.argv[3] ??
+  path.join(process.cwd(), "src", "web3-functions", "index.ts");
 let chainId = 5;
 let runtime: "docker" | "thread" = "thread";
 let debug = false;

@@ -1,9 +1,12 @@
 import "dotenv/config";
 import colors from "colors/safe";
 import { Web3FunctionBuilder } from "../builder";
+import path from "path";
 
 const OK = colors.green("✓");
-const web3FunctionSrcPath = process.argv[3] ?? "./src/web3-functions/index.ts";
+const web3FunctionSrcPath =
+  process.argv[3] ??
+  path.join(process.cwd(), "src", "web3-functions", "index.ts");
 
 export default async function deploy() {
   const cid = await Web3FunctionBuilder.deploy(web3FunctionSrcPath);

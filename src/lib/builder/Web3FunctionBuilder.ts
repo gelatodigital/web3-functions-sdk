@@ -73,8 +73,8 @@ export class Web3FunctionBuilder {
   public static async build(
     input: string,
     debug = false,
-    filePath = "./.tmp/index.js",
-    sourcePath = "./.tmp/source.js"
+    filePath = path.join(process.cwd(), ".tmp", "index.js"),
+    sourcePath = path.join(process.cwd(), ".tmp", "source.js")
   ): Promise<Web3FunctionBuildResult> {
     try {
       const start = performance.now();
