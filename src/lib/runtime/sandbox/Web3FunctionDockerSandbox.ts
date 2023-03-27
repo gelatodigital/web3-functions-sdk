@@ -1,4 +1,5 @@
 /* eslint-disable no-empty */
+import path from "path";
 import Docker, { ImageInfo } from "dockerode";
 import { Web3FunctionAbstractSandbox } from "./Web3FunctionAbstractSandbox";
 
@@ -44,6 +45,8 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
   }
 
   protected async _start(script: string, serverPort: number): Promise<void> {
+    const { dir, name, ext } = path.parse(script);
+    const scriptName = `${name}${ext}`;
     const cmd = `deno`;
     const args: string[] = [];
     args.push("run");
@@ -54,8 +57,7 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
     args.push(`--no-npm`);
     args.push(`--no-remote`);
     args.push(`--v8-flags=--max-old-space-size=${this._memoryLimit}`);
-    args.push(`/web3Function/${script}`);
-    const web3FunctionPath = process.cwd() + "/.tmp/";
+    args.push(`/web3Function/${scriptName}`);
 
     // See docker create options:
     // https://docs.docker.com/engine/api/v1.37/#tag/Container/operation/ContainerCreate
@@ -65,7 +67,7 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
       },
       Env: [`WEB3_FUNCTION_SERVER_PORT=${serverPort.toString()}`],
       Hostconfig: {
-        Binds: [`${web3FunctionPath}:/web3Function/.tmp`],
+        Binds: [`${dir}:/web3Function/`],
         PortBindings: {
           [`${serverPort.toString()}/tcp`]: [
             { HostPort: `${serverPort.toString()}` },
