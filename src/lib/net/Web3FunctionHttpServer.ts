@@ -17,14 +17,19 @@ export class Web3FunctionHttpServer {
     this._port = port;
     this._eventHandler = eventHandler;
 
-    this._server = Deno.serve({
-      port,
-      hostname: "0.0.0.0",
-      onListen: ({ port, hostname }) => {
-        this._log(`Listening on http://${hostname}:${port}`);
-      },
-      handler: this._onRequest.bind(this),
-    });
+    this._setupConnection(port);
+  }
+
+  private async _setupConnection(port: number) {
+    const conns = Deno.listen({ port, hostname: "0.0.0.0" });
+    this._log(`Listening on http://${conns.addr.hostname}:${conns.addr.port}`);
+
+    for await (const conn of conns) {
+      for await (const e of Deno.serveHttp(conn)) {
+        const res = await this._onRequest(e.request);
+        await e.respondWith(res);
+      }
+    }
   }
 
   private async _onRequest(req: Request) {
