@@ -68,7 +68,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 - create your web3Function `schema.json` to specify your runtime configuration:
 ```json
 {
-  "web3FunctionVersion": "1.0.0",
+  "web3FunctionVersion": "2.0.0",
   "runtime": "js-1.0",
   "memory": 128, 
   "timeout": 30,
@@ -124,7 +124,7 @@ Use `yarn deploy FILENAME` command to upload your web3Function.
 1. Declare your expected `userArgs` in you schema, accepted types are 'string', 'string[]', 'number', 'number[]', 'boolean', 'boolean[]':
 ```json
 {
-  "web3FunctionVersion": "1.0.0",
+  "web3FunctionVersion": "2.0.0",
   "runtime": "js-1.0",
   "memory": 128, 
   "timeout": 30,

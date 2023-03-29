@@ -91,8 +91,16 @@ export default async function test() {
   const runner = new Web3FunctionRunner(debug);
   const memory = buildRes.schema.memory;
   const timeout = buildRes.schema.timeout * 1000;
+  const web3FunctionVersion = buildRes.schema.web3FunctionVersion;
   const rpcLimit = MAX_RPC_LIMIT;
-  const options = { runtime, showLogs, memory, rpcLimit, timeout };
+  const options = {
+    runtime,
+    showLogs,
+    memory,
+    rpcLimit,
+    timeout,
+    web3FunctionVersion,
+  };
   const script = buildRes.filePath;
   const provider = new ethers.providers.StaticJsonRpcProvider(
     process.env.PROVIDER_URL

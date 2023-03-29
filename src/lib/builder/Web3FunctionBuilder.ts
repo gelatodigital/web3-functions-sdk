@@ -116,7 +116,7 @@ export class Web3FunctionBuilder {
         `Web3FunctionSchemaError: Missing Web3Function schema at '${input}'
 Please create 'schema.json', default: 
 {
-  "web3FunctionVersion": "1.0.0",
+  "web3FunctionVersion": "2.0.0",
   "runtime": "js-1.0",
   "memory": 128,
   "timeout": 30,
