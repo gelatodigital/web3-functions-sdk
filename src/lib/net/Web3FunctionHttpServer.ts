@@ -10,29 +10,33 @@ export class Web3FunctionHttpServer {
 
   constructor(
     port: number,
+    mountPath: string,
     debug: boolean,
     eventHandler: (event: Web3FunctionEvent) => Promise<Web3FunctionEvent>
   ) {
     this._debug = debug;
     this._port = port;
     this._eventHandler = eventHandler;
-
-    this._setupConnection(port);
+    this._setupConnection(port, mountPath);
   }
 
-  private async _setupConnection(port: number) {
+  private async _setupConnection(port: number, mountPath: string) {
     const conns = Deno.listen({ port, hostname: "0.0.0.0" });
     this._log(`Listening on http://${conns.addr.hostname}:${conns.addr.port}`);
 
     for await (const conn of conns) {
       for await (const e of Deno.serveHttp(conn)) {
-        const res = await this._onRequest(e.request);
+        const res = await this._onRequest(e.request, mountPath);
         await e.respondWith(res);
       }
     }
   }
 
-  private async _onRequest(req: Request) {
+  private async _onRequest(req: Request, mountPath: string) {
+    if (!this._isValidMountPath(req, mountPath)) {
+      return new Response("invalid path", { status: 400 });
+    }
+
     switch (req.method) {
       case "GET":
         return new Response("ok");
@@ -46,6 +50,13 @@ export class Web3FunctionHttpServer {
           status: 500,
         });
     }
+  }
+
+  private _isValidMountPath(req: Request, mountPath: string) {
+    const { pathname } = new URL(req.url);
+
+    if (pathname === `/${mountPath}`) return true;
+    return false;
   }
 
   private _log(message: string) {

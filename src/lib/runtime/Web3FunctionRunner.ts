@@ -22,6 +22,7 @@ import {
 import { Web3FunctionProxyProvider } from "../provider/Web3FunctionProxyProvider";
 import { ethers } from "ethers";
 import onExit from "signal-exit";
+import { randomUUID } from "crypto";
 
 const START_TIMEOUT = 5_000;
 
@@ -210,11 +211,12 @@ export class Web3FunctionRunner {
       this._debug
     );
 
+    const mountPath = randomUUID();
     const serverPort =
       options.serverPort ?? (await Web3FunctionNetHelper.getAvailablePort());
     try {
       this._log(`Sarting sandbox: ${script}`);
-      await this._sandbox.start(script, serverPort);
+      await this._sandbox.start(script, serverPort, mountPath);
     } catch (err) {
       this._log(`Fail to start Web3Function in sandbox ${err.message}`);
       throw new Error(`Web3Function failed to start sandbox: ${err.message}`);
@@ -243,6 +245,7 @@ export class Web3FunctionRunner {
     this._client = new Web3FunctionHttpClient(
       "http://0.0.0.0",
       serverPort,
+      mountPath,
       this._debug
     );
     try {

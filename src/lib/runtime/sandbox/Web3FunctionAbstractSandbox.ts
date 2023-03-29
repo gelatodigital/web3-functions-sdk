@@ -29,12 +29,16 @@ export abstract class Web3FunctionAbstractSandbox extends EventEmitter {
   }
 
   protected abstract _stop(): Promise<void>;
-  protected abstract _start(script: string, serverPort: number): Promise<void>;
+  protected abstract _start(
+    script: string,
+    serverPort: number,
+    mountPath: string
+  ): Promise<void>;
   protected abstract _getMemoryUsage(): Promise<number>;
 
-  public async start(script: string, serverPort: number) {
+  public async start(script: string, serverPort: number, mountPath: string) {
     this._log("Starting sandbox");
-    await this._start(script, serverPort);
+    await this._start(script, serverPort, mountPath);
   }
 
   public async getMemoryUsage(): Promise<number> {

@@ -12,13 +12,17 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
     this._thread.kill();
   }
 
-  protected async _start(script: string, serverPort: number): Promise<void> {
+  protected async _start(
+    script: string,
+    serverPort: number,
+    mountPath: string
+  ): Promise<void> {
     const cmd =
       process.env.DENO_PATH ??
       path.join(process.cwd(), "node_modules", "deno-bin", "bin", "deno");
     const args: string[] = [];
     args.push("run");
-    args.push(`--allow-env=WEB3_FUNCTION_SERVER_PORT`);
+    args.push(`--allow-env=WEB3_FUNCTION_SERVER_PORT,WEB3_FUNCTION_MOUNT_PATH`);
     args.push(`--allow-net`);
     args.push(`--unstable`);
     args.push(`--no-prompt`);
@@ -29,7 +33,10 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
     this._thread = spawn(cmd, args, {
       shell: true,
       cwd: process.cwd(),
-      env: { WEB3_FUNCTION_SERVER_PORT: serverPort.toString() },
+      env: {
+        WEB3_FUNCTION_SERVER_PORT: serverPort.toString(),
+        WEB3_FUNCTION_MOUNT_PATH: mountPath,
+      },
     });
 
     let processExitCodeFunction;

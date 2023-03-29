@@ -20,8 +20,10 @@ export class Web3Function {
 
   constructor() {
     const port = Number(Deno.env.get("WEB3_FUNCTION_SERVER_PORT") ?? 80);
+    const mountPath = Deno.env.get("WEB3_FUNCTION_MOUNT_PATH");
     this._server = new Web3FunctionHttpServer(
       port,
+      mountPath,
       Web3Function._debug,
       this._onEvent.bind(this)
     );

@@ -18,6 +18,7 @@ declare global {
   class Request {
     constructor(e: string, o: any);
     method: string;
+    url: string;
     json: () => any;
     body: any;
   }

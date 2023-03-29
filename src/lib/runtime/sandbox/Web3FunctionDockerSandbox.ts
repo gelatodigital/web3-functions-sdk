@@ -44,13 +44,17 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
     }
   }
 
-  protected async _start(script: string, serverPort: number): Promise<void> {
+  protected async _start(
+    script: string,
+    serverPort: number,
+    mountPath: string
+  ): Promise<void> {
     const { dir, name, ext } = path.parse(script);
     const scriptName = `${name}${ext}`;
     const cmd = `deno`;
     const args: string[] = [];
     args.push("run");
-    args.push(`--allow-env=WEB3_FUNCTION_SERVER_PORT`);
+    args.push(`--allow-env=WEB3_FUNCTION_SERVER_PORT,WEB3_FUNCTION_MOUNT_PATH`);
     args.push(`--allow-net`);
     args.push(`--unstable`);
     args.push(`--no-prompt`);
@@ -65,7 +69,10 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
       ExposedPorts: {
         [`${serverPort.toString()}/tcp`]: {},
       },
-      Env: [`WEB3_FUNCTION_SERVER_PORT=${serverPort.toString()}`],
+      Env: [
+        `WEB3_FUNCTION_SERVER_PORT=${serverPort.toString()}`,
+        `WEB3_FUNCTION_MOUNT_PATH=${mountPath}`,
+      ],
       Hostconfig: {
         Binds: [`${dir}:/web3Function/`],
         PortBindings: {
