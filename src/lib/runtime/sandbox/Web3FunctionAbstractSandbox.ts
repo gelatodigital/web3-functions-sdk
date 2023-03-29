@@ -4,6 +4,7 @@ import { Web3FunctionSandboxOptions } from "../types";
 
 export abstract class Web3FunctionAbstractSandbox extends EventEmitter {
   protected _memoryLimit: number;
+  protected _web3FunctionvVersion: string;
   protected _isStopped = false;
   protected _processExitCodePromise = Promise.resolve(0);
   protected _showStdout: boolean;
@@ -17,6 +18,7 @@ export abstract class Web3FunctionAbstractSandbox extends EventEmitter {
   ) {
     super();
     this._memoryLimit = options.memoryLimit;
+    this._web3FunctionvVersion = options.web3FunctionVersion;
     this._showStdout = showStdout;
     this._debug = debug;
   }

@@ -7,6 +7,7 @@ export interface Web3FunctionRunnerOptions {
   rpcLimit: number;
   runtime: "thread" | "docker";
   showLogs: boolean;
+  web3FunctionVersion: string;
   serverPort?: number;
 }
 

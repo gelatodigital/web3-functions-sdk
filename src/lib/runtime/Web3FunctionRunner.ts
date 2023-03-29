@@ -206,7 +206,10 @@ export class Web3FunctionRunner {
         ? Web3FunctionThreadSandbox
         : Web3FunctionDockerSandbox;
     this._sandbox = new SandBoxClass(
-      { memoryLimit: options.memory },
+      {
+        memoryLimit: options.memory,
+        web3FunctionVersion: options.web3FunctionVersion,
+      },
       options.showLogs ?? false,
       this._debug
     );

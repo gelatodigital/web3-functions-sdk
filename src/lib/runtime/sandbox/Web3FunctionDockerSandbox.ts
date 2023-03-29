@@ -54,9 +54,24 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
     const cmd = `deno`;
     const args: string[] = [];
     args.push("run");
-    args.push(`--allow-env=WEB3_FUNCTION_SERVER_PORT,WEB3_FUNCTION_MOUNT_PATH`);
+
+    let env: string[] = [];
+
+    if (this._web3FunctionvVersion === "1.0.0") {
+      args.push(`--allow-env=WEB3_FUNCTION_SERVER_PORT`);
+      args.push(`--unstable`);
+      env = [`WEB3_FUNCTION_SERVER_PORT=${serverPort.toString()}`];
+    } else {
+      args.push(
+        `--allow-env=WEB3_FUNCTION_SERVER_PORT,WEB3_FUNCTION_MOUNT_PATH`
+      );
+      env = [
+        `WEB3_FUNCTION_SERVER_PORT=${serverPort.toString()}`,
+        `WEB3_FUNCTION_MOUNT_PATH=${mountPath}`,
+      ];
+    }
+
     args.push(`--allow-net`);
-    args.push(`--unstable`);
     args.push(`--no-prompt`);
     args.push(`--no-npm`);
     args.push(`--no-remote`);
@@ -69,10 +84,7 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
       ExposedPorts: {
         [`${serverPort.toString()}/tcp`]: {},
       },
-      Env: [
-        `WEB3_FUNCTION_SERVER_PORT=${serverPort.toString()}`,
-        `WEB3_FUNCTION_MOUNT_PATH=${mountPath}`,
-      ],
+      Env: env,
       Hostconfig: {
         Binds: [`${dir}:/web3Function/`],
         PortBindings: {
