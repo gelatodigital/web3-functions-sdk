@@ -1,4 +1,3 @@
-import * as dotenv from "dotenv";
 import colors from "colors/safe";
 import { Web3FunctionContextData } from "../types";
 import { Web3FunctionRunner } from "../runtime";
@@ -19,11 +18,12 @@ const WARN = colors.yellow("⚠");
 
 export interface CallConfig {
   w3fPath: string;
-  w3fEnvPath: string;
   debug: boolean;
   showLogs: boolean;
   runtime: RunTime;
   userArgs: { [key: string]: string };
+  storage: { [key: string]: string };
+  secrets: { [key: string]: string };
   provider: EthereumProvider;
   chainId: number;
 }
@@ -41,6 +41,8 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   let runtime: RunTime = callConfig?.runtime ?? "thread";
   let debug = callConfig?.debug ?? false;
   let showLogs = callConfig?.showLogs ?? false;
+  const storage = callConfig?.storage ?? {};
+  const secrets = callConfig?.secrets ?? {};
   const web3FunctionPath =
     callConfig?.w3fPath ?? process.argv[3] ?? "./src/web3-functions/index.ts";
 
@@ -95,8 +97,8 @@ export default async function test(callConfig?: Partial<CallConfig>) {
 
   // Prepare mock content for test
   const context: Web3FunctionContextData = {
-    secrets: {},
-    storage: {},
+    secrets,
+    storage,
     gelatoArgs: {
       chainId,
       gasPrice: "10",
@@ -107,15 +109,8 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   /**
    * Fill up test secrets with
    * `SECRETS_*` in .env (cli)
-   * all variables in .env.w3f (hardhat)
    */
-  if (callConfig) {
-    const config = dotenv.config({ path: callConfig.w3fEnvPath }).parsed ?? {};
-
-    Object.keys(config).forEach((key) => {
-      context.secrets[key] = config[key];
-    });
-  } else {
+  if (!callConfig) {
     Object.keys(process.env)
       .filter((key) => key.startsWith("SECRETS_"))
       .forEach((key) => {

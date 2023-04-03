@@ -1,6 +1,5 @@
 import { task } from "hardhat/config";
 import test, { CallConfig } from "../../lib/binaries/test";
-import { W3F_ENV_PATH } from "../constants";
 import { EthersProviderWrapper } from "../provider";
 
 task("w3f-run", "Runs Gelato Web3 Function")
@@ -16,16 +15,18 @@ task("w3f-run", "Runs Gelato Web3 Function")
     "Web3 Function name defined in hardhat config"
   )
   .setAction(async (taskArgs, hre) => {
+    const w3f = hre.config.w3f.functions[taskArgs.name];
+    if (!w3f) throw new Error(`Web3 Function "${taskArgs.name}" not found`);
+
     const provider = new EthersProviderWrapper(hre.network.provider);
 
-    const w3fPath = hre.config.w3f.functions[taskArgs.name].path;
     const debug = taskArgs.debug ?? hre.config.w3f.debug;
 
     let userArgs = {};
     const userArgsStr = taskArgs.userargs;
 
     if (!userArgsStr) {
-      userArgs = hre.config.w3f.functions[taskArgs.name].userArgs ?? {};
+      userArgs = w3f.userArgs;
     } else {
       const kvs = userArgsStr.split("-");
 
@@ -41,12 +42,13 @@ task("w3f-run", "Runs Gelato Web3 Function")
       hre.network.config.chainId ?? (await provider.getNetwork()).chainId;
 
     const callConfig: CallConfig = {
-      w3fPath,
-      w3fEnvPath: W3F_ENV_PATH,
+      w3fPath: w3f.path,
       debug,
       showLogs: taskArgs.logs,
       runtime: "thread",
       userArgs,
+      storage: w3f.storage,
+      secrets: w3f.secrets,
       provider: hre.network.provider,
       chainId,
     };

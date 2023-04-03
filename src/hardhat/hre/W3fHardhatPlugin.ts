@@ -1,33 +1,49 @@
-import * as dotenv from "dotenv";
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { Web3FunctionContextData, Web3FunctionUserArgs } from "../../lib";
 import { Web3FunctionBuilder } from "../../lib/builder";
 import { Web3FunctionExecSuccess, Web3FunctionRunner } from "../../lib/runtime";
-import { MAX_RPC_LIMIT, W3F_ENV_PATH } from "../constants";
+import { MAX_RPC_LIMIT } from "../constants";
 import { EthersProviderWrapper } from "../provider";
 
 export class W3fHardhatPlugin {
   private hre: HardhatRuntimeEnvironment;
-  private provider: EthersProviderWrapper;
 
   constructor(_hre: HardhatRuntimeEnvironment) {
     this.hre = _hre;
+  }
+
+  public get(_name: string) {
+    const w3f = this.hre.config.w3f.functions[_name];
+    if (!w3f) throw new Error(`Cannot find web3 function "${_name}"`);
+
+    return new W3fHardhatClass(this.hre, _name);
+  }
+}
+
+export class W3fHardhatClass {
+  private name: string;
+  private hre: HardhatRuntimeEnvironment;
+  private provider: EthersProviderWrapper;
+
+  constructor(_hre: HardhatRuntimeEnvironment, _name: string) {
+    this.hre = _hre;
+    this.name = _name;
     this.provider = new EthersProviderWrapper(_hre.network.provider);
   }
 
-  public async run(
-    name: string,
-    storage: { [key: string]: string } = {},
-    userArgsOverride?: Web3FunctionUserArgs
-  ): Promise<Web3FunctionExecSuccess> {
-    const w3fPath = this.hre.config.w3f.functions[name].path;
+  public async run(override?: {
+    storage?: { [key: string]: string };
+    userArgs?: Web3FunctionUserArgs;
+  }): Promise<Web3FunctionExecSuccess> {
+    const w3f = this.hre.config.w3f.functions[this.name];
 
-    const userArgs =
-      userArgsOverride ?? this.hre.config.w3f.functions[name].userArgs ?? {};
+    const userArgs = override?.userArgs ?? w3f.userArgs;
+    const storage = override?.storage ?? w3f.storage;
+    const secrets = w3f.secrets;
     const debug = this.hre.config.w3f.debug;
 
-    const buildRes = await Web3FunctionBuilder.build(w3fPath, debug);
+    const buildRes = await Web3FunctionBuilder.build(w3f.path, debug);
 
     if (!buildRes.success)
       throw new Error(`Fail to build web3Function: ${buildRes.error}`);
@@ -48,7 +64,6 @@ export class W3fHardhatPlugin {
     };
     const script = buildRes.filePath;
 
-    const secrets = this.getSecrets();
     const gelatoArgs = await this.getGelatoArgs();
     const context: Web3FunctionContextData = {
       gelatoArgs,
@@ -67,9 +82,10 @@ export class W3fHardhatPlugin {
     return res;
   }
 
-  public async deploy(name: string) {
-    const w3fPath = this.hre.config.w3f.functions[name].path;
-    const cid = await Web3FunctionBuilder.deploy(w3fPath);
+  public async deploy() {
+    const w3f = this.hre.config.w3f.functions[this.name];
+
+    const cid = await Web3FunctionBuilder.deploy(w3f.path);
 
     return cid;
   }
@@ -89,12 +105,22 @@ export class W3fHardhatPlugin {
   }
 
   public getSecrets() {
-    const secrets: { [key: string]: string } = {};
-    const config = dotenv.config({ path: W3F_ENV_PATH }).parsed ?? {};
-    Object.keys(config).forEach((key) => {
-      secrets[key] = config[key];
-    });
+    const secrets = this.hre.config.w3f.functions[this.name].secrets;
+    return secrets;
+  }
 
+  public getUserArgs() {
+    const secrets = this.hre.config.w3f.functions[this.name].userArgs;
+    return secrets;
+  }
+
+  public getStorage() {
+    const secrets = this.hre.config.w3f.functions[this.name].storage;
+    return secrets;
+  }
+
+  public getPath() {
+    const secrets = this.hre.config.w3f.functions[this.name].storage;
     return secrets;
   }
 }
