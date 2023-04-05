@@ -17,11 +17,11 @@ export class W3fHardhatPlugin {
     const w3f = this.hre.config.w3f.functions[_name];
     if (!w3f) throw new Error(`Cannot find web3 function "${_name}"`);
 
-    return new W3fHardhatClass(this.hre, _name);
+    return new Web3FunctionHardhat(this.hre, _name);
   }
 }
 
-export class W3fHardhatClass {
+export class Web3FunctionHardhat {
   private name: string;
   private hre: HardhatRuntimeEnvironment;
   private provider: EthersProviderWrapper;
@@ -120,7 +120,7 @@ export class W3fHardhatClass {
   }
 
   public getPath() {
-    const secrets = this.hre.config.w3f.functions[this.name].storage;
+    const secrets = this.hre.config.w3f.functions[this.name].path;
     return secrets;
   }
 }

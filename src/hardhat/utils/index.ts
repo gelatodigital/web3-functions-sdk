@@ -1,8 +1,11 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as dotenv from "dotenv";
+import colors from "colors/safe";
 
 import { W3fDetails } from "../types";
+
+const WARN = colors.yellow("⚠");
 
 export function getW3fDetails(w3fRootDir: string) {
   const w3fNames: string[] = [];
@@ -21,6 +24,10 @@ export function getW3fDetails(w3fRootDir: string) {
 
       // get w3f
       let indexPath: string;
+      let userArgs;
+      let storage;
+      const secrets = {};
+
       if (fs.existsSync(tsPath)) {
         w3fNames.push(file);
         indexPath = tsPath;
@@ -30,69 +37,42 @@ export function getW3fDetails(w3fRootDir: string) {
       } else return;
 
       // get userArgs
-      try {
-        const userArgsJsonString = fs.readFileSync(userArgsJsonPath, "utf8");
-        const userArgs = JSON.parse(userArgsJsonString);
-
-        w3fDetails[file] = {
-          path: indexPath,
-          userArgs,
-          storage: {},
-          secrets: {},
-        };
-      } catch (error) {
-        console.error(
-          `Error reading userArgs.json for ${file}: ${error.message}`
-        );
-        w3fDetails[file] = {
-          path: indexPath,
-          userArgs: {},
-          storage: {},
-          secrets: {},
-        };
-      }
+      if (fs.existsSync(userArgsJsonPath)) {
+        try {
+          const userArgsJsonString = fs.readFileSync(userArgsJsonPath, "utf8");
+          userArgs = JSON.parse(userArgsJsonString);
+        } catch (error) {
+          console.error(
+            `Error reading userArgs.json for ${file}: ${error.message}`
+          );
+        }
+      } else console.warn(`${WARN} userArgs.json not found\n`);
 
       // get storage
-      try {
-        const storageJsonString = fs.readFileSync(storageJsonPath, "utf8");
-        const storage = JSON.parse(storageJsonString);
-
-        w3fDetails[file] = {
-          ...w3fDetails[file],
-          storage,
-        };
-      } catch (error) {
-        console.error(
-          `Error reading storage.json for ${file}: ${error.message}`
-        );
-        w3fDetails[file] = {
-          ...w3fDetails[file],
-          storage: {},
-        };
-      }
+      if (fs.existsSync(storageJsonPath)) {
+        try {
+          const storageJsonString = fs.readFileSync(storageJsonPath, "utf8");
+          storage = JSON.parse(storageJsonString);
+        } catch (error) {
+          console.error(
+            `Error reading storage.json for ${file}: ${error.message}`
+          );
+        }
+      } else console.warn(`${WARN} storage.json not found\n`);
 
       // get secrets
-      try {
-        const secrets: { [key: string]: string } = {};
-        const config = dotenv.config({ path: secretsPath }).parsed ?? {};
-        Object.keys(config).forEach((key) => {
-          secrets[key] = config[key];
-        });
+      if (fs.existsSync(secretsPath)) {
+        try {
+          const config = dotenv.config({ path: secretsPath }).parsed ?? {};
+          Object.keys(config).forEach((key) => {
+            secrets[key] = config[key];
+          });
+        } catch (error) {
+          console.error(`Error reading .env for ${file}: ${error.message}`);
+        }
+      } else console.warn(`${WARN} .env not found\n`);
 
-        w3fDetails[file] = {
-          ...w3fDetails[file],
-          secrets,
-        };
-      } catch (error) {
-        console.error(
-          `Error reading storage.json for ${file}: ${error.message}`
-        );
-
-        w3fDetails[file] = {
-          ...w3fDetails[file],
-          secrets: {},
-        };
-      }
+      w3fDetails[file] = { path: indexPath, secrets, storage, userArgs };
     }
   });
 
