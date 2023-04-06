@@ -5,6 +5,8 @@ import { Web3FunctionBuilder } from "../../lib/builder";
 import { Web3FunctionExecSuccess, Web3FunctionRunner } from "../../lib/runtime";
 import { MAX_RPC_LIMIT } from "../constants";
 import { EthersProviderWrapper } from "../provider";
+import { W3fDetails } from "../types";
+import { getW3fDetails } from "../utils";
 
 export class W3fHardhatPlugin {
   private hre: HardhatRuntimeEnvironment;
@@ -14,21 +16,20 @@ export class W3fHardhatPlugin {
   }
 
   public get(_name: string) {
-    const w3f = this.hre.config.w3f.functions[_name];
-    if (!w3f) throw new Error(`Cannot find web3 function "${_name}"`);
+    const w3f = getW3fDetails(_name, this.hre.config.w3f.rootDir);
 
-    return new Web3FunctionHardhat(this.hre, _name);
+    return new Web3FunctionHardhat(this.hre, w3f);
   }
 }
 
 export class Web3FunctionHardhat {
-  private name: string;
+  private w3f: W3fDetails;
   private hre: HardhatRuntimeEnvironment;
   private provider: EthersProviderWrapper;
 
-  constructor(_hre: HardhatRuntimeEnvironment, _name: string) {
+  constructor(_hre: HardhatRuntimeEnvironment, _w3f: W3fDetails) {
+    this.w3f = _w3f;
     this.hre = _hre;
-    this.name = _name;
     this.provider = new EthersProviderWrapper(_hre.network.provider);
   }
 
@@ -36,14 +37,12 @@ export class Web3FunctionHardhat {
     storage?: { [key: string]: string };
     userArgs?: Web3FunctionUserArgs;
   }): Promise<Web3FunctionExecSuccess> {
-    const w3f = this.hre.config.w3f.functions[this.name];
-
-    const userArgs = override?.userArgs ?? w3f.userArgs;
-    const storage = override?.storage ?? w3f.storage;
-    const secrets = w3f.secrets;
+    const userArgs = override?.userArgs ?? this.w3f.userArgs;
+    const storage = override?.storage ?? this.w3f.storage;
+    const secrets = this.w3f.secrets;
     const debug = this.hre.config.w3f.debug;
 
-    const buildRes = await Web3FunctionBuilder.build(w3f.path, debug);
+    const buildRes = await Web3FunctionBuilder.build(this.w3f.path, debug);
 
     if (!buildRes.success)
       throw new Error(`Fail to build web3Function: ${buildRes.error}`);
@@ -83,9 +82,7 @@ export class Web3FunctionHardhat {
   }
 
   public async deploy() {
-    const w3f = this.hre.config.w3f.functions[this.name];
-
-    const cid = await Web3FunctionBuilder.deploy(w3f.path);
+    const cid = await Web3FunctionBuilder.deploy(this.w3f.path);
 
     return cid;
   }
@@ -105,22 +102,18 @@ export class Web3FunctionHardhat {
   }
 
   public getSecrets() {
-    const secrets = this.hre.config.w3f.functions[this.name].secrets;
-    return secrets;
+    return this.w3f.secrets;
   }
 
   public getUserArgs() {
-    const secrets = this.hre.config.w3f.functions[this.name].userArgs;
-    return secrets;
+    return this.w3f.userArgs;
   }
 
   public getStorage() {
-    const secrets = this.hre.config.w3f.functions[this.name].storage;
-    return secrets;
+    return this.w3f.storage;
   }
 
   public getPath() {
-    const secrets = this.hre.config.w3f.functions[this.name].path;
-    return secrets;
+    return this.w3f.secrets;
   }
 }

@@ -26,9 +26,6 @@ extendConfig(
       }
     }
     config.w3f.rootDir = w3fRootDir;
-
-    const { w3fDetails } = getW3fDetails(w3fRootDir);
-    config.w3f.functions = { ...w3fDetails };
   }
 );
 
