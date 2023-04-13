@@ -114,6 +114,6 @@ export class Web3FunctionHardhat {
   }
 
   public getPath() {
-    return this.w3f.secrets;
+    return this.w3f.path;
   }
 }

@@ -1,11 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as dotenv from "dotenv";
-import colors from "colors/safe";
 
 import { W3fDetails } from "../types";
-
-const WARN = colors.yellow("⚠");
 
 export function getAllW3fDetails(w3fRootDir: string) {
   const allW3fDetails: { [w3f: string]: W3fDetails } = {};
@@ -54,7 +51,7 @@ export function getW3fDetails(w3fName: string, w3fRootDir: string) {
           `Error reading userArgs.json for ${w3fName}: ${error.message}`
         );
       }
-    } else console.warn(`${WARN} userArgs.json not found\n`);
+    }
 
     // get storage
     if (fs.existsSync(storageJsonPath)) {
@@ -66,7 +63,7 @@ export function getW3fDetails(w3fName: string, w3fRootDir: string) {
           `Error reading storage.json for ${w3fName}: ${error.message}`
         );
       }
-    } else console.warn(`${WARN} storage.json not found\n`);
+    }
 
     // get secrets
     if (fs.existsSync(secretsPath)) {
@@ -78,7 +75,7 @@ export function getW3fDetails(w3fName: string, w3fRootDir: string) {
       } catch (error) {
         console.error(`Error reading .env for ${w3fName}: ${error.message}`);
       }
-    } else console.warn(`${WARN} .env not found\n`);
+    }
   }
 
   return details;
