@@ -74,7 +74,6 @@ export default async function benchmark() {
     storage: {},
     gelatoArgs: {
       chainId,
-      blockTime: Date.now() / 1000,
       gasPrice: "10",
     },
     userArgs: {},

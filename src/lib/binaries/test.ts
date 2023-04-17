@@ -74,7 +74,6 @@ export default async function test() {
     storage: {},
     gelatoArgs: {
       chainId,
-      blockTime: Date.now() / 1000,
       gasPrice: "10",
     },
     userArgs: {},

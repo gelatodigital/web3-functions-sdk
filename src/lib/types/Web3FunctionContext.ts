@@ -2,7 +2,6 @@ import { BigNumber, ethers } from "ethers";
 import { Web3FunctionUserArgs } from "./Web3FunctionUserArgs";
 export interface Web3FunctionContextData {
   gelatoArgs: {
-    blockTime: number;
     chainId: number;
     gasPrice: string;
     taskId?: string;
@@ -15,7 +14,6 @@ export interface Web3FunctionContextData {
 
 export interface Web3FunctionContext {
   gelatoArgs: {
-    blockTime: number;
     chainId: number;
     gasPrice: BigNumber;
     taskId?: string;

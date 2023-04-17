@@ -27,7 +27,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 
   // Check if it's ready for a new update
   const nextUpdateTime = lastUpdated + 300; // 5 min
-  const timestamp = gelatoArgs.blockTime;
+  const timestamp = (await provider.getBlock("latest")).timestamp;
   console.log(`Next oracle update: ${nextUpdateTime}`);
   if (timestamp < nextUpdateTime) {
     return { canExec: false, message: `Time not elapsed` };
