@@ -11,13 +11,14 @@ const ORACLE_ABI = [
 ];
 
 Web3Function.onRun(async (context: Web3FunctionContext) => {
-  const { gelatoArgs, provider } = context;
+  const { provider } = context;
 
   // Retrieve Last oracle update time
   let lastUpdated;
   let oracle;
+  const oracleAddress = "0x6a3c82330164822A8a39C7C0224D20DB35DD030a";
+
   try {
-    const oracleAddress = "0x6a3c82330164822A8a39C7C0224D20DB35DD030a";
     oracle = new Contract(oracleAddress, ORACLE_ABI, provider);
     lastUpdated = parseInt(await oracle.lastUpdated());
     console.log(`Last oracle update: ${lastUpdated}`);
@@ -53,6 +54,11 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   // Return execution call data
   return {
     canExec: true,
-    callData: oracle.interface.encodeFunctionData("updatePrice", [price]),
+    callData: [
+      {
+        to: oracleAddress,
+        data: oracle.interface.encodeFunctionData("updatePrice", [price]),
+      },
+    ],
   };
 });

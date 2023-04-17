@@ -338,7 +338,7 @@ export class Web3FunctionRunner {
   private _validateResult(result: Web3FunctionResult) {
     if (!Object.keys(result).includes("canExec"))
       throw new Error(
-        `Web3Function must return {canExec: bool, callData: string} or {canExec: bool, message: string}. Instead returned: ${JSON.stringify(
+        `Web3Function must return {canExec: bool, callData: {to: string, data: string}[]} or {canExec: bool, message: string}. Instead returned: ${JSON.stringify(
           result
         )}`
       );
@@ -346,17 +346,33 @@ export class Web3FunctionRunner {
     if (result.canExec) {
       if (!Object.keys(result).includes("callData"))
         throw new Error(
-          `Web3Function must return {canExec: bool, callData: string}. Instead returned: ${JSON.stringify(
+          `Web3Function must return {canExec: bool, callData: {to: string, data: string}[]}. Instead returned: ${JSON.stringify(
             result
           )}`
         );
 
-      if (result.callData.length < 10 || result.callData.slice(0, 2) !== "0x") {
+      if (typeof result.callData !== "object") {
         throw new Error(
-          `Web3Function returned invalid callData. Returned: ${JSON.stringify(
+          `Web3Function must return {canExec: bool, callData: {to: string, data: string}[]}. Instead returned: ${JSON.stringify(
             result
           )}`
         );
+      }
+      for (const { to, data } of result.callData) {
+        if (!ethers.utils.isAddress(to)) {
+          throw new Error(
+            `Web3Function returned invalid to address. Returned: ${JSON.stringify(
+              result.callData
+            )}`
+          );
+        }
+        if (data.length < 10 || data.slice(0, 2) !== "0x") {
+          throw new Error(
+            `Web3Function returned invalid callData. Returned: ${JSON.stringify(
+              result.callData
+            )}`
+          );
+        }
       }
     }
   }
