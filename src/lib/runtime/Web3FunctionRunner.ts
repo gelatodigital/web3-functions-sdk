@@ -242,6 +242,11 @@ export class Web3FunctionRunner {
     await this._proxyProvider.start();
     context.rpcProviderUrl = this._proxyProvider.getProxyUrl();
 
+    // Override gelatoArgs according to schema version
+    if (options.web3FunctionVersion === "1.0.0") {
+      context.gelatoArgs["blockTime"] = Math.floor(Date.now() / 1000);
+    }
+
     // Start monitoring memory usage
     this._monitorMemoryUsage();
 
