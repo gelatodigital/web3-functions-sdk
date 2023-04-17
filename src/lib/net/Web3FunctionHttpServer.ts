@@ -1,11 +1,10 @@
 import { Web3FunctionEvent } from "../types/Web3FunctionEvent";
 
 export class Web3FunctionHttpServer {
-  private _server: any; //http.Server;
   private _eventHandler: (
     event: Web3FunctionEvent
   ) => Promise<Web3FunctionEvent>;
-  private _port: number;
+  private _waitConnectionReleased: Promise<void> = Promise.resolve();
   private _debug: boolean;
 
   constructor(
@@ -15,7 +14,6 @@ export class Web3FunctionHttpServer {
     eventHandler: (event: Web3FunctionEvent) => Promise<Web3FunctionEvent>
   ) {
     this._debug = debug;
-    this._port = port;
     this._eventHandler = eventHandler;
     this._setupConnection(port, mountPath);
   }
@@ -25,10 +23,19 @@ export class Web3FunctionHttpServer {
     this._log(`Listening on http://${conns.addr.hostname}:${conns.addr.port}`);
 
     for await (const conn of conns) {
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
+      let connectionReleaseResolver = () => {};
+      this._waitConnectionReleased = new Promise((resolve) => {
+        connectionReleaseResolver = () => {
+          resolve();
+        };
+      });
+
       for await (const e of Deno.serveHttp(conn)) {
         const res = await this._onRequest(e.request, mountPath);
         await e.respondWith(res);
       }
+      connectionReleaseResolver();
     }
   }
 
@@ -63,7 +70,7 @@ export class Web3FunctionHttpServer {
     if (this._debug) console.log(`Web3FunctionHttpServer: ${message}`);
   }
 
-  public close() {
-    //this._server.close();
+  public async waitConnectionReleased() {
+    await this._waitConnectionReleased;
   }
 }

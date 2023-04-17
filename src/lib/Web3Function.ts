@@ -53,7 +53,6 @@ export class Web3Function {
           if (lastStorageHash !== returnedStoragehash)
             storage = { state: "updated", storage: ctxData.storage };
 
-          // ToDo: validate result format
           return {
             action: "result",
             data: { result, storage },
@@ -120,11 +119,15 @@ export class Web3Function {
     return { result, ctxData };
   }
 
-  private _exit(code = 0) {
-    setTimeout(() => {
-      this._server.close();
+  private _exit(code = 0, force = false) {
+    if (force) {
       Deno.exit(code);
-    });
+    } else {
+      setTimeout(async () => {
+        await this._server.waitConnectionReleased();
+        Deno.exit(code);
+      });
+    }
   }
 
   static getInstance(): Web3Function {
@@ -158,7 +161,7 @@ export class Web3Function {
       if (data.action === "response" && data.error) {
         if (/Request limit exceeded/.test(data.error.message)) {
           console.error("Web3FunctionError: RPC requests limit exceeded");
-          this._exit(250);
+          this._exit(250, true);
         }
       }
     });
