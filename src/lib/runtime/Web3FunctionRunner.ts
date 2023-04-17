@@ -25,6 +25,7 @@ import onExit from "signal-exit";
 import { randomUUID } from "crypto";
 
 const START_TIMEOUT = 5_000;
+const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
 
 export class Web3FunctionRunner {
   private _debug: boolean;
@@ -307,7 +308,10 @@ export class Web3FunctionRunner {
       }, options.timeout);
 
       // Listen to sandbox exit status code to detect runtime error
-      this._sandbox?.waitForProcessEnd().then((signal: number) => {
+      this._sandbox?.waitForProcessEnd().then(async (signal: number) => {
+        // Wait for result event to be received if it's racing with process exit signal
+        if (!isResolved) await delay(100);
+
         if (!isResolved)
           if (signal === 0) {
             reject(new Error(`Web3Function exited without returning result`));
