@@ -362,7 +362,7 @@ export class Web3FunctionRunner {
           )}`
         );
       }
-      for (const { to, data } of result.callData) {
+      for (const { to, data, value } of result.callData) {
         if (!ethers.utils.isAddress(to)) {
           throw new Error(
             `Web3Function returned invalid to address. Returned: ${JSON.stringify(
@@ -376,6 +376,18 @@ export class Web3FunctionRunner {
               result.callData
             )}`
           );
+        }
+
+        if (value) {
+          const regex = /^\d+$/;
+          const isNumericString = regex.test(value);
+
+          if (!isNumericString)
+            throw new Error(
+              `Web3Function returned invalid value (must be numeric string). Returned: ${JSON.stringify(
+                result.callData
+              )}`
+            );
         }
       }
     }
