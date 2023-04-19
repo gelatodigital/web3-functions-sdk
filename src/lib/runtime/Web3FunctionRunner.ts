@@ -148,7 +148,7 @@ export class Web3FunctionRunner {
     try {
       const { script, context, options, provider } = payload;
       const data = await this._runInSandbox(script, context, options, provider);
-      this._validateResult(data.result);
+      this._validateResult(options.web3FunctionVersion, data.result);
 
       result = data.result;
       storage = data.storage;
@@ -339,55 +339,57 @@ export class Web3FunctionRunner {
     }, 100);
   }
 
-  private _validateResult(result: Web3FunctionResult) {
-    if (!Object.keys(result).includes("canExec"))
+  private _validateResult(
+    web3FunctionVersion: string,
+    result: Web3FunctionResult | Web3FunctionResult<"v1">
+  ) {
+    const isValidData = (data: string) =>
+      data.length >= 10 && data.slice(0, 2) === "0x";
+    const throwError = (message: string) => {
       throw new Error(
-        `Web3Function must return {canExec: bool, callData: {to: string, data: string}[]} or {canExec: bool, message: string}. Instead returned: ${JSON.stringify(
-          result
-        )}`
+        `Web3Function ${message}. Instead returned: ${JSON.stringify(result)}`
       );
+    };
 
-    if (result.canExec) {
-      if (!Object.keys(result).includes("callData"))
-        throw new Error(
-          `Web3Function must return {canExec: bool, callData: {to: string, data: string}[]}. Instead returned: ${JSON.stringify(
-            result
-          )}`
-        );
+    // validate canExec & callData exists
+    if (!Object.keys(result).includes("canExec")) {
+      throwError("must return {canExec: bool}");
+    }
 
-      if (typeof result.callData !== "object") {
-        throw new Error(
-          `Web3Function must return {canExec: bool, callData: {to: string, data: string}[]}. Instead returned: ${JSON.stringify(
-            result
-          )}`
-        );
-      }
-      for (const { to, data, value } of result.callData) {
-        if (!ethers.utils.isAddress(to)) {
-          throw new Error(
-            `Web3Function returned invalid to address. Returned: ${JSON.stringify(
-              result.callData
-            )}`
+    if (result.canExec && !Object.keys(result).includes("callData")) {
+      const returnType =
+        web3FunctionVersion === "1.0.0"
+          ? "{canExec: bool, callData: string}"
+          : "{canExec: bool, callData: {to: string, data: string}[]}";
+      throwError(`must return ${returnType}`);
+    }
+
+    // validate callData contents
+    if (web3FunctionVersion === "1.0.0") {
+      result = result as Web3FunctionResult<"v1">;
+
+      if (result.canExec && !isValidData(result.callData))
+        throwError("returned invalid callData");
+    } else {
+      result = result as Web3FunctionResult;
+
+      if (result.canExec) {
+        if (!Array.isArray(result.callData))
+          throwError(
+            "must return {canExec: bool, callData: {to: string, data: string}[]}"
           );
-        }
-        if (data.length < 10 || data.slice(0, 2) !== "0x") {
-          throw new Error(
-            `Web3Function returned invalid callData. Returned: ${JSON.stringify(
-              result.callData
-            )}`
-          );
-        }
 
-        if (value) {
-          const regex = /^\d+$/;
-          const isNumericString = regex.test(value);
+        for (const { to, data, value } of result.callData) {
+          if (!ethers.utils.isAddress(to))
+            throwError("returned invalid to address");
 
-          if (!isNumericString)
-            throw new Error(
-              `Web3Function returned invalid value (must be numeric string). Returned: ${JSON.stringify(
-                result.callData
-              )}`
-            );
+          if (!isValidData(data)) throwError("returned invalid callData");
+
+          if (value) {
+            const isNumericString = /^\d+$/.test(value);
+            if (!isNumericString)
+              throwError("returned invalid value (must be numeric string)");
+          }
         }
       }
     }
