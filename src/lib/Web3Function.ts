@@ -11,6 +11,7 @@ import {
 } from "./types/Web3FunctionEvent";
 import objectHash = require("object-hash");
 import "./polyfill/XMLHttpRequest";
+import { Web3FunctionMultiChainProvider } from "./provider/Web3FunctionMultiChainProvider";
 
 export class Web3Function {
   private static Instance?: Web3Function;
@@ -88,7 +89,7 @@ export class Web3Function {
         ...ctxData.gelatoArgs,
         gasPrice: BigNumber.from(ctxData.gelatoArgs.gasPrice),
       },
-      provider: this._initProvider(ctxData.rpcProviderUrl),
+      multichainProvider: this._initProvider(ctxData.rpcProviderUrl),
       userArgs: ctxData.userArgs,
       secrets: {
         get: async (key: string) => {
@@ -154,7 +155,7 @@ export class Web3Function {
 
   private _initProvider(
     providerUrl: string | undefined
-  ): ethers.providers.StaticJsonRpcProvider {
+  ): Web3FunctionMultiChainProvider {
     const provider = new ethers.providers.StaticJsonRpcProvider(providerUrl);
     // Listen to response to check for rate limit error
     provider.on("debug", (data) => {
@@ -165,6 +166,8 @@ export class Web3Function {
         }
       }
     });
-    return provider;
+    const multiChainProvider = new Web3FunctionMultiChainProvider(providerUrl);
+
+    return multiChainProvider;
   }
 }

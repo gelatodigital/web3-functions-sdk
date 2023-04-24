@@ -2,8 +2,10 @@ import express from "express";
 import http from "http";
 import bodyParser from "body-parser";
 import crypto from "crypto";
-import { ethers } from "ethers";
 import { ethErrors, serializeError } from "eth-rpc-errors";
+import { ethers } from "ethers";
+import { RpcUrlMapping } from "./types";
+import { ChainIds } from "./utils";
 
 export class Web3FunctionProxyProvider {
   private _debug: boolean;
@@ -11,7 +13,6 @@ export class Web3FunctionProxyProvider {
   private _port: number;
   private _mountPath: string;
   private _proxyUrl: string;
-  private _provider: ethers.providers.StaticJsonRpcProvider;
   private _app: express.Application = express();
   private _server: http.Server | undefined;
   private _isStopped = false;
@@ -19,21 +20,16 @@ export class Web3FunctionProxyProvider {
   private _nbThrottledRpcCalls = 0;
   private _limit: number;
   private _whitelistedMethods = ["eth_chainId", "net_version"];
+  private _providers: Map<number, ethers.providers.StaticJsonRpcProvider>;
 
-  constructor(
-    host: string,
-    port: number,
-    provider: ethers.providers.StaticJsonRpcProvider,
-    limit: number,
-    debug = true
-  ) {
+  constructor(host: string, port: number, limit: number, debug = true) {
     this._host = host;
     this._port = port;
-    this._provider = provider;
     this._debug = debug;
     this._limit = limit;
     this._mountPath = crypto.randomUUID();
-    this._proxyUrl = `${this._host}:${this._port}/${this._mountPath}/`;
+    this._proxyUrl = `${this._host}:${this._port}/${this._mountPath}`;
+    this._providers = new Map<number, ethers.providers.StaticJsonRpcProvider>();
   }
 
   protected async _checkRateLimit() {
@@ -48,6 +44,8 @@ export class Web3FunctionProxyProvider {
   protected async _requestHandler(req: express.Request, res: express.Response) {
     this._log(`RPC call: ${JSON.stringify(req.body)}`);
     const { method, params, id, jsonrpc } = req.body;
+    const chainId = parseInt(req.params.chainId);
+
     try {
       // Reject invalid JsonRPC requests
       if (!method || !params) throw ethErrors.rpc.invalidRequest();
@@ -61,7 +59,11 @@ export class Web3FunctionProxyProvider {
 
       // Forward RPC call to internal provider
       try {
-        const result = await this._provider.send(method, params);
+        const provider = this._providers.get(
+          chainId
+        ) as ethers.providers.StaticJsonRpcProvider;
+
+        const result = await provider.send(method, params);
         // Send result as valid JsonRPC response
         res.send({ result, id, jsonrpc });
       } catch (providerError) {
@@ -87,9 +89,35 @@ export class Web3FunctionProxyProvider {
     }
   }
 
-  public async start(): Promise<void> {
+  private async _instantiateProviders(rpcUrlMapping: RpcUrlMapping) {
+    for (const [chainId, url] of Object.entries(rpcUrlMapping)) {
+      const provider = new ethers.providers.StaticJsonRpcProvider(url);
+
+      this._providers.set(parseInt(chainId), provider);
+    }
+
+    const missingProviders: number[] = [];
+    for (const chainId of ChainIds) {
+      const provider = this._providers.get(chainId);
+      if (!provider) missingProviders.push(chainId);
+    }
+    if (missingProviders.length > 0)
+      throw new Error(
+        `Web3FunctionProxyProvider: Missing rpcUrls. ChainIds with missing rpc urls: ${JSON.stringify(
+          missingProviders
+        )}`
+      );
+  }
+
+  public async start(rpcUrlMapping: RpcUrlMapping): Promise<void> {
+    await this._instantiateProviders(rpcUrlMapping);
+
     this._app.use(bodyParser.json());
-    this._app.post(`/${this._mountPath}/`, this._requestHandler.bind(this));
+
+    this._app.post(
+      `/${this._mountPath}/:chainId`,
+      this._requestHandler.bind(this)
+    );
 
     await new Promise<void>((resolve) => {
       this._server = this._app.listen(this._port, () => {
