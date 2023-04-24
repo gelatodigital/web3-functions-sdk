@@ -1,5 +1,7 @@
-export interface RpcUrlMapping {
-  [key: number]: string;
+import { ethers } from "ethers";
+
+export interface MultiChainProviders {
+  [key: number]: ethers.providers.StaticJsonRpcProvider;
 }
 
 // modify ChainIdOfNetwork as well when adding/removing networks

@@ -1,4 +1,4 @@
-import { RpcUrlMapping } from "../../provider";
+import { MultiChainProviders } from "../../provider";
 import { Web3FunctionContextData } from "../../types/Web3FunctionContext";
 
 export interface Web3FunctionRunnerOptions {
@@ -15,5 +15,6 @@ export interface Web3FunctionRunnerPayload {
   script: string;
   context: Web3FunctionContextData;
   options: Web3FunctionRunnerOptions;
-  rpcUrlMapping: RpcUrlMapping;
+  mainChainId: number;
+  multiChainProviders: MultiChainProviders;
 }

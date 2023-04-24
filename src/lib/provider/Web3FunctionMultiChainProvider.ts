@@ -18,7 +18,7 @@ export class Web3FunctionMultiChainProvider {
       );
     } else
       throw new Error(
-        `Web3FunctionMultiChainProvider: No provider for network: ${network}`
+        `Web3FunctionMultiChainProvider: Network ${network} not supported.`
       );
   }
 
