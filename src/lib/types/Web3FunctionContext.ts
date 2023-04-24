@@ -1,4 +1,5 @@
-import { BigNumber, ethers } from "ethers";
+import { BigNumber } from "ethers";
+import { Web3FunctionMultiChainProvider } from "../provider/Web3FunctionMultiChainProvider";
 import { Web3FunctionUserArgs } from "./Web3FunctionUserArgs";
 export interface Web3FunctionContextData {
   gelatoArgs: {
@@ -18,7 +19,7 @@ export interface Web3FunctionContext {
     gasPrice: BigNumber;
     taskId?: string;
   };
-  provider: ethers.providers.StaticJsonRpcProvider;
+  multichainProvider: Web3FunctionMultiChainProvider;
   userArgs: Web3FunctionUserArgs;
   secrets: {
     get(key: string): Promise<string | undefined>;

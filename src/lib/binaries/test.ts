@@ -3,14 +3,13 @@ import colors from "colors/safe";
 import { Web3FunctionContextData } from "../types";
 import { Web3FunctionRunner } from "../runtime";
 import { Web3FunctionBuilder } from "../builder";
-import { ethers } from "ethers";
 import path from "path";
 
-if (!process.env.PROVIDER_URL) {
-  console.error(`Missing PROVIDER_URL in .env file`);
+if (!process.env.RPC_URL_MAPPING) {
+  console.error(`Missing RPC_URL_MAPPING in .env file`);
   process.exit();
 }
-
+const rpcUrlMapping = JSON.parse(process.env.RPC_URL_MAPPING as string);
 const web3FunctionSrcPath =
   process.argv[3] ??
   path.join(process.cwd(), "src", "web3-functions", "index.ts");
@@ -101,9 +100,6 @@ export default async function test() {
     web3FunctionVersion,
   };
   const script = buildRes.filePath;
-  const provider = new ethers.providers.StaticJsonRpcProvider(
-    process.env.PROVIDER_URL
-  );
 
   // Validate input user args against schema
   if (Object.keys(inputUserArgs).length > 0) {
@@ -124,7 +120,12 @@ export default async function test() {
 
   // Run Web3Function
   console.log(`\nWeb3Function running${showLogs ? " logs:" : "..."}`);
-  const res = await runner.run({ script, context, options, provider });
+  const res = await runner.run({
+    script,
+    context,
+    options,
+    rpcUrlMapping,
+  });
 
   // Show storage update
   if (res.storage?.state === "updated") {

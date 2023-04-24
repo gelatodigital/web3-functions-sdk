@@ -14,11 +14,12 @@ import { Web3FunctionBuilder } from "../builder";
 
 const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
 
-if (!process.env.PROVIDER_URL) {
-  console.error(`Missing PROVIDER_URL in .env file`);
+if (!process.env.RPC_URL_MAPPING) {
+  console.error(`Missing RPC_URL_MAPPING in .env file`);
   process.exit();
 }
 
+const rpcUrlMapping = JSON.parse(process.env.RPC_URL_MAPPING as string);
 const web3FunctionSrcPath =
   process.argv[3] ??
   path.join(process.cwd(), "src", "web3-functions", "index.ts");
@@ -127,7 +128,7 @@ export default async function benchmark() {
   const promises: Promise<Web3FunctionExec>[] = [];
   for (let i = 0; i < load; i++) {
     console.log(`#${i} Queuing Web3Function`);
-    promises.push(runner.run({ script, context, options, provider }));
+    promises.push(runner.run({ script, context, options, rpcUrlMapping }));
     await delay(100);
   }
 

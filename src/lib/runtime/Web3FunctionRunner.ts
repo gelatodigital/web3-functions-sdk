@@ -25,6 +25,7 @@ import { Web3FunctionProxyProvider } from "../provider/Web3FunctionProxyProvider
 import { ethers } from "ethers";
 import onExit from "signal-exit";
 import { randomUUID } from "crypto";
+import { RpcUrlMapping } from "../provider";
 
 const START_TIMEOUT = 5_000;
 const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
@@ -148,8 +149,13 @@ export class Web3FunctionRunner {
     let storage;
     let error;
     try {
-      const { script, context, options, provider } = payload;
-      const data = await this._runInSandbox(script, context, options, provider);
+      const { script, context, options, rpcUrlMapping } = payload;
+      const data = await this._runInSandbox(
+        script,
+        context,
+        options,
+        rpcUrlMapping
+      );
       this._validateResult(options.web3FunctionVersion, data.result);
 
       result = data.result;
@@ -202,7 +208,7 @@ export class Web3FunctionRunner {
     script: string,
     context: Web3FunctionContextData,
     options: Web3FunctionRunnerOptions,
-    provider: ethers.providers.StaticJsonRpcProvider
+    rpcUrlMapping: RpcUrlMapping
   ): Promise<{ result: Web3FunctionResult; storage: Web3FunctionStorage }> {
     const SandBoxClass =
       options.runtime === "thread"
@@ -238,11 +244,10 @@ export class Web3FunctionRunner {
         ? "http://127.0.0.1"
         : "http://host.docker.internal",
       proxyProviderPort,
-      provider,
       options.rpcLimit,
       this._debug
     );
-    await this._proxyProvider.start();
+    await this._proxyProvider.start(rpcUrlMapping);
     context.rpcProviderUrl = this._proxyProvider.getProxyUrl();
 
     // Override gelatoArgs according to schema version
