@@ -4,12 +4,14 @@ import { Web3FunctionContextData } from "../types";
 import { Web3FunctionRunner } from "../runtime";
 import { Web3FunctionBuilder } from "../builder";
 import path from "path";
+import { MultiChainProviders } from "../provider";
+import { ethers } from "ethers";
 
-if (!process.env.RPC_URL_MAPPING) {
-  console.error(`Missing RPC_URL_MAPPING in .env file`);
+if (!process.env.PROVIDER_URLS) {
+  console.error(`Missing PROVIDER_URLS in .env file`);
   process.exit();
 }
-const rpcUrlMapping = JSON.parse(process.env.RPC_URL_MAPPING as string);
+const providerUrls = (process.env.PROVIDER_URLS as string).split(",");
 const web3FunctionSrcPath =
   process.argv[3] ??
   path.join(process.cwd(), "src", "web3-functions", "index.ts");
@@ -118,13 +120,21 @@ export default async function test() {
     }
   }
 
+  const multiChainProviders: MultiChainProviders = {};
+  for (const url of providerUrls) {
+    const provider = new ethers.providers.StaticJsonRpcProvider(url);
+    const chainId = (await provider.getNetwork()).chainId;
+    multiChainProviders[chainId] = provider;
+  }
+
   // Run Web3Function
   console.log(`\nWeb3Function running${showLogs ? " logs:" : "..."}`);
   const res = await runner.run({
     script,
     context,
     options,
-    rpcUrlMapping,
+    mainChainId: chainId,
+    multiChainProviders,
   });
 
   // Show storage update

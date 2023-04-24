@@ -11,15 +11,16 @@ import {
   Web3FunctionRunner,
 } from "../runtime";
 import { Web3FunctionBuilder } from "../builder";
+import { MultiChainProviders } from "../provider";
 
 const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
 
-if (!process.env.RPC_URL_MAPPING) {
-  console.error(`Missing RPC_URL_MAPPING in .env file`);
+if (!process.env.PROVIDER_URLS) {
+  console.error(`Missing PROVIDER_URLS in .env file`);
   process.exit();
 }
 
-const rpcUrlMapping = JSON.parse(process.env.RPC_URL_MAPPING as string);
+const providerUrls = (process.env.PROVIDER_URLS as string).split(",");
 const web3FunctionSrcPath =
   process.argv[3] ??
   path.join(process.cwd(), "src", "web3-functions", "index.ts");
@@ -105,6 +106,13 @@ export default async function benchmark() {
     }
   }
 
+  const multiChainProviders: MultiChainProviders = {};
+  for (const url of providerUrls) {
+    const provider = new ethers.providers.StaticJsonRpcProvider(url);
+    const chainId = (await provider.getNetwork()).chainId;
+    multiChainProviders[chainId] = provider;
+  }
+
   // Run Web3Function
   const start = performance.now();
   const memory = buildRes.schema.memory;
@@ -120,15 +128,21 @@ export default async function benchmark() {
     rpcLimit,
   };
   const script = buildRes.filePath;
-  const provider = new ethers.providers.StaticJsonRpcProvider(
-    process.env.PROVIDER_URL
-  );
   const runner = new Web3FunctionRunnerPool(pool, debug);
   await runner.init();
   const promises: Promise<Web3FunctionExec>[] = [];
+
   for (let i = 0; i < load; i++) {
     console.log(`#${i} Queuing Web3Function`);
-    promises.push(runner.run({ script, context, options, rpcUrlMapping }));
+    promises.push(
+      runner.run({
+        script,
+        context,
+        options,
+        mainChainId: chainId,
+        multiChainProviders,
+      })
+    );
     await delay(100);
   }
 
