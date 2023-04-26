@@ -16,6 +16,8 @@ import {
 } from "./types";
 import {
   Web3FunctionResult,
+  Web3FunctionResultV1,
+  Web3FunctionResultV2,
   Web3FunctionUserArgs,
   Web3FunctionUserArgsSchema,
 } from "../types";
@@ -341,7 +343,7 @@ export class Web3FunctionRunner {
 
   private _validateResult(
     web3FunctionVersion: string,
-    result: Web3FunctionResult | Web3FunctionResult<"v1">
+    result: Web3FunctionResult
   ) {
     const isValidData = (data: string) =>
       data.length >= 10 && data.slice(0, 2) === "0x";
@@ -366,12 +368,12 @@ export class Web3FunctionRunner {
 
     // validate callData contents
     if (web3FunctionVersion === "1.0.0") {
-      result = result as Web3FunctionResult<"v1">;
+      result = result as Web3FunctionResultV1;
 
       if (result.canExec && !isValidData(result.callData))
         throwError("returned invalid callData");
     } else {
-      result = result as Web3FunctionResult;
+      result = result as Web3FunctionResultV2;
 
       if (result.canExec) {
         if (!Array.isArray(result.callData))
