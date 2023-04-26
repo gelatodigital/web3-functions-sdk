@@ -1,6 +1,9 @@
 import { task } from "hardhat/config";
 import test, { CallConfig } from "../../lib/binaries/test";
-import { EthersProviderWrapper } from "../provider";
+import {
+  EthersProviderWrapper,
+  getMultiChainProviderConfigs,
+} from "../provider";
 import { getW3fDetails } from "../utils";
 
 task("w3f-run", "Runs Gelato Web3 Function")
@@ -41,6 +44,8 @@ task("w3f-run", "Runs Gelato Web3 Function")
     const chainId =
       hre.network.config.chainId ?? (await provider.getNetwork()).chainId;
 
+    const multiChainProviderConfig = await getMultiChainProviderConfigs(hre);
+
     const callConfig: CallConfig = {
       w3fPath: w3f.path,
       debug,
@@ -49,7 +54,7 @@ task("w3f-run", "Runs Gelato Web3 Function")
       userArgs,
       storage: w3f.storage,
       secrets: w3f.secrets,
-      provider: hre.network.provider,
+      multiChainProviderConfig,
       chainId,
     };
 

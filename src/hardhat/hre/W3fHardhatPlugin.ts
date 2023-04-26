@@ -2,9 +2,13 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { Web3FunctionContextData, Web3FunctionUserArgs } from "../../lib";
 import { Web3FunctionBuilder } from "../../lib/builder";
+import { MultiChainProviderConfig } from "../../lib/provider";
 import { Web3FunctionExecSuccess, Web3FunctionRunner } from "../../lib/runtime";
 import { MAX_RPC_LIMIT } from "../constants";
-import { EthersProviderWrapper } from "../provider";
+import {
+  EthersProviderWrapper,
+  getMultiChainProviderConfigs,
+} from "../provider";
 import { W3fDetails } from "../types";
 import { getW3fDetails } from "../utils";
 
@@ -49,6 +53,7 @@ export class Web3FunctionHardhat {
 
     const runner = new Web3FunctionRunner(debug);
     runner.validateUserArgs(buildRes.schema.userArgs, userArgs);
+    const web3FunctionVersion = buildRes.schema.web3FunctionVersion;
 
     const runtime: "docker" | "thread" = "thread";
     const memory = buildRes.schema.memory;
@@ -60,6 +65,7 @@ export class Web3FunctionHardhat {
       memory,
       rpcLimit: MAX_RPC_LIMIT,
       timeout,
+      web3FunctionVersion,
     };
     const script = buildRes.filePath;
 
@@ -71,9 +77,16 @@ export class Web3FunctionHardhat {
       storage,
     };
 
-    const provider = this.hre.network.provider;
+    const multiChainProviderConfig = await getMultiChainProviderConfigs(
+      this.hre
+    );
 
-    const res = await runner.run({ script, context, options, provider });
+    const res = await runner.run({
+      script,
+      context,
+      options,
+      multiChainProviderConfig,
+    });
 
     if (!res.success)
       throw new Error(`Fail to run web3 function: ${res.error.message}`);

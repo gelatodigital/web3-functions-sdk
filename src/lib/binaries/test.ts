@@ -2,10 +2,8 @@ import colors from "colors/safe";
 import { Web3FunctionContextData } from "../types";
 import { Web3FunctionRunner } from "../runtime";
 import { Web3FunctionBuilder } from "../builder";
-import path from "path";
 import { MultiChainProviderConfig } from "../provider";
 import { ethers } from "ethers";
-import { EthereumProvider } from "hardhat/types";
 
 const STD_TIMEOUT = 10;
 const STD_RPC_LIMIT = 10;
@@ -24,7 +22,7 @@ export interface CallConfig {
   userArgs: { [key: string]: string };
   storage: { [key: string]: string };
   secrets: { [key: string]: string };
-  provider: EthereumProvider;
+  multiChainProviderConfig: MultiChainProviderConfig;
   chainId: number;
 }
 
@@ -32,12 +30,13 @@ export type RunTime = "docker" | "thread";
 
 export default async function test(callConfig?: Partial<CallConfig>) {
   const inputUserArgs: { [key: string]: string } = callConfig?.userArgs ?? {};
-  let provider =
-    callConfig?.provider ??
-    new ethers.providers.JsonRpcProvider(
-      "https://eth-goerli.public.blastapi.io"
-    );
   let chainId = callConfig?.chainId ?? 5;
+  const multiChainProviderConfig: MultiChainProviderConfig =
+    callConfig?.multiChainProviderConfig ?? {
+      5: new ethers.providers.StaticJsonRpcProvider(
+        "https://eth-goerli.public.blastapi.io"
+      ),
+    };
   let runtime: RunTime = callConfig?.runtime ?? "thread";
   let debug = callConfig?.debug ?? false;
   let showLogs = callConfig?.showLogs ?? false;
@@ -47,12 +46,17 @@ export default async function test(callConfig?: Partial<CallConfig>) {
     callConfig?.w3fPath ?? process.argv[3] ?? "./src/web3-functions/index.ts";
 
   if (!callConfig) {
-    if (!process.env.PROVIDER_URL) {
-      console.error(`Missing PROVIDER_URL in .env file`);
+    if (!process.env.PROVIDER_URLS) {
+      console.error(`Missing PROVIDER_URLS in .env file`);
       process.exit();
     }
 
-    provider = new ethers.providers.JsonRpcProvider(process.env.PROVIDER_URL);
+    const providerUrls = process.env.PROVIDER_URLS.split(",");
+    for (const url of providerUrls) {
+      const provider = new ethers.providers.StaticJsonRpcProvider(url);
+      const chainId = (await provider.getNetwork()).chainId;
+      multiChainProviderConfig[chainId] = provider;
+    }
 
     if (process.argv.length > 2) {
       process.argv.slice(3).forEach((arg) => {
@@ -155,13 +159,6 @@ export default async function test(callConfig?: Partial<CallConfig>) {
       console.log(` ${KO} ${err.message}`);
       return;
     }
-  }
-
-  const multiChainProviderConfig: MultiChainProviderConfig = {};
-  for (const url of providerUrls) {
-    const provider = new ethers.providers.StaticJsonRpcProvider(url);
-    const chainId = (await provider.getNetwork()).chainId;
-    multiChainProviderConfig[chainId] = provider;
   }
 
   // Run Web3Function
