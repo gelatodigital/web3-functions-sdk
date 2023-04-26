@@ -139,7 +139,6 @@ export default async function benchmark() {
         script,
         context,
         options,
-        mainChainId: chainId,
         multiChainProviders,
       })
     );

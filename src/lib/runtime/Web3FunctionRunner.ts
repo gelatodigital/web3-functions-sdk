@@ -149,13 +149,11 @@ export class Web3FunctionRunner {
     let storage;
     let error;
     try {
-      const { script, context, options, multiChainProviders, mainChainId } =
-        payload;
+      const { script, context, options, multiChainProviders } = payload;
       const data = await this._runInSandbox(
         script,
         context,
         options,
-        mainChainId,
         multiChainProviders
       );
       this._validateResult(options.web3FunctionVersion, data.result);
@@ -210,7 +208,6 @@ export class Web3FunctionRunner {
     script: string,
     context: Web3FunctionContextData,
     options: Web3FunctionRunnerOptions,
-    mainChainId: number,
     multiChainProviders: MultiChainProviders
   ): Promise<{ result: Web3FunctionResult; storage: Web3FunctionStorage }> {
     const SandBoxClass =
@@ -248,7 +245,7 @@ export class Web3FunctionRunner {
         : "http://host.docker.internal",
       proxyProviderPort,
       options.rpcLimit,
-      mainChainId,
+      context.gelatoArgs.chainId,
       multiChainProviders,
       this._debug
     );

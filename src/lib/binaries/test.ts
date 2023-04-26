@@ -133,7 +133,6 @@ export default async function test() {
     script,
     context,
     options,
-    mainChainId: chainId,
     multiChainProviders,
   });
 

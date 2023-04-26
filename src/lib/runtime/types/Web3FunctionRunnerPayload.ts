@@ -15,6 +15,5 @@ export interface Web3FunctionRunnerPayload {
   script: string;
   context: Web3FunctionContextData;
   options: Web3FunctionRunnerOptions;
-  mainChainId: number;
   multiChainProviders: MultiChainProviders;
 }
