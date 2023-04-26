@@ -11,9 +11,9 @@ const ORACLE_ABI = [
 ];
 
 Web3Function.onRun(async (context: Web3FunctionContext) => {
-  const { multichainProvider } = context;
+  const { multiChainProvider } = context;
 
-  const provider = multichainProvider.network("goerli");
+  const provider = multiChainProvider.default();
 
   // Retrieve Last oracle update time
   let lastUpdated;

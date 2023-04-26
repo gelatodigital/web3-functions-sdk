@@ -89,7 +89,7 @@ export class Web3Function {
         ...ctxData.gelatoArgs,
         gasPrice: BigNumber.from(ctxData.gelatoArgs.gasPrice),
       },
-      multichainProvider: this._initProvider(ctxData.rpcProviderUrl),
+      multiChainProvider: this._initProvider(ctxData.rpcProviderUrl),
       userArgs: ctxData.userArgs,
       secrets: {
         get: async (key: string) => {

@@ -19,7 +19,7 @@ export interface Web3FunctionContext {
     gasPrice: BigNumber;
     taskId?: string;
   };
-  multichainProvider: Web3FunctionMultiChainProvider;
+  multiChainProvider: Web3FunctionMultiChainProvider;
   userArgs: Web3FunctionUserArgs;
   secrets: {
     get(key: string): Promise<string | undefined>;
