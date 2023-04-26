@@ -11,7 +11,7 @@ import {
   Web3FunctionRunner,
 } from "../runtime";
 import { Web3FunctionBuilder } from "../builder";
-import { MultiChainProviders } from "../provider";
+import { MultiChainProviderConfig } from "../provider";
 
 const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
 
@@ -106,11 +106,11 @@ export default async function benchmark() {
     }
   }
 
-  const multiChainProviders: MultiChainProviders = {};
+  const multiChainProviderConfig: MultiChainProviderConfig = {};
   for (const url of providerUrls) {
     const provider = new ethers.providers.StaticJsonRpcProvider(url);
     const chainId = (await provider.getNetwork()).chainId;
-    multiChainProviders[chainId] = provider;
+    multiChainProviderConfig[chainId] = provider;
   }
 
   // Run Web3Function
@@ -139,7 +139,7 @@ export default async function benchmark() {
         script,
         context,
         options,
-        multiChainProviders,
+        multiChainProviderConfig,
       })
     );
     await delay(100);

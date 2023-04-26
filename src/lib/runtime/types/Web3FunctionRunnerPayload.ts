@@ -1,4 +1,4 @@
-import { MultiChainProviders } from "../../provider";
+import { MultiChainProviderConfig } from "../../provider";
 import { Web3FunctionContextData } from "../../types/Web3FunctionContext";
 
 export interface Web3FunctionRunnerOptions {
@@ -15,5 +15,5 @@ export interface Web3FunctionRunnerPayload {
   script: string;
   context: Web3FunctionContextData;
   options: Web3FunctionRunnerOptions;
-  multiChainProviders: MultiChainProviders;
+  multiChainProviderConfig: MultiChainProviderConfig;
 }

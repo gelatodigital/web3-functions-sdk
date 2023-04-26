@@ -4,7 +4,7 @@ import bodyParser from "body-parser";
 import crypto from "crypto";
 import { ethErrors, serializeError } from "eth-rpc-errors";
 import { ethers } from "ethers";
-import { MultiChainProviders } from "./types";
+import { MultiChainProviderConfig } from "./types";
 
 export class Web3FunctionProxyProvider {
   private _debug: boolean;
@@ -27,7 +27,7 @@ export class Web3FunctionProxyProvider {
     port: number,
     limit: number,
     mainChainId: number,
-    multiChainProviders: MultiChainProviders,
+    multiChainProviderConfig: MultiChainProviderConfig,
     debug = true
   ) {
     this._mainChainId = mainChainId;
@@ -38,7 +38,7 @@ export class Web3FunctionProxyProvider {
     this._mountPath = crypto.randomUUID();
     this._proxyUrl = `${this._host}:${this._port}/${this._mountPath}`;
     this._providers = new Map<number, ethers.providers.StaticJsonRpcProvider>();
-    this._instantiateProviders(multiChainProviders);
+    this._instantiateProvider(multiChainProviderConfig);
   }
 
   protected async _checkRateLimit() {
@@ -100,7 +100,7 @@ export class Web3FunctionProxyProvider {
     }
   }
 
-  private _instantiateProviders(multiChainProviders: MultiChainProviders) {
+  private _instantiateProvider(multiChainProviders: MultiChainProviderConfig) {
     const chainIds: number[] = [];
     for (const [chainIdStr, provider] of Object.entries(multiChainProviders)) {
       const chainId = parseInt(chainIdStr);

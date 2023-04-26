@@ -1,6 +1,6 @@
 import { ethers } from "ethers";
 
-export interface MultiChainProviders {
+export interface MultiChainProviderConfig {
   [key: number]: ethers.providers.StaticJsonRpcProvider;
 }
 

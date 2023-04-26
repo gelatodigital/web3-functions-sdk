@@ -25,7 +25,7 @@ import { Web3FunctionProxyProvider } from "../provider/Web3FunctionProxyProvider
 import { ethers } from "ethers";
 import onExit from "signal-exit";
 import { randomUUID } from "crypto";
-import { MultiChainProviders } from "../provider";
+import { MultiChainProviderConfig } from "../provider";
 
 const START_TIMEOUT = 5_000;
 const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
@@ -149,12 +149,12 @@ export class Web3FunctionRunner {
     let storage;
     let error;
     try {
-      const { script, context, options, multiChainProviders } = payload;
+      const { script, context, options, multiChainProviderConfig } = payload;
       const data = await this._runInSandbox(
         script,
         context,
         options,
-        multiChainProviders
+        multiChainProviderConfig
       );
       this._validateResult(options.web3FunctionVersion, data.result);
 
@@ -208,7 +208,7 @@ export class Web3FunctionRunner {
     script: string,
     context: Web3FunctionContextData,
     options: Web3FunctionRunnerOptions,
-    multiChainProviders: MultiChainProviders
+    multiChainProviderConfig: MultiChainProviderConfig
   ): Promise<{ result: Web3FunctionResult; storage: Web3FunctionStorage }> {
     const SandBoxClass =
       options.runtime === "thread"
@@ -246,7 +246,7 @@ export class Web3FunctionRunner {
       proxyProviderPort,
       options.rpcLimit,
       context.gelatoArgs.chainId,
-      multiChainProviders,
+      multiChainProviderConfig,
       this._debug
     );
     await this._proxyProvider.start();

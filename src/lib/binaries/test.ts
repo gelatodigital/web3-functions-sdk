@@ -4,7 +4,7 @@ import { Web3FunctionContextData } from "../types";
 import { Web3FunctionRunner } from "../runtime";
 import { Web3FunctionBuilder } from "../builder";
 import path from "path";
-import { MultiChainProviders } from "../provider";
+import { MultiChainProviderConfig } from "../provider";
 import { ethers } from "ethers";
 
 if (!process.env.PROVIDER_URLS) {
@@ -120,11 +120,11 @@ export default async function test() {
     }
   }
 
-  const multiChainProviders: MultiChainProviders = {};
+  const multiChainProviderConfig: MultiChainProviderConfig = {};
   for (const url of providerUrls) {
     const provider = new ethers.providers.StaticJsonRpcProvider(url);
     const chainId = (await provider.getNetwork()).chainId;
-    multiChainProviders[chainId] = provider;
+    multiChainProviderConfig[chainId] = provider;
   }
 
   // Run Web3Function
@@ -133,7 +133,7 @@ export default async function test() {
     script,
     context,
     options,
-    multiChainProviders,
+    multiChainProviderConfig,
   });
 
   // Show storage update
