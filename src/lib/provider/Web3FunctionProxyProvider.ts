@@ -37,7 +37,7 @@ export class Web3FunctionProxyProvider {
     this._limit = limit;
     this._mountPath = crypto.randomUUID();
     this._proxyUrl = `${this._host}:${this._port}/${this._mountPath}`;
-    this._providers = new Map<number, ethers.providers.StaticJsonRpcProvider>();
+    this._providers = new Map();
     this._instantiateProvider(multiChainProviderConfig);
   }
 
@@ -70,9 +70,9 @@ export class Web3FunctionProxyProvider {
 
       // Forward RPC call to internal provider
       try {
-        const provider = this._providers.get(
-          chainId
-        ) as ethers.providers.StaticJsonRpcProvider;
+        const provider = this._providers.get(chainId);
+
+        if (!provider) throw ethErrors.provider.chainDisconnected;
 
         const result = await provider.send(method, params);
         // Send result as valid JsonRPC response
