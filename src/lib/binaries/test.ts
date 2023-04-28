@@ -87,7 +87,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   // Build Web3Function
   console.log(`Web3Function building...`);
 
-  const buildRes = await Web3FunctionBuilder.build(web3FunctionPath, debug);
+  const buildRes = await Web3FunctionBuilder.build(web3FunctionPath, { debug });
   console.log(`\nWeb3Function Build result:`);
   if (buildRes.success) {
     console.log(` ${OK} Schema: ${buildRes.schemaPath}`);
