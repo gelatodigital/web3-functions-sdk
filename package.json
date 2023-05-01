@@ -6,7 +6,8 @@
   "main": "dist/lib/index.js",
   "types": "dist/lib/types/index.d.ts",
   "files": [
-    "dist/lib/**/*"
+    "dist/lib/**/*",
+    "dist/hardhat/**/*"
   ],
   "bin": {
     "w3f": "./dist/bin/index.js"
