@@ -27,6 +27,7 @@ import { Web3FunctionProxyProvider } from "../provider/Web3FunctionProxyProvider
 import { ethers } from "ethers";
 import onExit from "signal-exit";
 import { randomUUID } from "crypto";
+import { MultiChainProviderConfig } from "../provider";
 
 const START_TIMEOUT = 5_000;
 const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
@@ -46,10 +47,52 @@ export class Web3FunctionRunner {
     this._debug = debug;
   }
 
-  public async validateUserArgs(
+  public validateUserArgs(
+    userArgsSchema: Web3FunctionUserArgsSchema,
+    userArgs: Web3FunctionUserArgs
+  ) {
+    for (const key in userArgsSchema) {
+      const value = userArgs[key];
+      if (typeof value === "undefined") {
+        throw new Error(`Web3FunctionSchemaError: Missing user arg '${key}'`);
+      }
+      const type = userArgsSchema[key];
+      switch (type) {
+        case "boolean":
+        case "string":
+        case "number":
+          if (typeof value !== type) {
+            throw new Error(
+              `Web3FunctionSchemaError: Invalid ${type} value '${value.toString()}' for user arg '${key}'`
+            );
+          }
+          break;
+        case "boolean[]":
+        case "string[]":
+        case "number[]": {
+          const itemType = type.slice(0, -2);
+          if (
+            !Array.isArray(value) ||
+            value.some((a) => typeof a !== itemType)
+          ) {
+            throw new Error(
+              `Web3FunctionSchemaError: Invalid ${type} value '${value}' for user arg '${key}'`
+            );
+          }
+          break;
+        }
+        default:
+          throw new Error(
+            `Web3FunctionSchemaError: Unrecognized type '${type}' for user arg '${key}'`
+          );
+      }
+    }
+  }
+
+  public parseUserArgs(
     userArgsSchema: Web3FunctionUserArgsSchema,
     inputUserArgs: { [key: string]: string }
-  ): Promise<Web3FunctionUserArgs> {
+  ): Web3FunctionUserArgs {
     const typedUserArgs: Web3FunctionUserArgs = {};
     for (const key in userArgsSchema) {
       const value = inputUserArgs[key];
@@ -156,7 +199,7 @@ export class Web3FunctionRunner {
         version,
         context,
         options,
-        provider
+        multiChainProviderConfig
       );
       this._validateResult(version, data.result);
 
@@ -226,7 +269,7 @@ export class Web3FunctionRunner {
     version: Web3FunctionVersion,
     context: Web3FunctionContextData,
     options: Web3FunctionRunnerOptions,
-    provider: ethers.providers.StaticJsonRpcProvider
+    multiChainProviderConfig: MultiChainProviderConfig
   ): Promise<{ result: Web3FunctionResult; storage: Web3FunctionStorage }> {
     const SandBoxClass =
       options.runtime === "thread"
@@ -261,8 +304,9 @@ export class Web3FunctionRunner {
         ? "http://127.0.0.1"
         : "http://host.docker.internal",
       proxyProviderPort,
-      provider,
       options.rpcLimit,
+      context.gelatoArgs.chainId,
+      multiChainProviderConfig,
       this._debug
     );
     await this._proxyProvider.start();

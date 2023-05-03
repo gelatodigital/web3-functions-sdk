@@ -6,7 +6,8 @@
   "main": "dist/lib/index.js",
   "types": "dist/lib/types/index.d.ts",
   "files": [
-    "dist/lib/**/*"
+    "dist/lib/**/*",
+    "dist/hardhat/**/*"
   ],
   "bin": {
     "w3f": "./dist/bin/index.js"
@@ -18,7 +19,8 @@
     "./provider": "./dist/lib/provider/index.js",
     "./builder": "./dist/lib/builder/index.js",
     "./uploader": "./dist/lib/uploader/index.js",
-    "./binaries": "./dist/lib/binaries/index.js"
+    "./binaries": "./dist/lib/binaries/index.js",
+    "./hardhat-plugin": "./dist/hardhat/index.js"
   },
   "typesVersions": {
     "*": {
@@ -42,6 +44,9 @@
       ],
       "binaries": [
         "dist/lib/binaries/index.d.ts"
+      ],
+      "hardhat-plugin": [
+        "dist/hardhat/index.d.ts"
       ]
     }
   },
@@ -73,6 +78,7 @@
     "eslint": "^8.4.1",
     "eslint-config-prettier": "^8.3.0",
     "eslint-plugin-prettier": "^4.0.0",
+    "hardhat": "^2.13.0",
     "prettier": "^2.3.2",
     "ts-node": "^10.9.1",
     "typescript": "^4.7.0"
@@ -94,6 +100,7 @@
     "ky": "^0.32.2",
     "object-hash": "^3.0.0",
     "pidusage": "^3.0.1",
+    "semver": "^7.5.0",
     "signal-exit": "^3.0.7",
     "tar": "^6.1.12"
   }

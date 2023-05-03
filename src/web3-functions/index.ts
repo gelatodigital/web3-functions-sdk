@@ -11,12 +11,14 @@ const ORACLE_ABI = [
 ];
 
 Web3Function.onRun(async (context: Web3FunctionContext) => {
-  const { provider } = context;
+  const { multiChainProvider } = context;
+
+  const provider = multiChainProvider.default();
 
   // Retrieve Last oracle update time
   let lastUpdated;
   let oracle;
-  const oracleAddress = "0x6a3c82330164822A8a39C7C0224D20DB35DD030a";
+  const oracleAddress = "0x71B9B0F6C999CBbB0FeF9c92B80D54e4973214da";
 
   try {
     oracle = new Contract(oracleAddress, ORACLE_ABI, provider);

@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { MultiChainProviderConfig } from "../../provider";
 import { Web3FunctionContextData } from "../../types/Web3FunctionContext";
 import { Web3FunctionVersion } from "../../types";
 
@@ -15,6 +15,6 @@ export interface Web3FunctionRunnerPayload {
   script: string;
   context: Web3FunctionContextData;
   options: Web3FunctionRunnerOptions;
+  multiChainProviderConfig: MultiChainProviderConfig;
   version: Web3FunctionVersion;
-  provider: ethers.providers.StaticJsonRpcProvider;
 }
