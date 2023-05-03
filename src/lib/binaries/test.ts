@@ -90,7 +90,7 @@ export default async function test() {
   const runner = new Web3FunctionRunner(debug);
   const memory = buildRes.schema.memory;
   const timeout = buildRes.schema.timeout * 1000;
-  const web3FunctionVersion = buildRes.schema.web3FunctionVersion;
+  const version = buildRes.schema.web3FunctionVersion;
   const rpcLimit = MAX_RPC_LIMIT;
   const options = {
     runtime,
@@ -98,7 +98,6 @@ export default async function test() {
     memory,
     rpcLimit,
     timeout,
-    web3FunctionVersion,
   };
   const script = buildRes.filePath;
   const provider = new ethers.providers.StaticJsonRpcProvider(
@@ -124,10 +123,10 @@ export default async function test() {
 
   // Run Web3Function
   console.log(`\nWeb3Function running${showLogs ? " logs:" : "..."}`);
-  const res = await runner.run({ script, context, options, provider });
+  const res = await runner.run({ script, version, context, options, provider });
 
   // Show storage update
-  if (res.storage?.state === "updated") {
+  if (res.success && res.storage?.state === "updated") {
     console.log(`\nSimulated Web3Function Storage update:`);
     Object.entries(res.storage.storage).forEach(([key, value]) =>
       console.log(` ${OK} ${key}: ${colors.green(`'${value}'`)}`)
@@ -158,13 +157,13 @@ export default async function test() {
   const memoryStatus = res.memory < 0.9 * memory ? OK : KO;
   console.log(` ${memoryStatus} Memory: ${res.memory.toFixed(2)}mb`);
 
-  if (res.storage?.size > STD_STORAGE_LIMIT) {
+  if (res.success && res.storage?.size > STD_STORAGE_LIMIT) {
     console.log(
       ` ${KO} Storage: ${res.storage.size.toFixed(
         2
       )}kb (Storage usage is above Standard plan limit: ${STD_STORAGE_LIMIT}kb!)`
     );
-  } else if (res.storage?.size > 0) {
+  } else if (res.success && res.storage?.size > 0) {
     console.log(` ${OK} Storage: ${res.storage.size.toFixed(2)}kb`);
   }
 

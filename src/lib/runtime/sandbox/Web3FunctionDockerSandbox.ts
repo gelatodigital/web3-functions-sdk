@@ -2,6 +2,7 @@
 import path from "path";
 import Docker, { ImageInfo } from "dockerode";
 import { Web3FunctionAbstractSandbox } from "./Web3FunctionAbstractSandbox";
+import { Web3FunctionVersion } from "../../types";
 
 export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
   private _container?: Docker.Container;
@@ -46,6 +47,7 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
 
   protected async _start(
     script: string,
+    version: Web3FunctionVersion,
     serverPort: number,
     mountPath: string
   ): Promise<void> {
@@ -57,7 +59,7 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
 
     let env: string[] = [];
 
-    if (this._web3FunctionvVersion === "1.0.0") {
+    if (version === Web3FunctionVersion.V1_0_0) {
       args.push(`--allow-env=WEB3_FUNCTION_SERVER_PORT`);
       args.push(`--unstable`);
       env = [`WEB3_FUNCTION_SERVER_PORT=${serverPort.toString()}`];

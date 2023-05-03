@@ -3,6 +3,7 @@ import path from "path";
 import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import pidusage from "pidusage";
 import { Web3FunctionAbstractSandbox } from "./Web3FunctionAbstractSandbox";
+import { Web3FunctionVersion } from "../../types";
 
 export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
   private _thread?: ChildProcessWithoutNullStreams;
@@ -14,6 +15,7 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
 
   protected async _start(
     script: string,
+    version: Web3FunctionVersion,
     serverPort: number,
     mountPath: string
   ): Promise<void> {
@@ -25,7 +27,7 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
 
     let env = {};
 
-    if (this._web3FunctionvVersion === "1.0.0") {
+    if (version === Web3FunctionVersion.V1_0_0) {
       args.push(`--allow-env=WEB3_FUNCTION_SERVER_PORT`);
       args.push(`--unstable`);
       env = { WEB3_FUNCTION_SERVER_PORT: serverPort.toString() };
