@@ -97,6 +97,9 @@ export class Web3FunctionBuilder {
     } = options ?? {};
 
     try {
+      const schemaPath = path.join(path.parse(input).dir, "schema.json");
+      const schema = await Web3FunctionBuilder._validateSchema(schemaPath);
+
       const start = performance.now();
       await Promise.all([
         Web3FunctionBuilder._buildBundle(input, filePath, alias),
@@ -106,8 +109,6 @@ export class Web3FunctionBuilder {
 
       const stats = fs.statSync(filePath);
       const fileSize = stats.size / 1024 / 1024; // size in mb
-      const schemaPath = path.join(path.parse(input).dir, "schema.json");
-      const schema = await Web3FunctionBuilder._validateSchema(schemaPath);
 
       return {
         success: true,
