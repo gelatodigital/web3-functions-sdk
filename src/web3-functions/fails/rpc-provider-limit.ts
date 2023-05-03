@@ -26,8 +26,9 @@ const ORACLE_ABI = [
 ];
 
 Web3Function.onRun(async (context: Web3FunctionContext) => {
-  const { provider } = context;
+  const { multiChainProvider } = context;
 
+  const provider = multiChainProvider.default();
   // Test sending invalid request
   let failure = "";
   try {

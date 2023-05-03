@@ -1,4 +1,4 @@
-import { BigNumber, ethers } from "ethers";
+import { BigNumber } from "ethers";
 import { Web3FunctionHttpServer } from "./net/Web3FunctionHttpServer";
 import {
   Web3FunctionContext,
@@ -156,17 +156,11 @@ export class Web3Function {
   private _initProvider(
     providerUrl: string | undefined
   ): Web3FunctionMultiChainProvider {
-    const provider = new ethers.providers.StaticJsonRpcProvider(providerUrl);
-    // Listen to response to check for rate limit error
-    provider.on("debug", (data) => {
-      if (data.action === "response" && data.error) {
-        if (/Request limit exceeded/.test(data.error.message)) {
-          console.error("Web3FunctionError: RPC requests limit exceeded");
-          this._exit(250, true);
-        }
-      }
-    });
     const multiChainProvider = new Web3FunctionMultiChainProvider(providerUrl);
+    // Listen to response to check for rate limit error
+    multiChainProvider.default().on("terminate", () => {
+      this._exit(250, true);
+    });
 
     return multiChainProvider;
   }

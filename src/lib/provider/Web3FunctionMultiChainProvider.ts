@@ -11,6 +11,7 @@ export class Web3FunctionMultiChainProvider {
     this._defaultProvider = new ethers.providers.StaticJsonRpcProvider(
       proxyRpcUrlBase
     );
+    this._subscribeProviderEvents(this._defaultProvider);
   }
 
   public default(): ethers.providers.StaticJsonRpcProvider {
@@ -29,9 +30,23 @@ export class Web3FunctionMultiChainProvider {
         `${this._proxyRpcUrlBase}/${chainId}`
       );
 
+      this._subscribeProviderEvents(provider);
       this._providers.set(chainId, provider);
     }
 
     return provider;
+  }
+
+  private _subscribeProviderEvents(
+    provider: ethers.providers.StaticJsonRpcProvider
+  ) {
+    provider.on("debug", (data) => {
+      if (data.action === "response" && data.error) {
+        if (/Request limit exceeded/.test(data.error.message)) {
+          console.error("Web3FunctionError: RPC requests limit exceeded");
+          this._defaultProvider.emit("terminate", data);
+        }
+      }
+    });
   }
 }
