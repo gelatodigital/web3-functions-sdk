@@ -4,7 +4,9 @@ import {
 } from "@gelatonetwork/web3-functions-sdk";
 
 Web3Function.onRun(async (context: Web3FunctionContext) => {
-  const { storage, provider } = context;
+  const { storage, multiChainProvider } = context;
+
+  const provider = multiChainProvider.default();
 
   // Use storage to manage your execution state
   const lastBlockStr = (await storage.get("lastBlockNumber")) ?? "0";

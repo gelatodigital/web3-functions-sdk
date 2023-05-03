@@ -2,6 +2,7 @@
 import path from "path";
 import Docker, { ImageInfo } from "dockerode";
 import { Web3FunctionAbstractSandbox } from "./Web3FunctionAbstractSandbox";
+import { Web3FunctionVersion } from "../../types";
 
 export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
   private _container?: Docker.Container;
@@ -44,15 +45,35 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
     }
   }
 
-  protected async _start(script: string, serverPort: number): Promise<void> {
+  protected async _start(
+    script: string,
+    version: Web3FunctionVersion,
+    serverPort: number,
+    mountPath: string
+  ): Promise<void> {
     const { dir, name, ext } = path.parse(script);
     const scriptName = `${name}${ext}`;
     const cmd = `deno`;
     const args: string[] = [];
     args.push("run");
-    args.push(`--allow-env=WEB3_FUNCTION_SERVER_PORT`);
+
+    let env: string[] = [];
+
+    if (version === Web3FunctionVersion.V1_0_0) {
+      args.push(`--allow-env=WEB3_FUNCTION_SERVER_PORT`);
+      args.push(`--unstable`);
+      env = [`WEB3_FUNCTION_SERVER_PORT=${serverPort.toString()}`];
+    } else {
+      args.push(
+        `--allow-env=WEB3_FUNCTION_SERVER_PORT,WEB3_FUNCTION_MOUNT_PATH`
+      );
+      env = [
+        `WEB3_FUNCTION_SERVER_PORT=${serverPort.toString()}`,
+        `WEB3_FUNCTION_MOUNT_PATH=${mountPath}`,
+      ];
+    }
+
     args.push(`--allow-net`);
-    args.push(`--unstable`);
     args.push(`--no-prompt`);
     args.push(`--no-npm`);
     args.push(`--no-remote`);
@@ -65,7 +86,7 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
       ExposedPorts: {
         [`${serverPort.toString()}/tcp`]: {},
       },
-      Env: [`WEB3_FUNCTION_SERVER_PORT=${serverPort.toString()}`],
+      Env: env,
       Hostconfig: {
         Binds: [`${dir}:/web3Function/`],
         PortBindings: {

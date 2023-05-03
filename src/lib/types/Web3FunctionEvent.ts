@@ -22,3 +22,7 @@ export type Web3FunctionStorage = {
   state: "updated" | "last";
   storage: { [key: string]: string | undefined };
 };
+
+export type Web3FunctionStorageWithSize = Web3FunctionStorage & {
+  size: number;
+};
