@@ -1,5 +1,6 @@
 import { MultiChainProviderConfig } from "../../provider";
 import { Web3FunctionContextData } from "../../types/Web3FunctionContext";
+import { Web3FunctionVersion } from "../../types";
 
 export interface Web3FunctionRunnerOptions {
   memory: number;
@@ -7,7 +8,6 @@ export interface Web3FunctionRunnerOptions {
   rpcLimit: number;
   runtime: "thread" | "docker";
   showLogs: boolean;
-  web3FunctionVersion: string;
   serverPort?: number;
 }
 
@@ -16,4 +16,5 @@ export interface Web3FunctionRunnerPayload {
   context: Web3FunctionContextData;
   options: Web3FunctionRunnerOptions;
   multiChainProviderConfig: MultiChainProviderConfig;
+  version: Web3FunctionVersion;
 }

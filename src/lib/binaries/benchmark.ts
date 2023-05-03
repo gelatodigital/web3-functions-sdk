@@ -119,14 +119,13 @@ export default async function benchmark() {
   const start = performance.now();
   const memory = buildRes.schema.memory;
   const timeout = buildRes.schema.timeout * 1000;
-  const web3FunctionVersion = buildRes.schema.web3FunctionVersion;
+  const version = buildRes.schema.web3FunctionVersion;
   const rpcLimit = 100;
   const options = {
     runtime,
     showLogs,
     memory,
     timeout,
-    web3FunctionVersion,
     rpcLimit,
   };
   const script = buildRes.filePath;
@@ -136,14 +135,7 @@ export default async function benchmark() {
 
   for (let i = 0; i < load; i++) {
     console.log(`#${i} Queuing Web3Function`);
-    promises.push(
-      runner.run({
-        script,
-        context,
-        options,
-        multiChainProviderConfig,
-      })
-    );
+    promises.push(runner.run({ script, version, context, options, multiChainProviderConfig }));
     await delay(100);
   }
 

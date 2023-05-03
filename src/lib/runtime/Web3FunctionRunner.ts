@@ -5,6 +5,7 @@ import { Web3FunctionContextData } from "../types/Web3FunctionContext";
 import {
   Web3FunctionEvent,
   Web3FunctionStorage,
+  Web3FunctionStorageWithSize,
 } from "../types/Web3FunctionEvent";
 import { Web3FunctionAbstractSandbox } from "./sandbox/Web3FunctionAbstractSandbox";
 import { Web3FunctionDockerSandbox } from "./sandbox/Web3FunctionDockerSandbox";
@@ -15,6 +16,7 @@ import {
   Web3FunctionRunnerOptions,
 } from "./types";
 import {
+  Web3FunctionVersion,
   Web3FunctionResult,
   Web3FunctionResultV1,
   Web3FunctionResultV2,
@@ -186,24 +188,26 @@ export class Web3FunctionRunner {
     payload: Web3FunctionRunnerPayload
   ): Promise<Web3FunctionExec> {
     const start = performance.now();
-    let success;
-    let result;
-    let storage;
-    let error;
+    let success: boolean;
+    let result: Web3FunctionResult | undefined = undefined;
+    let storage: Web3FunctionStorageWithSize | undefined = undefined;
+    let error: Error | undefined = undefined;
+    const { script, context, options, provider, version } = payload;
     try {
-      const { script, context, options, multiChainProviderConfig } = payload;
       const data = await this._runInSandbox(
         script,
+        version,
         context,
         options,
         multiChainProviderConfig
       );
-      this._validateResult(options.web3FunctionVersion, data.result);
+      this._validateResult(version, data.result);
 
       result = data.result;
-      storage = data.storage;
-      storage.size =
-        Buffer.byteLength(JSON.stringify(storage.storage), "utf-8") / 1024;
+      storage = {
+        ...data.storage,
+        size: Buffer.byteLength(JSON.stringify(data.storage), "utf-8") / 1024,
+      };
       success = true;
     } catch (err) {
       error = err;
@@ -224,20 +228,34 @@ export class Web3FunctionRunner {
     this._log(`Runtime rpc calls=${JSON.stringify(rpcCalls)}`);
     this._log(`Runtime storage size=${storage?.size.toFixed(2)}kb`);
     if (success) {
-      return {
-        success,
-        result,
-        storage,
-        logs,
-        duration,
-        memory,
-        rpcCalls,
-      };
+      if (version === Web3FunctionVersion.V1_0_0) {
+        return {
+          success,
+          version,
+          result: result as Web3FunctionResultV1,
+          storage: storage as Web3FunctionStorageWithSize,
+          logs,
+          duration,
+          memory,
+          rpcCalls,
+        };
+      } else {
+        return {
+          success,
+          version,
+          result: result as Web3FunctionResultV2,
+          storage: storage as Web3FunctionStorageWithSize,
+          logs,
+          duration,
+          memory,
+          rpcCalls,
+        };
+      }
     } else {
       return {
         success,
-        storage,
-        error,
+        version,
+        error: error as Error,
         logs,
         duration,
         memory,
@@ -248,6 +266,7 @@ export class Web3FunctionRunner {
 
   private async _runInSandbox(
     script: string,
+    version: Web3FunctionVersion,
     context: Web3FunctionContextData,
     options: Web3FunctionRunnerOptions,
     multiChainProviderConfig: MultiChainProviderConfig
@@ -259,7 +278,6 @@ export class Web3FunctionRunner {
     this._sandbox = new SandBoxClass(
       {
         memoryLimit: options.memory,
-        web3FunctionVersion: options.web3FunctionVersion,
       },
       options.showLogs ?? false,
       this._debug
@@ -270,7 +288,7 @@ export class Web3FunctionRunner {
       options.serverPort ?? (await Web3FunctionNetHelper.getAvailablePort());
     try {
       this._log(`Sarting sandbox: ${script}`);
-      await this._sandbox.start(script, serverPort, mountPath);
+      await this._sandbox.start(script, version, serverPort, mountPath);
     } catch (err) {
       this._log(`Fail to start Web3Function in sandbox ${err.message}`);
       throw new Error(`Web3Function failed to start sandbox: ${err.message}`);
@@ -295,7 +313,7 @@ export class Web3FunctionRunner {
     context.rpcProviderUrl = this._proxyProvider.getProxyUrl();
 
     // Override gelatoArgs according to schema version
-    if (options.web3FunctionVersion === "1.0.0") {
+    if (version === Web3FunctionVersion.V1_0_0) {
       context.gelatoArgs["blockTime"] = Math.floor(Date.now() / 1000);
     }
 
@@ -391,7 +409,7 @@ export class Web3FunctionRunner {
   }
 
   private _validateResult(
-    web3FunctionVersion: string,
+    version: Web3FunctionVersion,
     result: Web3FunctionResult
   ) {
     const isValidData = (data: string) =>
@@ -409,14 +427,14 @@ export class Web3FunctionRunner {
 
     if (result.canExec && !Object.keys(result).includes("callData")) {
       const returnType =
-        web3FunctionVersion === "1.0.0"
+        version === Web3FunctionVersion.V1_0_0
           ? "{canExec: bool, callData: string}"
           : "{canExec: bool, callData: {to: string, data: string}[]}";
       throwError(`must return ${returnType}`);
     }
 
     // validate callData contents
-    if (web3FunctionVersion === "1.0.0") {
+    if (version === Web3FunctionVersion.V1_0_0) {
       result = result as Web3FunctionResultV1;
 
       if (result.canExec && !isValidData(result.callData))

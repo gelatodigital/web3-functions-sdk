@@ -1,20 +1,37 @@
-import { Web3FunctionStorage } from "../../types";
-import { Web3FunctionResult } from "../../types/Web3FunctionResult";
+import { Web3FunctionStorageWithSize, Web3FunctionVersion } from "../../types";
+import {
+  Web3FunctionResultV1,
+  Web3FunctionResultV2,
+} from "../../types/Web3FunctionResult";
 
-export type Web3FunctionExecStats = {
+type Web3FunctionExecStats = {
+  version: Web3FunctionVersion;
   duration: number;
   memory: number;
   rpcCalls: { total: number; throttled: number };
   logs: string[];
-  storage: Web3FunctionStorage & { size: number };
 };
 
-export type Web3FunctionExecSuccess = Web3FunctionExecStats & {
+type Web3FunctionExecSuccessBase = Web3FunctionExecStats & {
   success: true;
-  result: Web3FunctionResult;
+  storage: Web3FunctionStorageWithSize;
 };
 
-export type Web3FunctionExecFail = Web3FunctionExecStats & {
+type Web3FunctionExecSuccessV1 = Web3FunctionExecSuccessBase & {
+  version: Web3FunctionVersion.V1_0_0;
+  result: Web3FunctionResultV1;
+};
+
+type Web3FunctionExecSuccessV2 = Web3FunctionExecSuccessBase & {
+  version: Web3FunctionVersion.V2_0_0;
+  result: Web3FunctionResultV2;
+};
+
+type Web3FunctionExecSuccess =
+  | Web3FunctionExecSuccessV1
+  | Web3FunctionExecSuccessV2;
+
+type Web3FunctionExecFail = Web3FunctionExecStats & {
   success: false;
   error: Error;
 };
