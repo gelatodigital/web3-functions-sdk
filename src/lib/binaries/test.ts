@@ -1,9 +1,11 @@
 import colors from "colors/safe";
-import { Web3FunctionContextData } from "../types";
+import path from "path";
+import { Web3FunctionContextData, Web3FunctionUserArgs } from "../types";
 import { Web3FunctionRunner } from "../runtime";
 import { Web3FunctionBuilder } from "../builder";
 import { MultiChainProviderConfig } from "../provider";
 import { ethers } from "ethers";
+import { Web3FunctionLoader } from "../loader";
 
 const STD_TIMEOUT = 10;
 const STD_RPC_LIMIT = 10;
@@ -19,7 +21,7 @@ export interface CallConfig {
   debug: boolean;
   showLogs: boolean;
   runtime: RunTime;
-  userArgs: { [key: string]: string };
+  userArgs: Web3FunctionUserArgs;
   storage: { [key: string]: string };
   secrets: { [key: string]: string };
   multiChainProviderConfig: MultiChainProviderConfig;
@@ -29,7 +31,7 @@ export interface CallConfig {
 export type RunTime = "docker" | "thread";
 
 export default async function test(callConfig?: Partial<CallConfig>) {
-  const inputUserArgs: { [key: string]: string } = callConfig?.userArgs ?? {};
+  let userArgs: Web3FunctionUserArgs = callConfig?.userArgs ?? {};
   let chainId = callConfig?.chainId ?? 5;
   const multiChainProviderConfig: MultiChainProviderConfig =
     callConfig?.multiChainProviderConfig ?? {
@@ -40,10 +42,12 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   let runtime: RunTime = callConfig?.runtime ?? "thread";
   let debug = callConfig?.debug ?? false;
   let showLogs = callConfig?.showLogs ?? false;
-  const storage = callConfig?.storage ?? {};
-  const secrets = callConfig?.secrets ?? {};
+  let storage = callConfig?.storage ?? {};
+  let secrets = callConfig?.secrets ?? {};
   const web3FunctionPath =
-    callConfig?.w3fPath ?? process.argv[3] ?? "./src/web3-functions/index.ts";
+    callConfig?.w3fPath ??
+    process.argv[3] ??
+    path.join(process.cwd(), "src", "web3-functions", "index.ts");
 
   if (!callConfig) {
     if (!process.env.PROVIDER_URLS) {
@@ -62,26 +66,25 @@ export default async function test(callConfig?: Partial<CallConfig>) {
       process.argv.slice(3).forEach((arg) => {
         if (arg.startsWith("--debug")) {
           debug = true;
-        } else if (arg.startsWith("--show-logs")) {
+        } else if (arg.startsWith("--logs")) {
           showLogs = true;
         } else if (arg.startsWith("--runtime=")) {
           const type = arg.split("=")[1];
           runtime = type === "docker" ? "docker" : "thread";
         } else if (arg.startsWith("--chain-id")) {
           chainId = parseInt(arg.split("=")[1]) ?? chainId;
-        } else if (arg.startsWith("--user-args=")) {
-          const userArgParts = arg.split("=")[1].split(":");
-          if (userArgParts.length < 2) {
-            console.error("Invalid user-args:", arg);
-            console.error("Please use format: --user-args=[key]:[value]");
-            process.exit(1);
-          }
-          const key = userArgParts.shift() as string;
-          const value = userArgParts.join(":");
-          inputUserArgs[key] = value;
         }
       });
     }
+
+    // Load Web3Function details (userArgs, secrets, storage)
+    const parsedPathParts = path.parse(web3FunctionPath).dir.split(path.sep);
+    const w3fName = parsedPathParts.pop() ?? "";
+    const w3fRootDir = parsedPathParts.join(path.sep);
+    const w3fDetails = await Web3FunctionLoader.load(w3fName, w3fRootDir);
+    userArgs = w3fDetails.userArgs;
+    secrets = w3fDetails.secrets;
+    storage = w3fDetails.storage;
   }
 
   // Build Web3Function
@@ -107,20 +110,8 @@ export default async function test(callConfig?: Partial<CallConfig>) {
       chainId,
       gasPrice: "10",
     },
-    userArgs: {},
+    userArgs,
   };
-
-  /**
-   * Fill up test secrets with
-   * `SECRETS_*` in .env (cli)
-   */
-  if (!callConfig) {
-    Object.keys(process.env)
-      .filter((key) => key.startsWith("SECRETS_"))
-      .forEach((key) => {
-        context.secrets[key.replace("SECRETS_", "")] = process.env[key];
-      });
-  }
 
   // Configure Web3Function runner
   const runner = new Web3FunctionRunner(debug);
@@ -137,19 +128,11 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   };
   const script = buildRes.filePath;
 
-  // Validate input user args against schema
-  if (Object.keys(inputUserArgs).length > 0) {
+  // Validate user args against schema
+  if (Object.keys(buildRes.schema.userArgs).length > 0) {
     console.log(`\nWeb3Function user args validation:`);
     try {
-      if (!callConfig) {
-        context.userArgs = runner.parseUserArgs(
-          buildRes.schema.userArgs,
-          inputUserArgs
-        );
-      } else {
-        context.userArgs = inputUserArgs;
-        runner.validateUserArgs(buildRes.schema.userArgs, inputUserArgs);
-      }
+      runner.validateUserArgs(buildRes.schema.userArgs, userArgs);
 
       Object.keys(context.userArgs).forEach((key) => {
         console.log(` ${OK} ${key}:`, context.userArgs[key]);
@@ -162,7 +145,13 @@ export default async function test(callConfig?: Partial<CallConfig>) {
 
   // Run Web3Function
   console.log(`\nWeb3Function running${showLogs ? " logs:" : "..."}`);
-  const res = await runner.run({ script, version, context, options, multiChainProviderConfig });
+  const res = await runner.run({
+    script,
+    version,
+    context,
+    options,
+    multiChainProviderConfig,
+  });
 
   // Show storage update
   if (res.success && res.storage?.state === "updated") {

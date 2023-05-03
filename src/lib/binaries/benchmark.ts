@@ -12,6 +12,7 @@ import {
 } from "../runtime";
 import { Web3FunctionBuilder } from "../builder";
 import { MultiChainProviderConfig } from "../provider";
+import { Web3FunctionLoader } from "../loader";
 
 const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
 
@@ -21,7 +22,7 @@ if (!process.env.PROVIDER_URLS) {
 }
 
 const providerUrls = (process.env.PROVIDER_URLS as string).split(",");
-const web3FunctionSrcPath =
+const web3FunctionPath =
   process.argv[3] ??
   path.join(process.cwd(), "src", "web3-functions", "index.ts");
 let chainId = 5;
@@ -30,12 +31,11 @@ let debug = false;
 let showLogs = false;
 let load = 10;
 let pool = 10;
-const inputUserArgs: { [key: string]: string } = {};
 if (process.argv.length > 2) {
   process.argv.slice(3).forEach((arg) => {
     if (arg.startsWith("--debug")) {
       debug = true;
-    } else if (arg.startsWith("--show-logs")) {
+    } else if (arg.startsWith("--logs")) {
       showLogs = true;
     } else if (arg.startsWith("--runtime=")) {
       const type = arg.split("=")[1];
@@ -46,16 +46,6 @@ if (process.argv.length > 2) {
       load = parseInt(arg.split("=")[1]) ?? load;
     } else if (arg.startsWith("--pool")) {
       pool = parseInt(arg.split("=")[1]) ?? pool;
-    } else if (arg.startsWith("--user-args=")) {
-      const userArgParts = arg.split("=")[1].split(":");
-      if (userArgParts.length < 2) {
-        console.error("Invalid user-args:", arg);
-        console.error("Please use format: --user-args=[key]:[value]");
-        process.exit(1);
-      }
-      const key = userArgParts.shift() as string;
-      const value = userArgParts.join(":");
-      inputUserArgs[key] = value;
     }
   });
 }
@@ -63,7 +53,7 @@ const OK = colors.green("✓");
 const KO = colors.red("✗");
 export default async function benchmark() {
   // Build Web3Function
-  const buildRes = await Web3FunctionBuilder.build(web3FunctionSrcPath, {
+  const buildRes = await Web3FunctionBuilder.build(web3FunctionPath, {
     debug,
   });
   if (!buildRes.success) {
@@ -72,33 +62,33 @@ export default async function benchmark() {
     return;
   }
 
+  // Load Web3Function details (userArgs, secrets, storage)
+  const parsedPathParts = path.parse(web3FunctionPath).dir.split(path.sep);
+  const w3fName = parsedPathParts.pop() ?? "";
+  const w3fRootDir = parsedPathParts.join(path.sep);
+  const w3fDetails = await Web3FunctionLoader.load(w3fName, w3fRootDir);
+  const userArgs = w3fDetails.userArgs;
+  const secrets = w3fDetails.secrets;
+  const storage = w3fDetails.storage;
+
   // Prepare mock content for test
   const context: Web3FunctionContextData = {
-    secrets: {},
-    storage: {},
+    secrets,
+    storage,
     gelatoArgs: {
       chainId,
       gasPrice: "10",
     },
-    userArgs: {},
+    userArgs,
   };
 
-  // Fill up test secrets with `SECRETS_*` env
-  Object.keys(process.env)
-    .filter((key) => key.startsWith("SECRETS_"))
-    .forEach((key) => {
-      context.secrets[key.replace("SECRETS_", "")] = process.env[key];
-    });
-
-  // Validate input user args against schema
-  if (Object.keys(inputUserArgs).length > 0) {
+  // Validate user args against schema
+  if (Object.keys(buildRes.schema.userArgs).length > 0) {
     const runner = new Web3FunctionRunner(debug);
     console.log(`\nWeb3Function user args validation:`);
     try {
-      context.userArgs = runner.parseUserArgs(
-        buildRes.schema.userArgs,
-        inputUserArgs
-      );
+      runner.validateUserArgs(buildRes.schema.userArgs, userArgs);
+
       Object.keys(context.userArgs).forEach((key) => {
         console.log(` ${OK} ${key}:`, context.userArgs[key]);
       });
@@ -135,7 +125,15 @@ export default async function benchmark() {
 
   for (let i = 0; i < load; i++) {
     console.log(`#${i} Queuing Web3Function`);
-    promises.push(runner.run({ script, version, context, options, multiChainProviderConfig }));
+    promises.push(
+      runner.run({
+        script,
+        version,
+        context,
+        options,
+        multiChainProviderConfig,
+      })
+    );
     await delay(100);
   }
 
