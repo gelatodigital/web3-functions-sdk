@@ -46,7 +46,7 @@ export class Web3FunctionHardhat {
     const secrets = this.w3f.secrets;
     const debug = this.hre.config.w3f.debug;
 
-    const buildRes = await Web3FunctionBuilder.build(this.w3f.path, debug);
+    const buildRes = await Web3FunctionBuilder.build(this.w3f.path, { debug });
 
     if (!buildRes.success)
       throw new Error(`Fail to build web3Function: ${buildRes.error}`);
