@@ -8,8 +8,7 @@ import {
   EthersProviderWrapper,
   getMultiChainProviderConfigs,
 } from "../provider";
-import { W3fDetails } from "../types";
-import { getW3fDetails } from "../utils";
+import { Web3FunctionLoader, W3fDetails } from "../../lib/loader";
 
 export class W3fHardhatPlugin {
   private hre: HardhatRuntimeEnvironment;
@@ -19,7 +18,7 @@ export class W3fHardhatPlugin {
   }
 
   public get(_name: string) {
-    const w3f = getW3fDetails(_name, this.hre.config.w3f.rootDir);
+    const w3f = Web3FunctionLoader.load(_name, this.hre.config.w3f.rootDir);
 
     return new Web3FunctionHardhat(this.hre, w3f);
   }
