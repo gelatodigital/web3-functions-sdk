@@ -63,7 +63,9 @@ const OK = colors.green("✓");
 const KO = colors.red("✗");
 export default async function benchmark() {
   // Build Web3Function
-  const buildRes = await Web3FunctionBuilder.build(web3FunctionSrcPath, debug);
+  const buildRes = await Web3FunctionBuilder.build(web3FunctionSrcPath, {
+    debug,
+  });
   if (!buildRes.success) {
     console.log(`\nWeb3Function Build result:`);
     console.log(` ${KO} Error: ${buildRes.error.message}`);
@@ -93,7 +95,7 @@ export default async function benchmark() {
     const runner = new Web3FunctionRunner(debug);
     console.log(`\nWeb3Function user args validation:`);
     try {
-      context.userArgs = await runner.validateUserArgs(
+      context.userArgs = runner.parseUserArgs(
         buildRes.schema.userArgs,
         inputUserArgs
       );

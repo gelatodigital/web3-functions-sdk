@@ -1,7 +1,7 @@
 import { Web3FunctionStorage } from "../../types";
 import { Web3FunctionResult } from "../../types/Web3FunctionResult";
 
-type Web3FunctionExecStats = {
+export type Web3FunctionExecStats = {
   duration: number;
   memory: number;
   rpcCalls: { total: number; throttled: number };
@@ -9,12 +9,12 @@ type Web3FunctionExecStats = {
   storage: Web3FunctionStorage & { size: number };
 };
 
-type Web3FunctionExecSuccess = Web3FunctionExecStats & {
+export type Web3FunctionExecSuccess = Web3FunctionExecStats & {
   success: true;
   result: Web3FunctionResult;
 };
 
-type Web3FunctionExecFail = Web3FunctionExecStats & {
+export type Web3FunctionExecFail = Web3FunctionExecStats & {
   success: false;
   error: Error;
 };

@@ -8,8 +8,8 @@ const web3FunctionSrcPath =
   process.argv[3] ??
   path.join(process.cwd(), "src", "web3-functions", "index.ts");
 
-export default async function deploy() {
-  const cid = await Web3FunctionBuilder.deploy(web3FunctionSrcPath);
+export default async function deploy(w3fPath?: string) {
+  const cid = await Web3FunctionBuilder.deploy(w3fPath ?? web3FunctionSrcPath);
   console.log(` ${OK} Web3Function deployed to ipfs.`);
   console.log(` ${OK} CID: ${cid}`);
   console.log(

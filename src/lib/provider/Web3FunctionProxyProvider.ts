@@ -108,11 +108,7 @@ export class Web3FunctionProxyProvider {
       chainIds.push(chainId);
     }
 
-    this._log(
-      `Web3FunctionProxyProvider: Providers injected for chainIds: ${JSON.stringify(
-        chainIds
-      )}`
-    );
+    this._log(`Providers injected for chainIds: ${JSON.stringify(chainIds)}`);
   }
 
   public async start(): Promise<void> {
