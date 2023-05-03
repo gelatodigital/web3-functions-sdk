@@ -153,15 +153,18 @@ export class Web3Function {
     if (Web3Function._debug) console.log(`Web3Function: ${message}`);
   }
 
+  private _onRpcRateLimit() {
+    console.log("_onRpcRateLimit");
+    this._exit(250, true);
+  }
+
   private _initProvider(
     providerUrl: string | undefined
   ): Web3FunctionMultiChainProvider {
-    const multiChainProvider = new Web3FunctionMultiChainProvider(providerUrl);
-    // Listen to response to check for rate limit error
-    multiChainProvider.default().on("terminate", () => {
-      this._exit(250, true);
-    });
-
-    return multiChainProvider;
+    if (!providerUrl) throw new Error("Missing providerUrl");
+    return new Web3FunctionMultiChainProvider(
+      providerUrl,
+      this._onRpcRateLimit.bind(this)
+    );
   }
 }

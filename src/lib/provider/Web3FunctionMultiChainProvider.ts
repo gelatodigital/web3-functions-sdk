@@ -1,12 +1,14 @@
 import { ethers } from "ethers";
 
 export class Web3FunctionMultiChainProvider {
-  private _proxyRpcUrlBase: string | undefined;
+  private _proxyRpcUrlBase: string;
+  private _rateLimitCallback: () => void;
   private _providers: Map<number, ethers.providers.StaticJsonRpcProvider>;
   private _defaultProvider: ethers.providers.StaticJsonRpcProvider;
 
-  constructor(proxyRpcUrlBase: string | undefined) {
+  constructor(proxyRpcUrlBase: string, rateLimitCallBack: () => void) {
     this._proxyRpcUrlBase = proxyRpcUrlBase;
+    this._rateLimitCallback = rateLimitCallBack;
     this._providers = new Map();
     this._defaultProvider = new ethers.providers.StaticJsonRpcProvider(
       proxyRpcUrlBase
@@ -44,7 +46,7 @@ export class Web3FunctionMultiChainProvider {
       if (data.action === "response" && data.error) {
         if (/Request limit exceeded/.test(data.error.message)) {
           console.error("Web3FunctionError: RPC requests limit exceeded");
-          this._defaultProvider.emit("terminate", data);
+          this._rateLimitCallback();
         }
       }
     });
