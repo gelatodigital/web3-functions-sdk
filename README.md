@@ -82,13 +82,12 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 - Use `yarn test FILENAME` command to test your web3Function
 
 - Options:
-  - `--show-logs` Show internal Web3Function logs
-  - `--runtime=thread|docker` Use `thread` if you don't have `docker`set up locally (default: `docker`)
+  - `--logs` Show internal Web3Function logs
+  - `--runtime=thread|docker` Use `thread` if you don't have `docker`set up locally (default: `thread`)
   - `--debug` Show Runtime debug messages
   - `--chain-id=[number]` Specify the chainId to be used for your Web3Function (default: `5`)
-  - `--user-args=[key]:[value]` Set your Web3Function user args
 
-- Example: `yarn test src/web3-functions/index.ts --show-logs --runtime=thread`
+- Example: `yarn test src/web3-functions/index.ts --logs --runtime=thread`
 - Output:
   ```
   Web3Function Build result:
@@ -147,15 +146,38 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 });
 ```
 
-3. Pass `user-args` to the CLI to test your web3Function:
+3. Add `userArgs.json` in your web3 function folder:
 ```
-yarn test src/web3Function/oracle/index.ts --show-logs --user-args=currency:ethereum --user-args=oracle:0x6a3c82330164822A8a39C7C0224D20DB35DD030a
+{
+  "oracle": "0x6a3c82330164822A8a39C7C0224D20DB35DD030a",
+  "currency": "ethereum"
+}
 ```
 
-To pass array argument (eg `string[]`), you can use:
+## Use Secrets (ie: environment variables)
+
+Use secrets to store any private credentials that should not be published on IPFS with your web3 function.
+
+1. Create a `.env` file in your web3 function folder, containing your key / value secrets:
+```bash
+API_KEY="XXXX"
 ```
---user-args=arr:\[\"a\"\,\"b\"\]
+
+2. Access your `secrets` from the Web3Function context:
+```typescript
+Web3Function.onRun(async (context: Web3FunctionContext) => {
+  const { secrets } = context;
+
+  // Get api key from secrets
+  const apiKey = await context.secrets.get("API_KEY");
+  if (!apiKey)
+    return { canExec: false, message: `API_KEY not set in secrets` };
+    
+});
 ```
+
+3. When creating a task on Gelato UI, you will be asked to enter secrets. They will be store securely in Gelato Network.
+
 
 ## Use State / Storage
 
@@ -194,13 +216,20 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 
 Test storage execution:
 ```
-yarn test src/web3-functions/storage/index.ts --show-logs
+yarn test src/web3-functions/storage/index.ts --logs
 ```
 
 You will see your updated key/values:
 ```
 Simulated Web3Function Storage update:
  ✓ lastBlockNumber: '8321923'
+```
+
+To run your web3 function using mock storage values, add a `storage.json` in your web3 function folder:
+```
+{
+  "lastBlockNumber": "8200000"
+}
 ```
 
 ## Benchmark / Load testing
