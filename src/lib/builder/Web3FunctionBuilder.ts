@@ -6,6 +6,10 @@ import * as web3FunctionSchema from "./web3function.schema.json";
 import path from "node:path";
 import { Web3FunctionSchema } from "../types";
 import { Web3FunctionUploader } from "../uploader";
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const packageJson = require("../../../package.json");
+
 const ajv = new Ajv({ messages: true, allErrors: true });
 const web3FunctionSchemaValidator = ajv.compile(web3FunctionSchema);
 
@@ -171,7 +175,13 @@ Please create 'schema.json', default:
         errorParts = web3FunctionSchemaValidator.errors
           .map((validationErr) => {
             let msg = `\n - `;
-            if (validationErr.instancePath) {
+            if (validationErr.instancePath === "/web3FunctionVersion") {
+              msg += `'web3FunctionVersion' must match the major version of the installed sdk (${packageJson.version})`;
+              if (validationErr.params.allowedValues) {
+                msg += ` [${validationErr.params.allowedValues.join("|")}]`;
+              }
+              return msg;
+            } else if (validationErr.instancePath) {
               msg += `'${validationErr.instancePath
                 .replace("/", ".")
                 .substring(1)}' `;
