@@ -192,7 +192,8 @@ export class Web3FunctionRunner {
     let result: Web3FunctionResult | undefined = undefined;
     let storage: Web3FunctionStorageWithSize | undefined = undefined;
     let error: Error | undefined = undefined;
-    const { script, context, options, provider, version } = payload;
+    const { script, context, options, version, multiChainProviderConfig } =
+      payload;
     try {
       const data = await this._runInSandbox(
         script,

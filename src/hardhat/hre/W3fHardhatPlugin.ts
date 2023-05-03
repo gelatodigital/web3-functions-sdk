@@ -2,7 +2,6 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { Web3FunctionContextData, Web3FunctionUserArgs } from "../../lib";
 import { Web3FunctionBuilder } from "../../lib/builder";
-import { MultiChainProviderConfig } from "../../lib/provider";
 import { Web3FunctionExecSuccess, Web3FunctionRunner } from "../../lib/runtime";
 import { MAX_RPC_LIMIT } from "../constants";
 import {
@@ -58,6 +57,7 @@ export class Web3FunctionHardhat {
     const runtime: "docker" | "thread" = "thread";
     const memory = buildRes.schema.memory;
     const timeout = buildRes.schema.timeout * 1000;
+    const version = buildRes.schema.web3FunctionVersion;
 
     const options = {
       runtime,
@@ -85,6 +85,7 @@ export class Web3FunctionHardhat {
       script,
       context,
       options,
+      version,
       multiChainProviderConfig,
     });
 

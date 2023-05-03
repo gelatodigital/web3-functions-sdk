@@ -27,7 +27,7 @@ type Web3FunctionExecSuccessV2 = Web3FunctionExecSuccessBase & {
   result: Web3FunctionResultV2;
 };
 
-type Web3FunctionExecSuccess =
+export type Web3FunctionExecSuccess =
   | Web3FunctionExecSuccessV1
   | Web3FunctionExecSuccessV2;
 
