@@ -1,6 +1,7 @@
 import { EventEmitter } from "node:stream";
 import colors from "colors/safe";
 import { Web3FunctionSandboxOptions } from "../types";
+import { Web3FunctionVersion } from "../../types";
 
 export abstract class Web3FunctionAbstractSandbox extends EventEmitter {
   protected _memoryLimit: number;
@@ -29,12 +30,22 @@ export abstract class Web3FunctionAbstractSandbox extends EventEmitter {
   }
 
   protected abstract _stop(): Promise<void>;
-  protected abstract _start(script: string, serverPort: number): Promise<void>;
+  protected abstract _start(
+    script: string,
+    version: Web3FunctionVersion,
+    serverPort: number,
+    mountPath: string
+  ): Promise<void>;
   protected abstract _getMemoryUsage(): Promise<number>;
 
-  public async start(script: string, serverPort: number) {
+  public async start(
+    script: string,
+    version: Web3FunctionVersion,
+    serverPort: number,
+    mountPath: string
+  ) {
     this._log("Starting sandbox");
-    await this._start(script, serverPort);
+    await this._start(script, version, serverPort, mountPath);
   }
 
   public async getMemoryUsage(): Promise<number> {
