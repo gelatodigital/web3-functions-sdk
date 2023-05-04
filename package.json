@@ -1,6 +1,6 @@
 {
   "name": "@gelatonetwork/web3-functions-sdk",
-  "version": "0.4.8",
+  "version": "2.0.2-betatest",
   "description": "Gelato Automate Web3 Functions sdk",
   "url": "https://github.com/gelatodigital/web3-functions-sdk",
   "main": "dist/lib/index.js",
@@ -21,7 +21,8 @@
     "./uploader": "./dist/lib/uploader/index.js",
     "./loader": "./dist/lib/loader/index.js",
     "./binaries": "./dist/lib/binaries/index.js",
-    "./hardhat-plugin": "./dist/hardhat/index.js"
+    "./hardhat-plugin": "./dist/hardhat/index.js",
+    "./types": "./dist/lib/types/index.js"
   },
   "typesVersions": {
     "*": {
