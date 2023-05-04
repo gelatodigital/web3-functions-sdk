@@ -19,6 +19,7 @@
     "./provider": "./dist/lib/provider/index.js",
     "./builder": "./dist/lib/builder/index.js",
     "./uploader": "./dist/lib/uploader/index.js",
+    "./loader": "./dist/lib/loader/index.js",
     "./binaries": "./dist/lib/binaries/index.js",
     "./hardhat-plugin": "./dist/hardhat/index.js"
   },
@@ -41,6 +42,9 @@
       ],
       "uploader": [
         "dist/lib/uploader/index.d.ts"
+      ],
+      "loader": [
+        "dist/lib/loader/index.d.ts"
       ],
       "binaries": [
         "dist/lib/binaries/index.d.ts"
