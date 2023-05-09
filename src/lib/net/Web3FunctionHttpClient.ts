@@ -9,13 +9,15 @@ export class Web3FunctionHttpClient extends EventEmitter {
   private _debug: boolean;
   private _host: string;
   private _port: number;
+  private _mountPath: string;
   private _isStopped = false;
 
-  constructor(host: string, port: number, debug = true) {
+  constructor(host: string, port: number, mountPath: string, debug = true) {
     super();
     this._host = host;
     this._port = port;
     this._debug = debug;
+    this._mountPath = mountPath;
     this.on("input_event", this._safeSend.bind(this));
   }
 
@@ -23,14 +25,25 @@ export class Web3FunctionHttpClient extends EventEmitter {
     const retryInterval = 50;
     const end = performance.now() + timeout;
     let statusOk = false;
+    let lastErrMsg = "";
     while (!statusOk && !this._isStopped && performance.now() < end) {
       try {
-        const res = await axios.get(`${this._host}:${this._port}/`, {
-          timeout: 100,
-        });
+        const res = await axios.get(
+          `${this._host}:${this._port}/${this._mountPath}`,
+          {
+            timeout: 100,
+          }
+        );
         statusOk = res.status === 200;
         this._log(`Connected to Web3FunctionHttpServer socket!`);
       } catch (err) {
+        let errMsg = `${err.message} `;
+        if (axios.isAxiosError(err)) {
+          const d = err.response?.data;
+          if (d && typeof d === "string") errMsg += d;
+        }
+
+        lastErrMsg = errMsg;
         await delay(retryInterval);
       }
     }
@@ -40,7 +53,7 @@ export class Web3FunctionHttpClient extends EventEmitter {
 
     if (!statusOk) {
       throw new Error(
-        `Web3FunctionHttpClient unable to connect (timeout=${timeout}ms)`
+        `Web3FunctionHttpClient unable to connect (timeout=${timeout}ms): ${lastErrMsg}`
       );
     }
   }
@@ -56,7 +69,10 @@ export class Web3FunctionHttpClient extends EventEmitter {
   private async _send(event: Web3FunctionEvent) {
     let res;
     try {
-      res = await axios.post(`${this._host}:${this._port}`, event);
+      res = await axios.post(
+        `${this._host}:${this._port}/${this._mountPath}`,
+        event
+      );
     } catch (err) {
       throw new Error(`Web3FunctionHttpClient request error: ${err.message}`);
     }

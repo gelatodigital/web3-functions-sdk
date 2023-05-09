@@ -3,6 +3,7 @@ import path from "path";
 import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import pidusage from "pidusage";
 import { Web3FunctionAbstractSandbox } from "./Web3FunctionAbstractSandbox";
+import { Web3FunctionVersion } from "../../types";
 
 export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
   private _thread?: ChildProcessWithoutNullStreams;
@@ -12,15 +13,35 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
     this._thread.kill();
   }
 
-  protected async _start(script: string, serverPort: number): Promise<void> {
+  protected async _start(
+    script: string,
+    version: Web3FunctionVersion,
+    serverPort: number,
+    mountPath: string
+  ): Promise<void> {
     const cmd =
       process.env.DENO_PATH ??
       path.join(process.cwd(), "node_modules", "deno-bin", "bin", "deno");
     const args: string[] = [];
     args.push("run");
-    args.push(`--allow-env=WEB3_FUNCTION_SERVER_PORT`);
+
+    let env = {};
+
+    if (version === Web3FunctionVersion.V1_0_0) {
+      args.push(`--allow-env=WEB3_FUNCTION_SERVER_PORT`);
+      args.push(`--unstable`);
+      env = { WEB3_FUNCTION_SERVER_PORT: serverPort.toString() };
+    } else {
+      args.push(
+        `--allow-env=WEB3_FUNCTION_SERVER_PORT,WEB3_FUNCTION_MOUNT_PATH`
+      );
+      env = {
+        WEB3_FUNCTION_SERVER_PORT: serverPort.toString(),
+        WEB3_FUNCTION_MOUNT_PATH: mountPath,
+      };
+    }
+
     args.push(`--allow-net`);
-    args.push(`--unstable`);
     args.push(`--no-prompt`);
     args.push(`--no-npm`);
     args.push(`--no-remote`);
@@ -29,7 +50,7 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
     this._thread = spawn(cmd, args, {
       shell: true,
       cwd: process.cwd(),
-      env: { WEB3_FUNCTION_SERVER_PORT: serverPort.toString() },
+      env,
     });
 
     let processExitCodeFunction;

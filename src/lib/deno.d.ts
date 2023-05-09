@@ -8,6 +8,8 @@ declare global {
     run: (opt: { cmd: string[] }) => any;
     readTextFile: (file: string) => string;
     osRelease: () => any;
+    listen: (options: any & { transport?: "tcp" }) => any;
+    serveHttp: (conn: any) => any;
   };
   const fetch: any;
   class Response {
@@ -16,6 +18,7 @@ declare global {
   class Request {
     constructor(e: string, o: any);
     method: string;
+    url: string;
     json: () => any;
     body: any;
   }

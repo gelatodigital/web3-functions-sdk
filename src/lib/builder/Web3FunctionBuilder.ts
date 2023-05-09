@@ -6,6 +6,10 @@ import * as web3FunctionSchema from "./web3function.schema.json";
 import path from "node:path";
 import { Web3FunctionSchema } from "../types";
 import { Web3FunctionUploader } from "../uploader";
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const packageJson = require("../../../package.json");
+
 const ajv = new Ajv({ messages: true, allErrors: true });
 const web3FunctionSchemaValidator = ajv.compile(web3FunctionSchema);
 
@@ -39,7 +43,11 @@ export class Web3FunctionBuilder {
     );
   }
 
-  private static async _buildBundle(input: string, outfile: string) {
+  private static async _buildBundle(
+    input: string,
+    outfile: string,
+    alias?: Record<string, string>
+  ) {
     // Build & bundle web3Function
     const options: esbuild.BuildOptions = {
       bundle: true,
@@ -48,13 +56,18 @@ export class Web3FunctionBuilder {
       platform: "browser",
       target: "es2022",
       format: "esm",
+      alias,
       outfile,
     };
 
     await esbuild.build(options);
   }
 
-  private static async _buildSource(input: string, outfile: string) {
+  private static async _buildSource(
+    input: string,
+    outfile: string,
+    alias?: Record<string, string>
+  ) {
     // Build & bundle js source file
     const options: esbuild.BuildOptions = {
       bundle: true,
@@ -64,6 +77,7 @@ export class Web3FunctionBuilder {
       target: "es2022",
       platform: "browser",
       format: "esm",
+      alias,
       outfile,
     };
 
@@ -72,22 +86,33 @@ export class Web3FunctionBuilder {
 
   public static async build(
     input: string,
-    debug = false,
-    filePath = path.join(process.cwd(), ".tmp", "index.js"),
-    sourcePath = path.join(process.cwd(), ".tmp", "source.js")
+    options?: {
+      debug?: boolean;
+      filePath?: string;
+      sourcePath?: string;
+      alias?: Record<string, string>;
+    }
   ): Promise<Web3FunctionBuildResult> {
+    const {
+      debug = false,
+      filePath = path.join(process.cwd(), ".tmp", "index.js"),
+      sourcePath = path.join(process.cwd(), ".tmp", "source.js"),
+      alias,
+    } = options ?? {};
+
     try {
+      const schemaPath = path.join(path.parse(input).dir, "schema.json");
+      const schema = await Web3FunctionBuilder._validateSchema(schemaPath);
+
       const start = performance.now();
       await Promise.all([
-        Web3FunctionBuilder._buildBundle(input, filePath),
-        Web3FunctionBuilder._buildSource(input, sourcePath),
+        Web3FunctionBuilder._buildBundle(input, filePath, alias),
+        Web3FunctionBuilder._buildSource(input, sourcePath, alias),
       ]);
       const buildTime = performance.now() - start; // in ms
 
       const stats = fs.statSync(filePath);
       const fileSize = stats.size / 1024 / 1024; // size in mb
-      const schemaPath = path.join(path.parse(input).dir, "schema.json");
-      const schema = await Web3FunctionBuilder._validateSchema(schemaPath);
 
       return {
         success: true,
@@ -116,7 +141,7 @@ export class Web3FunctionBuilder {
         `Web3FunctionSchemaError: Missing Web3Function schema at '${input}'
 Please create 'schema.json', default: 
 {
-  "web3FunctionVersion": "1.0.0",
+  "web3FunctionVersion": "2.0.0",
   "runtime": "js-1.0",
   "memory": 128,
   "timeout": 30,
@@ -150,7 +175,13 @@ Please create 'schema.json', default:
         errorParts = web3FunctionSchemaValidator.errors
           .map((validationErr) => {
             let msg = `\n - `;
-            if (validationErr.instancePath) {
+            if (validationErr.instancePath === "/web3FunctionVersion") {
+              msg += `'web3FunctionVersion' must match the major version of the installed sdk (${packageJson.version})`;
+              if (validationErr.params.allowedValues) {
+                msg += ` [${validationErr.params.allowedValues.join("|")}]`;
+              }
+              return msg;
+            } else if (validationErr.instancePath) {
               msg += `'${validationErr.instancePath
                 .replace("/", ".")
                 .substring(1)}' `;

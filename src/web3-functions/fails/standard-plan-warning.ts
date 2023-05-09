@@ -2,8 +2,7 @@ import {
   Web3Function,
   Web3FunctionContext,
 } from "@gelatonetwork/web3-functions-sdk";
-import ky from "ky";
-import { Contract, ethers } from "ethers";
+import { Contract } from "ethers";
 const delay = (time: number) => new Promise((res) => setTimeout(res, time));
 
 const ORACLE_ABI = [
@@ -12,7 +11,9 @@ const ORACLE_ABI = [
 ];
 
 Web3Function.onRun(async (context: Web3FunctionContext) => {
-  const { provider } = context;
+  const { multiChainProvider } = context;
+
+  const provider = multiChainProvider.default();
 
   // Test soft rate limits
   const oracleAddress = "0x6a3c82330164822A8a39C7C0224D20DB35DD030a";

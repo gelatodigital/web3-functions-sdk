@@ -56,12 +56,13 @@ export class Web3FunctionRunnerPool {
   }
 
   private async _processNext() {
-    this._log(`_processNext, active=${this._activeRunners}`);
-    const runner = this._queuedRunners.pop();
-    if (!runner) return;
-    await runner();
-    if (this._queuedRunners.length > 0) {
-      return this._processNext();
+    for (
+      let runner = this._queuedRunners.shift();
+      runner;
+      runner = this._queuedRunners.shift()
+    ) {
+      this._log(`_processNext, active=${this._activeRunners}`);
+      await runner();
     }
   }
 

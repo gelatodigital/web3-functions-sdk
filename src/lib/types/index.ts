@@ -1,3 +1,6 @@
+export * from "../loader/types";
+export * from "../provider/types";
+export * from "../runtime/types";
 export * from "./Web3FunctionContext";
 export * from "./Web3FunctionEvent";
 export * from "./Web3FunctionResult";

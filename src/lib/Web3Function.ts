@@ -1,4 +1,4 @@
-import { BigNumber, ethers } from "ethers";
+import { BigNumber } from "ethers";
 import { Web3FunctionHttpServer } from "./net/Web3FunctionHttpServer";
 import {
   Web3FunctionContext,
@@ -11,6 +11,7 @@ import {
 } from "./types/Web3FunctionEvent";
 import objectHash = require("object-hash");
 import "./polyfill/XMLHttpRequest";
+import { Web3FunctionMultiChainProvider } from "./provider/Web3FunctionMultiChainProvider";
 
 export class Web3Function {
   private static Instance?: Web3Function;
@@ -20,8 +21,10 @@ export class Web3Function {
 
   constructor() {
     const port = Number(Deno.env.get("WEB3_FUNCTION_SERVER_PORT") ?? 80);
+    const mountPath = Deno.env.get("WEB3_FUNCTION_MOUNT_PATH");
     this._server = new Web3FunctionHttpServer(
       port,
+      mountPath,
       Web3Function._debug,
       this._onEvent.bind(this)
     );
@@ -51,7 +54,6 @@ export class Web3Function {
           if (lastStorageHash !== returnedStoragehash)
             storage = { state: "updated", storage: ctxData.storage };
 
-          // ToDo: validate result format
           return {
             action: "result",
             data: { result, storage },
@@ -87,7 +89,7 @@ export class Web3Function {
         ...ctxData.gelatoArgs,
         gasPrice: BigNumber.from(ctxData.gelatoArgs.gasPrice),
       },
-      provider: this._initProvider(ctxData.rpcProviderUrl),
+      multiChainProvider: this._initProvider(ctxData.rpcProviderUrl),
       userArgs: ctxData.userArgs,
       secrets: {
         get: async (key: string) => {
@@ -118,11 +120,15 @@ export class Web3Function {
     return { result, ctxData };
   }
 
-  private _exit(code = 0) {
-    setTimeout(() => {
-      this._server.close();
+  private _exit(code = 0, force = false) {
+    if (force) {
       Deno.exit(code);
-    });
+    } else {
+      setTimeout(async () => {
+        await this._server.waitConnectionReleased();
+        Deno.exit(code);
+      });
+    }
   }
 
   static getInstance(): Web3Function {
@@ -147,19 +153,18 @@ export class Web3Function {
     if (Web3Function._debug) console.log(`Web3Function: ${message}`);
   }
 
+  private _onRpcRateLimit() {
+    console.log("_onRpcRateLimit");
+    this._exit(250, true);
+  }
+
   private _initProvider(
     providerUrl: string | undefined
-  ): ethers.providers.StaticJsonRpcProvider {
-    const provider = new ethers.providers.StaticJsonRpcProvider(providerUrl);
-    // Listen to response to check for rate limit error
-    provider.on("debug", (data) => {
-      if (data.action === "response" && data.error) {
-        if (/Request limit exceeded/.test(data.error.message)) {
-          console.error("Web3FunctionError: RPC requests limit exceeded");
-          this._exit(250);
-        }
-      }
-    });
-    return provider;
+  ): Web3FunctionMultiChainProvider {
+    if (!providerUrl) throw new Error("Missing providerUrl");
+    return new Web3FunctionMultiChainProvider(
+      providerUrl,
+      this._onRpcRateLimit.bind(this)
+    );
   }
 }

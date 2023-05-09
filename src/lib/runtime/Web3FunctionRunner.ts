@@ -5,6 +5,7 @@ import { Web3FunctionContextData } from "../types/Web3FunctionContext";
 import {
   Web3FunctionEvent,
   Web3FunctionStorage,
+  Web3FunctionStorageWithSize,
 } from "../types/Web3FunctionEvent";
 import { Web3FunctionAbstractSandbox } from "./sandbox/Web3FunctionAbstractSandbox";
 import { Web3FunctionDockerSandbox } from "./sandbox/Web3FunctionDockerSandbox";
@@ -15,15 +16,21 @@ import {
   Web3FunctionRunnerOptions,
 } from "./types";
 import {
+  Web3FunctionVersion,
   Web3FunctionResult,
+  Web3FunctionResultV1,
+  Web3FunctionResultV2,
   Web3FunctionUserArgs,
   Web3FunctionUserArgsSchema,
 } from "../types";
 import { Web3FunctionProxyProvider } from "../provider/Web3FunctionProxyProvider";
 import { ethers } from "ethers";
 import onExit from "signal-exit";
+import { randomUUID } from "crypto";
+import { MultiChainProviderConfig } from "../provider";
 
 const START_TIMEOUT = 5_000;
+const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
 
 export class Web3FunctionRunner {
   private _debug: boolean;
@@ -40,10 +47,52 @@ export class Web3FunctionRunner {
     this._debug = debug;
   }
 
-  public async validateUserArgs(
+  public validateUserArgs(
+    userArgsSchema: Web3FunctionUserArgsSchema,
+    userArgs: Web3FunctionUserArgs
+  ) {
+    for (const key in userArgsSchema) {
+      const value = userArgs[key];
+      if (typeof value === "undefined") {
+        throw new Error(`Web3FunctionSchemaError: Missing user arg '${key}'`);
+      }
+      const type = userArgsSchema[key];
+      switch (type) {
+        case "boolean":
+        case "string":
+        case "number":
+          if (typeof value !== type) {
+            throw new Error(
+              `Web3FunctionSchemaError: Invalid ${type} value '${value.toString()}' for user arg '${key}'`
+            );
+          }
+          break;
+        case "boolean[]":
+        case "string[]":
+        case "number[]": {
+          const itemType = type.slice(0, -2);
+          if (
+            !Array.isArray(value) ||
+            value.some((a) => typeof a !== itemType)
+          ) {
+            throw new Error(
+              `Web3FunctionSchemaError: Invalid ${type} value '${value}' for user arg '${key}'`
+            );
+          }
+          break;
+        }
+        default:
+          throw new Error(
+            `Web3FunctionSchemaError: Unrecognized type '${type}' for user arg '${key}'`
+          );
+      }
+    }
+  }
+
+  public parseUserArgs(
     userArgsSchema: Web3FunctionUserArgsSchema,
     inputUserArgs: { [key: string]: string }
-  ): Promise<Web3FunctionUserArgs> {
+  ): Web3FunctionUserArgs {
     const typedUserArgs: Web3FunctionUserArgs = {};
     for (const key in userArgsSchema) {
       const value = inputUserArgs[key];
@@ -139,17 +188,27 @@ export class Web3FunctionRunner {
     payload: Web3FunctionRunnerPayload
   ): Promise<Web3FunctionExec> {
     const start = performance.now();
-    let success;
-    let result;
-    let storage;
-    let error;
+    let success: boolean;
+    let result: Web3FunctionResult | undefined = undefined;
+    let storage: Web3FunctionStorageWithSize | undefined = undefined;
+    let error: Error | undefined = undefined;
+    const { script, context, options, version, multiChainProviderConfig } =
+      payload;
     try {
-      const { script, context, options, provider } = payload;
-      const data = await this._runInSandbox(script, context, options, provider);
+      const data = await this._runInSandbox(
+        script,
+        version,
+        context,
+        options,
+        multiChainProviderConfig
+      );
+      this._validateResult(version, data.result);
+
       result = data.result;
-      storage = data.storage;
-      storage.size =
-        Buffer.byteLength(JSON.stringify(storage.storage), "utf-8") / 1024;
+      storage = {
+        ...data.storage,
+        size: Buffer.byteLength(JSON.stringify(data.storage), "utf-8") / 1024,
+      };
       success = true;
     } catch (err) {
       error = err;
@@ -170,20 +229,34 @@ export class Web3FunctionRunner {
     this._log(`Runtime rpc calls=${JSON.stringify(rpcCalls)}`);
     this._log(`Runtime storage size=${storage?.size.toFixed(2)}kb`);
     if (success) {
-      return {
-        success,
-        result,
-        storage,
-        logs,
-        duration,
-        memory,
-        rpcCalls,
-      };
+      if (version === Web3FunctionVersion.V1_0_0) {
+        return {
+          success,
+          version,
+          result: result as Web3FunctionResultV1,
+          storage: storage as Web3FunctionStorageWithSize,
+          logs,
+          duration,
+          memory,
+          rpcCalls,
+        };
+      } else {
+        return {
+          success,
+          version,
+          result: result as Web3FunctionResultV2,
+          storage: storage as Web3FunctionStorageWithSize,
+          logs,
+          duration,
+          memory,
+          rpcCalls,
+        };
+      }
     } else {
       return {
         success,
-        storage,
-        error,
+        version,
+        error: error as Error,
         logs,
         duration,
         memory,
@@ -194,25 +267,29 @@ export class Web3FunctionRunner {
 
   private async _runInSandbox(
     script: string,
+    version: Web3FunctionVersion,
     context: Web3FunctionContextData,
     options: Web3FunctionRunnerOptions,
-    provider: ethers.providers.StaticJsonRpcProvider
+    multiChainProviderConfig: MultiChainProviderConfig
   ): Promise<{ result: Web3FunctionResult; storage: Web3FunctionStorage }> {
     const SandBoxClass =
       options.runtime === "thread"
         ? Web3FunctionThreadSandbox
         : Web3FunctionDockerSandbox;
     this._sandbox = new SandBoxClass(
-      { memoryLimit: options.memory },
+      {
+        memoryLimit: options.memory,
+      },
       options.showLogs ?? false,
       this._debug
     );
 
+    const mountPath = randomUUID();
     const serverPort =
       options.serverPort ?? (await Web3FunctionNetHelper.getAvailablePort());
     try {
       this._log(`Sarting sandbox: ${script}`);
-      await this._sandbox.start(script, serverPort);
+      await this._sandbox.start(script, version, serverPort, mountPath);
     } catch (err) {
       this._log(`Fail to start Web3Function in sandbox ${err.message}`);
       throw new Error(`Web3Function failed to start sandbox: ${err.message}`);
@@ -228,12 +305,18 @@ export class Web3FunctionRunner {
         ? "http://127.0.0.1"
         : "http://host.docker.internal",
       proxyProviderPort,
-      provider,
       options.rpcLimit,
+      context.gelatoArgs.chainId,
+      multiChainProviderConfig,
       this._debug
     );
     await this._proxyProvider.start();
     context.rpcProviderUrl = this._proxyProvider.getProxyUrl();
+
+    // Override gelatoArgs according to schema version
+    if (version === Web3FunctionVersion.V1_0_0) {
+      context.gelatoArgs["blockTime"] = Math.floor(Date.now() / 1000);
+    }
 
     // Start monitoring memory usage
     this._monitorMemoryUsage();
@@ -241,6 +324,7 @@ export class Web3FunctionRunner {
     this._client = new Web3FunctionHttpClient(
       "http://0.0.0.0",
       serverPort,
+      mountPath,
       this._debug
     );
     try {
@@ -294,7 +378,10 @@ export class Web3FunctionRunner {
       }, options.timeout);
 
       // Listen to sandbox exit status code to detect runtime error
-      this._sandbox?.waitForProcessEnd().then((signal: number) => {
+      this._sandbox?.waitForProcessEnd().then(async (signal: number) => {
+        // Wait for result event to be received if it's racing with process exit signal
+        if (!isResolved) await delay(100);
+
         if (!isResolved)
           if (signal === 0) {
             reject(new Error(`Web3Function exited without returning result`));
@@ -320,6 +407,62 @@ export class Web3FunctionRunner {
         // Ignore
       }
     }, 100);
+  }
+
+  private _validateResult(
+    version: Web3FunctionVersion,
+    result: Web3FunctionResult
+  ) {
+    const isValidData = (data: string) =>
+      data.length >= 10 && data.slice(0, 2) === "0x";
+    const throwError = (message: string) => {
+      throw new Error(
+        `Web3Function ${message}. Instead returned: ${JSON.stringify(result)}`
+      );
+    };
+
+    // validate canExec & callData exists
+    if (!Object.keys(result).includes("canExec")) {
+      throwError("must return {canExec: bool}");
+    }
+
+    if (result.canExec && !Object.keys(result).includes("callData")) {
+      const returnType =
+        version === Web3FunctionVersion.V1_0_0
+          ? "{canExec: bool, callData: string}"
+          : "{canExec: bool, callData: {to: string, data: string}[]}";
+      throwError(`must return ${returnType}`);
+    }
+
+    // validate callData contents
+    if (version === Web3FunctionVersion.V1_0_0) {
+      result = result as Web3FunctionResultV1;
+
+      if (result.canExec && !isValidData(result.callData))
+        throwError("returned invalid callData");
+    } else {
+      result = result as Web3FunctionResultV2;
+
+      if (result.canExec) {
+        if (!Array.isArray(result.callData))
+          throwError(
+            "must return {canExec: bool, callData: {to: string, data: string}[]}"
+          );
+
+        for (const { to, data, value } of result.callData) {
+          if (!ethers.utils.isAddress(to))
+            throwError("returned invalid to address");
+
+          if (!isValidData(data)) throwError("returned invalid callData");
+
+          if (value) {
+            const isNumericString = /^\d+$/.test(value);
+            if (!isNumericString)
+              throwError("returned invalid value (must be numeric string)");
+          }
+        }
+      }
+    }
   }
 
   public async stop() {

@@ -11,13 +11,16 @@ const ORACLE_ABI = [
 ];
 
 Web3Function.onRun(async (context: Web3FunctionContext) => {
-  const { gelatoArgs, provider } = context;
+  const { multiChainProvider } = context;
+
+  const provider = multiChainProvider.default();
 
   // Retrieve Last oracle update time
   let lastUpdated;
   let oracle;
+  const oracleAddress = "0x71B9B0F6C999CBbB0FeF9c92B80D54e4973214da";
+
   try {
-    const oracleAddress = "0x6a3c82330164822A8a39C7C0224D20DB35DD030a";
     oracle = new Contract(oracleAddress, ORACLE_ABI, provider);
     lastUpdated = parseInt(await oracle.lastUpdated());
     console.log(`Last oracle update: ${lastUpdated}`);
@@ -27,7 +30,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 
   // Check if it's ready for a new update
   const nextUpdateTime = lastUpdated + 300; // 5 min
-  const timestamp = gelatoArgs.blockTime;
+  const timestamp = (await provider.getBlock("latest")).timestamp;
   console.log(`Next oracle update: ${nextUpdateTime}`);
   if (timestamp < nextUpdateTime) {
     return { canExec: false, message: `Time not elapsed` };
@@ -53,6 +56,11 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   // Return execution call data
   return {
     canExec: true,
-    callData: oracle.interface.encodeFunctionData("updatePrice", [price]),
+    callData: [
+      {
+        to: oracleAddress,
+        data: oracle.interface.encodeFunctionData("updatePrice", [price]),
+      },
+    ],
   };
 });
