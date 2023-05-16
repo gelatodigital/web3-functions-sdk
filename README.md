@@ -1,8 +1,17 @@
-# Web3 Functions SDK
-SDK to build & run Web3 Functions
+# Web3 Functions SDK && Web3 Functions Hardhat Plugin
+This SDK allows builders to build & run Web3 Functions as well as provides a [hardhat plugin](#hardhat-plugin) for ease integration in Hardhat developer environments:
+
+- [Getting Started with Web3 Functions](#getting-started-with-web3-functions)
+- [Hardhat Plugin](#speed-run-devx-with-the-web3-function-hardhat-plugin)
+- [Benchmark Load Testing](#benchmark--load-testing)
+- [Failure Tests](#failure-tests)
+
+
 <br /><br />
 
-## Project Setup
+## Getting Started with Web3 Functions
+
+### Project Setup
 1. Install project dependencies
 ```
 yarn install
@@ -15,7 +24,7 @@ yarn install
   ```
    - Complete your `.env` file with your private settings
 
-## Write a Web3Function
+### Write a Web3Function
 
 - Create a new file in `src/web3-functions`
 - Register your web3Function main function using `Web3Function.onRun`
@@ -77,7 +86,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 ```
 
 
-## Test your web3Function
+### Test your web3Function
 
 - Use `yarn test FILENAME` command to test your web3Function
 
@@ -112,14 +121,14 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   ✓ Memory: 57.77mb
   ```
 
-## Deploy / Fetch Web3Function
+### Deploy / Fetch Web3Function
 Use `yarn deploy FILENAME` command to upload your web3Function.
 
 ```
 > yarn deploy ./src/web3-functions/index.ts
 ```
 
-## Use User arguments
+### Use User arguments
 1. Declare your expected `userArgs` in you schema, accepted types are 'string', 'string[]', 'number', 'number[]', 'boolean', 'boolean[]':
 ```json
 {
@@ -154,7 +163,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 }
 ```
 
-## Use Secrets (ie: environment variables)
+### Use Secrets (ie: environment variables)
 
 Use secrets to store any private credentials that should not be published on IPFS with your web3 function.
 
@@ -179,7 +188,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 3. When creating a task on Gelato UI, you will be asked to enter secrets. They will be store securely in Gelato Network.
 
 
-## Use State / Storage
+### Use State / Storage
 
 Web3Functions are stateless scripts, that will run in a new & empty memory context on every execution.
 If you need to manage some state variable, we provide a simple key/value store that you can access from your web3Function `context`.
@@ -232,7 +241,67 @@ To run your web3 function using mock storage values, add a `storage.json` in you
 }
 ```
 
-## Benchmark / Load testing
+
+
+  ## Speed run DevX with the Web3 Function Hardhat Plugin
+
+  The Web3 Function Hardhat Plugin provides built-in hardhat tasks that wil speed your development as well as provide a great DevX for end to end testing.
+
+  In order to user the Hardhat Plugin you will need to:
+
+  ### Config Hardhat 
+  Config `hardhat.config.ts` Web3 Functions Plugin
+
+  ```ts
+  import "@gelatonetwork/web3-functions-sdk/hardhat-plugin";
+  ...
+  const config: HardhatUserConfig = {
+  w3f: {
+    rootDir: "./web3-functions", //where your Web3 Function is located
+    debug: false,
+    networks: ["mumbai", "goerli", "baseGoerli"], //(multiChainProvider) injects provider for these networks
+  },
+  ....
+  ```
+
+  ### Web3 Fucntion Testing 
+  Use following command your your tests:
+ 
+  `npx hardhat w3f-run W3FNAME`
+
+  Example:<br/>
+  `npx hardhat w3f-run oracle`
+
+  ### Deploy Web3 Function to IPFS
+ 
+  `npx hardhat w3f-deploy W3FNAME`
+
+  Example:<br/>
+  `npx hardhat w3f-deploy oracle`
+
+  ### e2e testing
+  The Web3 Function hardhat plugin exposes the `w3f` object that can be imported dirctly from hardhat
+
+  ```ts
+    const { w3f } = hre;
+
+    oracleW3f = w3f.get("W3FNAME");
+
+    userArgs = {
+      currency: "ETH",
+      oracleAddress: oracle.address,
+    };
+    let { result } = await oracleW3f.run({ userArgs });
+
+    if (result.canExec) {
+      const calldata = result.callData[0];
+      await owner.sendTransaction({ to: calldata.to, data: calldata.data });
+    }
+
+  ```
+
+
+  ## Benchmark / Load testing
 
 - Use `yarn benchmark FILENAME` command to run a test load
 
