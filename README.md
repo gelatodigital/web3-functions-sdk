@@ -264,7 +264,7 @@ To run your web3 function using mock storage values, add a `storage.json` in you
   ....
   ```
 
-  ### Web3 Fucntion Testing 
+  ### Web3 Function Testing 
   Use following command your your tests:
  
   `npx hardhat w3f-run W3F_NAME`
