@@ -274,7 +274,7 @@ To run your web3 function using mock storage values, add a `storage.json` in you
 
   ### Deploy Web3 Function to IPFS
  
-  `npx hardhat w3f-deploy W3FNAME`
+  `npx hardhat w3f-deploy W3F_NAME`
 
   Example:<br/>
   `npx hardhat w3f-deploy oracle`
