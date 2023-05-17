@@ -287,7 +287,7 @@ To run your web3 function using mock storage values, add a `storage.json` in you
   ```ts
     const { w3f } = hre;
 
-    oracleW3f = w3f.get("W3FNAME");
+    oracleW3f = w3f.get("W3F_NAME");
 
     userArgs = {
       currency: "ETH",
