@@ -280,7 +280,7 @@ To run your web3 function using mock storage values, add a `storage.json` in you
   `npx hardhat w3f-deploy oracle`
 
   ### e2e testing
-  The Web3 Function hardhat plugin exposes the `w3f` object that can be imported dirctly from hardhat.
+  The Web3 Function hardhat plugin exposes the `w3f` object that can be imported directly from hardhat.
 
   This object will help you to instantiate your Web3 Function and run it.
 
