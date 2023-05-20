@@ -263,7 +263,7 @@ w3f: {
 ```
 
 ### Web3 Function Testing 
-Use following command your your tests:
+Use the following command to run your test:
 
 `npx hardhat w3f-run W3F_NAME`
 
