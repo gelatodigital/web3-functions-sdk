@@ -248,7 +248,7 @@ The Web3 Function Hardhat Plugin provides built-in hardhat tasks that wil speed 
 In order to user the Hardhat Plugin you will need to:
 
 ### Config Hardhat 
-Config `hardhat.config.ts` Web3 Functions Plugin
+Import Web3 functions Hardhat plugin into `hardhat.config.ts`:  
 
 ```ts
 import "@gelatonetwork/web3-functions-sdk/hardhat-plugin";
