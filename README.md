@@ -283,7 +283,7 @@ The Web3 Function hardhat plugin exposes the `w3f` object that can be imported d
 This object will help you to instantiate your Web3 Function and run it.
 
 ```ts
-  const { w3f } = hre;
+const { w3f } = hre;
 
   oracleW3f = w3f.get("W3F_NAME");
 
