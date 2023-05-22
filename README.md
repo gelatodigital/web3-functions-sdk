@@ -1,8 +1,15 @@
-# Web3 Functions SDK
-SDK to build & run Web3 Functions
+# Web3 Functions SDK && Web3 Functions Hardhat Plugin
+This SDK allows builders to build & run Web3 Functions as well as provides a [hardhat plugin](#hardhat-plugin) for ease integration in Hardhat developer environments:
+
+- [Getting Started with Web3 Functions](#getting-started-with-web3-functions)
+- [Hardhat Plugin](#speed-run-devx-with-the-web3-function-hardhat-plugin)
+
+
 <br /><br />
 
-## Project Setup
+## Getting Started with Web3 Functions
+
+### Project Setup
 1. Install project dependencies
 ```
 yarn install
@@ -15,7 +22,7 @@ yarn install
   ```
    - Complete your `.env` file with your private settings
 
-## Write a Web3Function
+### Write a Web3Function
 
 - Create a new file in `src/web3-functions`
 - Register your web3Function main function using `Web3Function.onRun`
@@ -77,7 +84,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 ```
 
 
-## Test your web3Function
+### Test your web3Function
 
 - Use `yarn test FILENAME` command to test your web3Function
 
@@ -112,14 +119,14 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   ✓ Memory: 57.77mb
   ```
 
-## Deploy / Fetch Web3Function
+### Deploy / Fetch Web3Function
 Use `yarn deploy FILENAME` command to upload your web3Function.
 
 ```
 > yarn deploy ./src/web3-functions/index.ts
 ```
 
-## Use User arguments
+### Use User arguments
 1. Declare your expected `userArgs` in you schema, accepted types are 'string', 'string[]', 'number', 'number[]', 'boolean', 'boolean[]':
 ```json
 {
@@ -154,7 +161,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 }
 ```
 
-## Use Secrets (ie: environment variables)
+### Use Secrets (ie: environment variables)
 
 Use secrets to store any private credentials that should not be published on IPFS with your web3 function.
 
@@ -179,7 +186,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 3. When creating a task on Gelato UI, you will be asked to enter secrets. They will be store securely in Gelato Network.
 
 
-## Use State / Storage
+### Use State / Storage
 
 Web3Functions are stateless scripts, that will run in a new & empty memory context on every execution.
 If you need to manage some state variable, we provide a simple key/value store that you can access from your web3Function `context`.
@@ -232,116 +239,63 @@ To run your web3 function using mock storage values, add a `storage.json` in you
 }
 ```
 
-## Benchmark / Load testing
-
-- Use `yarn benchmark FILENAME` command to run a test load
-
-- Options:
-  - all `test` command options
-  - `--load=100` configure the number of web3Functions you want to run for your load test (default: `10`)
-  - `--pool=10` configure the pool size, ie max number of concurrent worker (default: `10`)
-
-- Example: `yarn benchmark src/web3-functions/index.ts --load=100 --pool=10`
-- Output:
-  ```  
-  Benchmark result:
-  - nb success: 100/100
-  - duration: 64s
-  ```
 
 
+## Speed run DevX with the Web3 Function Hardhat Plugin
 
-## Failure tests
-Some example failing file to test error handling
-- Syntax error in the web3Function:
-  - Run: `yarn test src/web3-functions/fails/syntax-error.js`
-  - Result:
-  ```
-  Web3Function building...
-  ✘ [ERROR] Could not resolve "nothing"
+The Web3 Function Hardhat Plugin provides built-in hardhat tasks that wil speed your development as well as provide a great DevX for end to end testing.
 
-      src/web3-functions/fails/syntax-error.js:1:30:
-        1 │ import { Web3Function } from "nothing";
-          ╵                               ~~~~~~~~~
+In order to user the Hardhat Plugin you will need to:
 
-    You can mark the path "nothing" as external to exclude it from the bundle, which will remove this
-    error.
+### Configure Hardhat 
+Import Web3 functions Hardhat plugin into `hardhat.config.ts`:  
 
+```ts
+import "@gelatonetwork/web3-functions-sdk/hardhat-plugin";
+...
+const config: HardhatUserConfig = {
+w3f: {
+  rootDir: "./web3-functions", //where your Web3 Function is located
+  debug: false,
+  networks: ["mumbai", "goerli", "baseGoerli"], //(multiChainProvider) injects provider for these networks
+},
+....
+```
 
-  Web3Function Build result:
-  ✗ Error: Build failed with 1 error:
-  src/web3-functions/fails/syntax-error.js:1:30: ERROR: Could not resolve "nothing"
-  ```
+### Web3 Function Testing 
+Use the following command to run your test:
 
-- No `onRun` function registered in the web3Function:
-  - Run: `yarn test src/web3-functions/fails/not-registered.ts`
-  - Result:
-  ```
-  Web3Function Result:
-  ✗ Error: Web3Function start-up timeout (5s)
-  Make sure you registered your web3 function correctly in your script.
-  ```
+`npx hardhat w3f-run W3F_NAME`
 
-- Web3Function run out of memory:
-  - Run: `yarn test src/web3-functions/fails/escape-memory.ts`
-  - Result
-  ```
-  Web3Function Result:
-  ✗ Error: Web3Function sandbox exited with code=137
+Example:<br/>
+`npx hardhat w3f-run oracle`
 
-  Web3Function Runtime stats:
-  ✓ Duration: 1.91s
-  ✗ Memory: 31.97mb
-  ```
+### Deploy Web3 Function to IPFS
 
-- Web3Function exceed timeout:
-   - Run: `yarn test src/web3-functions/fails/escape-timeout.ts`
-   - Result:
-  ```
-  Web3Function Result:
-  ✗ Error: Web3Function exceed execution timeout (10s)
+`npx hardhat w3f-deploy W3F_NAME`
 
-  Web3Function Runtime stats:
-  ✗ Duration: 10.97s
-  ✓ Memory: 25.34mb
-  ```
+Example:<br/>
+`npx hardhat w3f-deploy oracle`
 
-- Web3Function ends without returning result:
-  - Run: `yarn test src/web3-functions/fails/no-result.ts`
-  - Result:
-  ```
-  Web3Function Result:
-  ✗ Error: Web3Function exited without returning result
-  ```
+### e2e testing
+The Web3 Function hardhat plugin exposes the `w3f` object that can be imported directly from hardhat.
 
-- Web3Function try to access env:
-  - Run: `yarn test src/web3-functions/fails/escape-env.ts`
-  - Result:
-  ```
-  Web3Function Result:
-  ✗ Error: PermissionDenied: Requires env access to all, run again with the --allow-env flag
-  ```
+This object will help you to instantiate your Web3 Function and run it.
 
-- Web3Function try to access file system:
-  - Run: `yarn test src/web3-functions/fails/escape-file.ts`
-  - Result:
-  ```
-  Web3Function Result:
-  ✗ Error: PermissionDenied: Requires read access to "./.env", run again with the --allow-read flag
-  ```
+```ts
+const { w3f } = hre;
 
-- Web3Function try to access os:
-  - Run: `yarn test src/web3-functions/fails/escape-os.ts`
-  - Result:
-  ```
-  Web3Function Result:
-  ✗ Error: PermissionDenied: Requires sys access to "osRelease", run again with the --allow-sys flag
-  ```
+  oracleW3f = w3f.get("W3F_NAME");
 
-- Web3Function try to access cpu:
-  - Run: `yarn test src/web3-functions/fails/escape-cpu.ts`
-  - Result:
-  ```
-  Web3Function Result:
-  ✗ Error: PermissionDenied: Requires run access to "whoami", run again with the --allow-run flag
+  userArgs = {
+    currency: "ETH",
+    oracleAddress: oracle.address,
+  };
+  let { result } = await oracleW3f.run({ userArgs });
+
+  if (result.canExec) {
+    const calldata = result.callData[0];
+    await owner.sendTransaction({ to: calldata.to, data: calldata.data });
+  }
+
   ```
