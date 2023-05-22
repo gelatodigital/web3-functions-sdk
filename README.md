@@ -1,11 +1,10 @@
-# Web3 Functions SDK && Web3 Functions Hardhat Plugin
+# Web3 Functions SDK & Hardhat Plugin
 This SDK allows builders to build & run Web3 Functions as well as provides a [hardhat plugin](#hardhat-plugin) for ease integration in Hardhat developer environments:
 
 - [Getting Started with Web3 Functions](#getting-started-with-web3-functions)
 - [Hardhat Plugin](#speed-run-devx-with-the-web3-function-hardhat-plugin)
 
-
-<br /><br />
+<br />
 
 ## Getting Started with Web3 Functions
 
@@ -243,7 +242,7 @@ To run your web3 function using mock storage values, add a `storage.json` in you
 
 ## Speed run DevX with the Web3 Function Hardhat Plugin
 
-The Web3 Function Hardhat Plugin provides built-in hardhat tasks that wil speed your development as well as provide a great DevX for end to end testing.
+The Web3 Function Hardhat Plugin provides built-in hardhat tasks that will speed your development as well as provide a great DevX for end to end testing.
 
 In order to user the Hardhat Plugin you will need to:
 
@@ -252,32 +251,34 @@ Import Web3 functions Hardhat plugin into `hardhat.config.ts`:
 
 ```ts
 import "@gelatonetwork/web3-functions-sdk/hardhat-plugin";
-...
+
 const config: HardhatUserConfig = {
-w3f: {
-  rootDir: "./web3-functions", //where your Web3 Function is located
-  debug: false,
-  networks: ["mumbai", "goerli", "baseGoerli"], //(multiChainProvider) injects provider for these networks
-},
-....
+  w3f: {
+    rootDir: "./web3-functions", //where your Web3 Function is located
+    debug: false,
+    networks: ["mumbai", "goerli", "baseGoerli"], //(multiChainProvider) injects provider for these networks
+  },
+}
 ```
 
-### Web3 Function Testing 
-Use the following command to run your test:
-
+### Web3 Function Simulation 
+Use the following command to run your web3 function locally:<br/>
 `npx hardhat w3f-run W3F_NAME`
 
-Example:<br/>
-`npx hardhat w3f-run oracle`
+- Options:
+  - `--logs` Show internal Web3Function logs
+
+- Example:<br/>
+`npx hardhat w3f-run oracle --logs`
 
 ### Deploy Web3 Function to IPFS
-
+Use the following command to deploy your web3 function to IPFS:<br/>
 `npx hardhat w3f-deploy W3F_NAME`
 
-Example:<br/>
+- Example:<br/>
 `npx hardhat w3f-deploy oracle`
 
-### e2e testing
+### E2E testing
 The Web3 Function hardhat plugin exposes the `w3f` object that can be imported directly from hardhat.
 
 This object will help you to instantiate your Web3 Function and run it.
@@ -285,17 +286,16 @@ This object will help you to instantiate your Web3 Function and run it.
 ```ts
 const { w3f } = hre;
 
-  oracleW3f = w3f.get("W3F_NAME");
+oracleW3f = w3f.get("W3F_NAME");
 
-  userArgs = {
-    currency: "ETH",
-    oracleAddress: oracle.address,
-  };
-  let { result } = await oracleW3f.run({ userArgs });
+userArgs = {
+  currency: "ETH",
+  oracleAddress: oracle.address,
+};
+let { result } = await oracleW3f.run({ userArgs });
 
-  if (result.canExec) {
-    const calldata = result.callData[0];
-    await owner.sendTransaction({ to: calldata.to, data: calldata.data });
-  }
-
-  ```
+if (result.canExec) {
+  const calldata = result.callData[0];
+  await owner.sendTransaction({ to: calldata.to, data: calldata.data });
+}
+```

@@ -1,8 +1,26 @@
 {
   "name": "@gelatonetwork/web3-functions-sdk",
-  "version": "2.0.2-betatest",
+  "version": "2.0.5",
   "description": "Gelato Automate Web3 Functions sdk",
-  "url": "https://github.com/gelatodigital/web3-functions-sdk",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/gelatodigital/web3-functions-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/gelatodigital/web3-functions-sdk/issues"
+  },
+  "homepage": "https://docs.gelato.network/developer-services/web3-functions",
+  "author": "Gelato Network",
+  "license": "MIT",
+  "keywords": [
+    "web3",
+    "serverless",
+    "blockchain",
+    "smart-contract",
+    "automation",
+    "hardhat",
+    "hardhat-plugin"
+  ],
   "main": "dist/lib/index.js",
   "types": "dist/lib/types/index.d.ts",
   "files": [
@@ -70,9 +88,6 @@
   "engines": {
     "node": ">=16.0.0"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "@tsconfig/recommended": "^1.0.1",
     "@types/node": "^16.11.12",
