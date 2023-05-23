@@ -1,18 +1,19 @@
-import "dotenv/config";
 import colors from "colors/safe";
-import { performance } from "perf_hooks";
+import "dotenv/config";
 import { ethers } from "ethers";
 import path from "path";
+import { performance } from "perf_hooks";
 
-import { Web3FunctionContextData } from "../types";
+import { MAX_DOWNLOAD_LIMIT, MAX_UPLOAD_LIMIT } from "../../hardhat/constants";
+import { Web3FunctionBuilder } from "../builder";
+import { Web3FunctionLoader } from "../loader";
+import { MultiChainProviderConfig } from "../provider";
 import {
   Web3FunctionExec,
-  Web3FunctionRunnerPool,
   Web3FunctionRunner,
+  Web3FunctionRunnerPool,
 } from "../runtime";
-import { Web3FunctionBuilder } from "../builder";
-import { MultiChainProviderConfig } from "../provider";
-import { Web3FunctionLoader } from "../loader";
+import { Web3FunctionContextData } from "../types";
 
 const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
 
@@ -117,6 +118,8 @@ export default async function benchmark() {
     memory,
     timeout,
     rpcLimit,
+    downloadLimit: MAX_DOWNLOAD_LIMIT,
+    uploadLimit: MAX_UPLOAD_LIMIT,
   };
   const script = buildRes.filePath;
   const runner = new Web3FunctionRunnerPool(pool, debug);

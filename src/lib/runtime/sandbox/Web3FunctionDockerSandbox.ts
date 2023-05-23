@@ -1,8 +1,8 @@
 /* eslint-disable no-empty */
-import path from "path";
 import Docker, { ImageInfo } from "dockerode";
-import { Web3FunctionAbstractSandbox } from "./Web3FunctionAbstractSandbox";
+import path from "path";
 import { Web3FunctionVersion } from "../../types";
+import { Web3FunctionAbstractSandbox } from "./Web3FunctionAbstractSandbox";
 
 export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
   private _container?: Docker.Container;
@@ -49,7 +49,9 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
     script: string,
     version: Web3FunctionVersion,
     serverPort: number,
-    mountPath: string
+    mountPath: string,
+    httpProxyHost: string,
+    httpProxyPort: number
   ): Promise<void> {
     const { dir, name, ext } = path.parse(script);
     const scriptName = `${name}${ext}`;
@@ -72,6 +74,10 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
         `WEB3_FUNCTION_MOUNT_PATH=${mountPath}`,
       ];
     }
+
+    const httpProxyUrl = `${httpProxyHost}:${httpProxyPort}`;
+    env.push(`HTTP_PROXY=${httpProxyUrl}`);
+    env.push(`HTTPS_PROXY=${httpProxyUrl}`);
 
     args.push(`--allow-net`);
     args.push(`--no-prompt`);

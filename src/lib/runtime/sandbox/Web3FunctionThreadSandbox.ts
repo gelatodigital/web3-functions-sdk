@@ -1,9 +1,9 @@
 /* eslint-disable no-empty */
-import path from "path";
 import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
+import path from "path";
 import pidusage from "pidusage";
-import { Web3FunctionAbstractSandbox } from "./Web3FunctionAbstractSandbox";
 import { Web3FunctionVersion } from "../../types";
+import { Web3FunctionAbstractSandbox } from "./Web3FunctionAbstractSandbox";
 
 export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
   private _thread?: ChildProcessWithoutNullStreams;
@@ -17,7 +17,9 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
     script: string,
     version: Web3FunctionVersion,
     serverPort: number,
-    mountPath: string
+    mountPath: string,
+    httpProxyHost: string,
+    httpProxyPort: number
   ): Promise<void> {
     const cmd =
       process.env.DENO_PATH ??
@@ -40,6 +42,10 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
         WEB3_FUNCTION_MOUNT_PATH: mountPath,
       };
     }
+
+    const httpProxyUrl = `${httpProxyHost}:${httpProxyPort}`;
+    env["HTTP_PROXY"] = httpProxyUrl;
+    env["HTTPS_PROXY"] = httpProxyUrl;
 
     args.push(`--allow-net`);
     args.push(`--no-prompt`);
