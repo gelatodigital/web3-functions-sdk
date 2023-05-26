@@ -6,6 +6,7 @@ import { W3fDetails, Web3FunctionLoader } from "../../lib/loader";
 import { Web3FunctionExecSuccess, Web3FunctionRunner } from "../../lib/runtime";
 import {
   MAX_DOWNLOAD_LIMIT,
+  MAX_REQUEST_LIMIT,
   MAX_RPC_LIMIT,
   MAX_UPLOAD_LIMIT,
 } from "../constants";
@@ -70,6 +71,7 @@ export class Web3FunctionHardhat {
       timeout,
       downloadLimit: MAX_DOWNLOAD_LIMIT,
       uploadLimit: MAX_UPLOAD_LIMIT,
+      requestLimit: MAX_REQUEST_LIMIT,
       web3FunctionVersion,
     };
     const script = buildRes.filePath;

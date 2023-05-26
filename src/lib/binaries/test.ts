@@ -1,7 +1,11 @@
 import colors from "colors/safe";
 import { ethers } from "ethers";
 import path from "path";
-import { MAX_DOWNLOAD_LIMIT, MAX_UPLOAD_LIMIT } from "../../hardhat/constants";
+import {
+  MAX_DOWNLOAD_LIMIT,
+  MAX_REQUEST_LIMIT,
+  MAX_UPLOAD_LIMIT,
+} from "../../hardhat/constants";
 import { Web3FunctionBuilder } from "../builder";
 import { Web3FunctionLoader } from "../loader";
 import { MultiChainProviderConfig } from "../provider";
@@ -128,6 +132,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
     timeout,
     downloadLimit: MAX_DOWNLOAD_LIMIT,
     uploadLimit: MAX_UPLOAD_LIMIT,
+    requestLimit: MAX_REQUEST_LIMIT,
   };
   const script = buildRes.filePath;
 

@@ -296,6 +296,7 @@ export class Web3FunctionRunner {
     this._httpProxy = new Web3FunctionHttpProxy(
       options.downloadLimit,
       options.uploadLimit,
+      options.requestLimit,
       (url: URL) => {
         if (options.blacklistedHosts) {
           return options.blacklistedHosts.includes(url.hostname);

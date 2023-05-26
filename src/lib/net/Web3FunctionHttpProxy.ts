@@ -10,16 +10,19 @@ export class Web3FunctionHttpProxy {
 
   private readonly _maxDownload: number;
   private readonly _maxUpload: number;
+  private readonly _maxRequests: number;
   private _isBlacklisted: BlacklistedHandler;
 
   private _totalDownload = 0;
   private _totalUpload = 0;
+  private _totalRequests = 0;
 
   private _server: Server;
 
   constructor(
     maxDownloadSize: number,
     maxUploadSize: number,
+    maxRequests: number,
     blacklistedHandler: BlacklistedHandler,
     debug: boolean
   ) {
@@ -27,6 +30,7 @@ export class Web3FunctionHttpProxy {
 
     this._maxDownload = maxDownloadSize;
     this._maxUpload = maxUploadSize;
+    this._maxRequests = maxRequests;
     this._isBlacklisted = blacklistedHandler;
 
     this._server = http.createServer(this._handleServer.bind(this));
@@ -38,6 +42,16 @@ export class Web3FunctionHttpProxy {
       this._log("Request doesn't include any URL");
       res.writeHead(400, { "Content-Type": "text/plain" });
       res.end("Bad request");
+
+      this._log(`Bad request received with no URL`);
+      return;
+    }
+
+    if (this._totalRequests++ >= this._maxRequests) {
+      res.writeHead(429, { "Content-Type": "text/plain" });
+      res.end("Too many requests");
+
+      this._log("Request limit exceeded");
       return;
     }
 
@@ -110,6 +124,12 @@ export class Web3FunctionHttpProxy {
   ) {
     if (req.url === undefined) {
       this._log("Request doesn't include any URL");
+      socket.end();
+      return;
+    }
+
+    if (this._totalRequests++ >= this._maxRequests) {
+      this._log("Request limit exceeded");
       socket.end();
       return;
     }
