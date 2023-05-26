@@ -36,6 +36,8 @@ export class Web3FunctionHttpProxy {
   private _handleServer(req: IncomingMessage, res: ServerResponse) {
     if (req.url === undefined) {
       this._log("Request doesn't include any URL");
+      res.writeHead(400, { "Content-Type": "text/plain" });
+      res.end("Bad request");
       return;
     }
 
