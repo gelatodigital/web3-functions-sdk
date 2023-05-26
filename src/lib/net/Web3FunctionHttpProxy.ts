@@ -8,9 +8,12 @@ export class Web3FunctionHttpProxy {
   private _debug: boolean;
   private _isStopped: boolean = true;
 
-  private _maxDownload: number;
-  private _maxUpload: number;
+  private readonly _maxDownload: number;
+  private readonly _maxUpload: number;
   private _isBlacklisted: BlacklistedHandler;
+
+  private _totalDownload = 0;
+  private _totalUpload = 0;
 
   private _server: Server;
 
@@ -60,10 +63,9 @@ export class Web3FunctionHttpProxy {
       const serverConnection = http.request(
         options,
         (serverRes: IncomingMessage) => {
-          let totalLength = 0;
           serverRes.on("data", (chunk) => {
-            totalLength += chunk.length;
-            if (totalLength >= this._maxDownload) {
+            this._totalDownload += chunk.length;
+            if (this._totalDownload >= this._maxDownload) {
               this._log("Download limit exceeded");
 
               serverConnection.destroy();
@@ -76,10 +78,9 @@ export class Web3FunctionHttpProxy {
         }
       );
 
-      let uploadLength = 0;
       req.on("data", (chunk) => {
-        uploadLength += chunk.length;
-        if (uploadLength >= this._maxUpload) {
+        this._totalUpload += chunk.length;
+        if (this._totalUpload >= this._maxUpload) {
           this._log("Upload limit exceeded");
 
           req.destroy();
