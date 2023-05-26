@@ -297,13 +297,7 @@ export class Web3FunctionRunner {
       options.downloadLimit,
       options.uploadLimit,
       options.requestLimit,
-      (url: URL) => {
-        if (options.blacklistedHosts) {
-          return options.blacklistedHosts.includes(url.hostname);
-        }
-
-        return false;
-      },
+      (url: URL) => options.blacklistedHosts?.includes(url.hostname) ?? false,
       this._debug
     );
 
