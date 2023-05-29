@@ -4,6 +4,12 @@ import { Duplex } from "stream";
 
 type BlacklistedHandler = (url: URL) => boolean;
 
+interface Web3FunctionHttpProxyStats {
+  nbRequests: number;
+  download: number; // in KB
+  upload: number; // in KB
+}
+
 export class Web3FunctionHttpProxy {
   private _debug: boolean;
   private _isStopped: boolean = true;
@@ -219,5 +225,13 @@ export class Web3FunctionHttpProxy {
       this._isStopped = true;
       if (this._server) this._server.close();
     }
+  }
+
+  public getStats(): Web3FunctionHttpProxyStats {
+    return {
+      nbRequests: this._totalRequests,
+      download: Math.trunc(this._totalDownload / 1024),
+      upload: Math.trunc(this._totalUpload / 1024),
+    };
   }
 }

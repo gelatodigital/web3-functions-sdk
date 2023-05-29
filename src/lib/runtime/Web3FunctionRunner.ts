@@ -226,10 +226,20 @@ export class Web3FunctionRunner {
       total: 0,
       throttled: 0,
     };
+    const networkStats = this._httpProxy?.getStats() ?? {
+      nbRequests: 0,
+      download: 0,
+      upload: 0,
+    };
+
     this._log(`Runtime duration=${duration.toFixed(2)}s`);
     this._log(`Runtime memory=${memory.toFixed(2)}mb`);
     this._log(`Runtime rpc calls=${JSON.stringify(rpcCalls)}`);
     this._log(`Runtime storage size=${storage?.size.toFixed(2)}kb`);
+    this._log(`Runtime network requests=${networkStats.nbRequests}`);
+    this._log(`Runtime network download=${networkStats.download}kb`);
+    this._log(`Runtime network upload=${networkStats.upload}kb`);
+
     if (success) {
       if (version === Web3FunctionVersion.V1_0_0) {
         return {
@@ -241,6 +251,7 @@ export class Web3FunctionRunner {
           duration,
           memory,
           rpcCalls,
+          network: networkStats,
         };
       } else {
         return {
@@ -252,6 +263,7 @@ export class Web3FunctionRunner {
           duration,
           memory,
           rpcCalls,
+          network: networkStats,
         };
       }
     } else {
@@ -263,6 +275,7 @@ export class Web3FunctionRunner {
         duration,
         memory,
         rpcCalls,
+        network: networkStats,
       };
     }
   }
