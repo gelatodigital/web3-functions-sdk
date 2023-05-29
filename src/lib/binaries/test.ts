@@ -1,11 +1,6 @@
 import colors from "colors/safe";
 import { ethers } from "ethers";
 import path from "path";
-import {
-  MAX_DOWNLOAD_LIMIT,
-  MAX_REQUEST_LIMIT,
-  MAX_UPLOAD_LIMIT,
-} from "../../hardhat/constants";
 import { Web3FunctionBuilder } from "../builder";
 import { Web3FunctionLoader } from "../loader";
 import { MultiChainProviderConfig } from "../provider";
@@ -16,6 +11,9 @@ const STD_TIMEOUT = 10;
 const STD_RPC_LIMIT = 10;
 const STD_STORAGE_LIMIT = 1024;
 const MAX_RPC_LIMIT = 100;
+const MAX_DOWNLOAD_LIMIT = 100 * 1024;
+const MAX_UPLOAD_LIMIT = 10 * 1024;
+const MAX_REQUEST_LIMIT = 10;
 
 const OK = colors.green("✓");
 const KO = colors.red("✗");
@@ -133,6 +131,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
     downloadLimit: MAX_DOWNLOAD_LIMIT,
     uploadLimit: MAX_UPLOAD_LIMIT,
     requestLimit: MAX_REQUEST_LIMIT,
+    blacklistedHosts: ["testblacklistedhost.com"],
   };
   const script = buildRes.filePath;
 
