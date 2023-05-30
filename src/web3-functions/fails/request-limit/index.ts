@@ -2,7 +2,7 @@ import { Web3Function } from "@gelatonetwork/web3-functions-sdk";
 import axios from "axios";
 
 Web3Function.onRun(async () => {
-  const totalRequests = Array.from({ length: 11 }, () =>
+  const totalRequests = Array.from({ length: 101 }, () =>
     axios.get(`https://zenquotes.io/api/random`)
   );
 
