@@ -11,9 +11,9 @@ const STD_TIMEOUT = 10;
 const STD_RPC_LIMIT = 10;
 const STD_STORAGE_LIMIT = 1024;
 const MAX_RPC_LIMIT = 100;
-const MAX_DOWNLOAD_LIMIT = 100 * 1024;
-const MAX_UPLOAD_LIMIT = 10 * 1024;
-const MAX_REQUEST_LIMIT = 10;
+const MAX_DOWNLOAD_LIMIT = 10 * 1024 * 1024;
+const MAX_UPLOAD_LIMIT = 5 * 1024 * 1024;
+const MAX_REQUEST_LIMIT = 100;
 
 const OK = colors.green("✓");
 const KO = colors.red("✗");
