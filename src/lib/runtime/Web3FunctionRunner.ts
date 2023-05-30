@@ -228,6 +228,7 @@ export class Web3FunctionRunner {
     };
     const networkStats = this._httpProxy?.getStats() ?? {
       nbRequests: 0,
+      nbThrottled: 0,
       download: 0,
       upload: 0,
     };
@@ -236,7 +237,9 @@ export class Web3FunctionRunner {
     this._log(`Runtime memory=${memory.toFixed(2)}mb`);
     this._log(`Runtime rpc calls=${JSON.stringify(rpcCalls)}`);
     this._log(`Runtime storage size=${storage?.size.toFixed(2)}kb`);
-    this._log(`Runtime network requests=${networkStats.nbRequests}`);
+    this._log(
+      `Runtime network requests=${networkStats.nbRequests} (${networkStats.nbThrottled} throttled)`
+    );
     this._log(`Runtime network download=${networkStats.download.toFixed(2)}kb`);
     this._log(`Runtime network upload=${networkStats.upload.toFixed(2)}kb`);
 

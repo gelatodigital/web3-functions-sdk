@@ -6,6 +6,7 @@ type BlacklistedHandler = (url: URL) => boolean;
 
 interface Web3FunctionHttpProxyStats {
   nbRequests: number;
+  nbThrottled: number;
   download: number; // in KB
   upload: number; // in KB
 }
@@ -22,6 +23,7 @@ export class Web3FunctionHttpProxy {
   private _totalDownload = 0;
   private _totalUpload = 0;
   private _totalRequests = 0;
+  private _totalRequestsThrottled = 0;
 
   private _server: Server;
 
@@ -58,6 +60,7 @@ export class Web3FunctionHttpProxy {
       res.end("Too many requests");
 
       this._log("Request limit exceeded");
+      this._totalRequestsThrottled++;
       return;
     }
 
@@ -89,9 +92,9 @@ export class Web3FunctionHttpProxy {
             this._totalDownload += chunk.length;
             if (this._totalDownload >= this._maxDownload) {
               this._log("Download limit exceeded");
-
               serverConnection.destroy();
               res.destroy();
+              this._totalRequestsThrottled++;
             }
           });
 
@@ -104,7 +107,7 @@ export class Web3FunctionHttpProxy {
         this._totalUpload += chunk.length;
         if (this._totalUpload >= this._maxUpload) {
           this._log("Upload limit exceeded");
-
+          this._totalRequestsThrottled++;
           req.destroy();
         }
       });
@@ -137,6 +140,7 @@ export class Web3FunctionHttpProxy {
     if (this._totalRequests++ >= this._maxRequests) {
       this._log("Request limit exceeded");
       socket.end();
+      this._totalRequestsThrottled++;
       return;
     }
 
@@ -175,6 +179,7 @@ export class Web3FunctionHttpProxy {
           this._log("Download limit exceeded");
           req.destroy();
           serverSocket.destroy();
+          this._totalRequestsThrottled++;
         }
       });
 
@@ -185,6 +190,7 @@ export class Web3FunctionHttpProxy {
           this._log("Upload limit exceeded");
           req.destroy();
           serverSocket.destroy();
+          this._totalRequestsThrottled++;
         }
       });
 
@@ -228,6 +234,7 @@ export class Web3FunctionHttpProxy {
   public getStats(): Web3FunctionHttpProxyStats {
     return {
       nbRequests: this._totalRequests,
+      nbThrottled: this._totalRequestsThrottled,
       download: this._totalDownload / 1024,
       upload: this._totalUpload / 1024,
     };

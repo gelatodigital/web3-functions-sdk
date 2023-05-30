@@ -202,6 +202,26 @@ export default async function test(callConfig?: Partial<CallConfig>) {
     console.log(` ${OK} Storage: ${res.storage.size.toFixed(2)}kb`);
   }
 
+  if (res.network.nbThrottled > 0) {
+    console.log(
+      ` ${KO} Network: ${
+        res.network.nbRequests
+      } req [DL: ${res.network.download.toFixed(
+        2
+      )}kb / UL: ${res.network.upload.toFixed(
+        2
+      )}kb] ${`(${res.network.nbThrottled} req throttled - Please reduce your network usage!)`}`
+    );
+  } else {
+    console.log(
+      ` ${OK} Network: ${
+        res.network.nbRequests
+      } req [DL: ${res.network.download.toFixed(
+        2
+      )}kb / UL: ${res.network.upload.toFixed(2)}kb]`
+    );
+  }
+
   if (res.rpcCalls.throttled > 0) {
     console.log(
       ` ${KO} Rpc calls: ${
