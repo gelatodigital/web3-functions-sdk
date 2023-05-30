@@ -228,8 +228,8 @@ export class Web3FunctionHttpProxy {
   public getStats(): Web3FunctionHttpProxyStats {
     return {
       nbRequests: this._totalRequests,
-      download: Math.trunc(this._totalDownload / 1024),
-      upload: Math.trunc(this._totalUpload / 1024),
+      download: this._totalDownload / 1024,
+      upload: this._totalUpload / 1024,
     };
   }
 }

@@ -237,8 +237,8 @@ export class Web3FunctionRunner {
     this._log(`Runtime rpc calls=${JSON.stringify(rpcCalls)}`);
     this._log(`Runtime storage size=${storage?.size.toFixed(2)}kb`);
     this._log(`Runtime network requests=${networkStats.nbRequests}`);
-    this._log(`Runtime network download=${networkStats.download}kb`);
-    this._log(`Runtime network upload=${networkStats.upload}kb`);
+    this._log(`Runtime network download=${networkStats.download.toFixed(2)}kb`);
+    this._log(`Runtime network upload=${networkStats.upload.toFixed(2)}kb`);
 
     if (success) {
       if (version === Web3FunctionVersion.V1_0_0) {
