@@ -40,3 +40,6 @@ src/logs/
 
 # resolver builds
 .tmp
+
+# version file
+src/lib/version.ts
