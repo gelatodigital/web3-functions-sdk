@@ -168,12 +168,10 @@ export class Web3FunctionHttpProxy {
         );
       });
 
-      let downloadLength = 0;
-      let uploadLength = 0;
       serverSocket.on("data", (data: Buffer) => {
-        downloadLength += data.length;
+        this._totalDownload += data.length;
 
-        if (downloadLength > this._maxDownload) {
+        if (this._totalDownload > this._maxDownload) {
           this._log("Download limit exceeded");
           req.destroy();
           serverSocket.destroy();
@@ -181,9 +179,9 @@ export class Web3FunctionHttpProxy {
       });
 
       socket.on("data", (data: Buffer) => {
-        uploadLength += data.length;
+        this._totalUpload += data.length;
 
-        if (uploadLength >= this._maxUpload) {
+        if (this._totalUpload >= this._maxUpload) {
           this._log("Upload limit exceeded");
           req.destroy();
           serverSocket.destroy();
