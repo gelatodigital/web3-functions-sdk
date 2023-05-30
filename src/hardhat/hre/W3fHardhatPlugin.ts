@@ -2,13 +2,18 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import { Web3FunctionContextData, Web3FunctionUserArgs } from "../../lib";
 import { Web3FunctionBuilder } from "../../lib/builder";
+import { W3fDetails, Web3FunctionLoader } from "../../lib/loader";
 import { Web3FunctionExecSuccess, Web3FunctionRunner } from "../../lib/runtime";
-import { MAX_RPC_LIMIT } from "../constants";
+import {
+  MAX_DOWNLOAD_LIMIT,
+  MAX_REQUEST_LIMIT,
+  MAX_RPC_LIMIT,
+  MAX_UPLOAD_LIMIT,
+} from "../constants";
 import {
   EthersProviderWrapper,
   getMultiChainProviderConfigs,
 } from "../provider";
-import { Web3FunctionLoader, W3fDetails } from "../../lib/loader";
 
 export class W3fHardhatPlugin {
   private hre: HardhatRuntimeEnvironment;
@@ -64,6 +69,9 @@ export class Web3FunctionHardhat {
       memory,
       rpcLimit: MAX_RPC_LIMIT,
       timeout,
+      downloadLimit: MAX_DOWNLOAD_LIMIT,
+      uploadLimit: MAX_UPLOAD_LIMIT,
+      requestLimit: MAX_REQUEST_LIMIT,
       web3FunctionVersion,
     };
     const script = buildRes.filePath;

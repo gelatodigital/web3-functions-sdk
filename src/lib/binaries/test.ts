@@ -1,16 +1,19 @@
 import colors from "colors/safe";
-import path from "path";
-import { Web3FunctionContextData, Web3FunctionUserArgs } from "../types";
-import { Web3FunctionRunner } from "../runtime";
-import { Web3FunctionBuilder } from "../builder";
-import { MultiChainProviderConfig } from "../provider";
 import { ethers } from "ethers";
+import path from "path";
+import { Web3FunctionBuilder } from "../builder";
 import { Web3FunctionLoader } from "../loader";
+import { MultiChainProviderConfig } from "../provider";
+import { Web3FunctionRunner } from "../runtime";
+import { Web3FunctionContextData, Web3FunctionUserArgs } from "../types";
 
 const STD_TIMEOUT = 10;
 const STD_RPC_LIMIT = 10;
 const STD_STORAGE_LIMIT = 1024;
 const MAX_RPC_LIMIT = 100;
+const MAX_DOWNLOAD_LIMIT = 10 * 1024 * 1024;
+const MAX_UPLOAD_LIMIT = 5 * 1024 * 1024;
+const MAX_REQUEST_LIMIT = 100;
 
 const OK = colors.green("✓");
 const KO = colors.red("✗");
@@ -125,6 +128,10 @@ export default async function test(callConfig?: Partial<CallConfig>) {
     memory,
     rpcLimit,
     timeout,
+    downloadLimit: MAX_DOWNLOAD_LIMIT,
+    uploadLimit: MAX_UPLOAD_LIMIT,
+    requestLimit: MAX_REQUEST_LIMIT,
+    blacklistedHosts: ["testblacklistedhost.com"],
   };
   const script = buildRes.filePath;
 

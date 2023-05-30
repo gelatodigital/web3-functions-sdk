@@ -1,6 +1,20 @@
+import { randomUUID } from "crypto";
+import { ethers } from "ethers";
 import { performance } from "perf_hooks";
-import { Web3FunctionNetHelper } from "../net/Web3FunctionNetHelper";
+import onExit from "signal-exit";
 import { Web3FunctionHttpClient } from "../net/Web3FunctionHttpClient";
+import { Web3FunctionHttpProxy } from "../net/Web3FunctionHttpProxy";
+import { Web3FunctionNetHelper } from "../net/Web3FunctionNetHelper";
+import { MultiChainProviderConfig } from "../provider";
+import { Web3FunctionProxyProvider } from "../provider/Web3FunctionProxyProvider";
+import {
+  Web3FunctionResult,
+  Web3FunctionResultV1,
+  Web3FunctionResultV2,
+  Web3FunctionUserArgs,
+  Web3FunctionUserArgsSchema,
+  Web3FunctionVersion,
+} from "../types";
 import { Web3FunctionContextData } from "../types/Web3FunctionContext";
 import {
   Web3FunctionEvent,
@@ -12,22 +26,9 @@ import { Web3FunctionDockerSandbox } from "./sandbox/Web3FunctionDockerSandbox";
 import { Web3FunctionThreadSandbox } from "./sandbox/Web3FunctionThreadSandbox";
 import {
   Web3FunctionExec,
-  Web3FunctionRunnerPayload,
   Web3FunctionRunnerOptions,
+  Web3FunctionRunnerPayload,
 } from "./types";
-import {
-  Web3FunctionVersion,
-  Web3FunctionResult,
-  Web3FunctionResultV1,
-  Web3FunctionResultV2,
-  Web3FunctionUserArgs,
-  Web3FunctionUserArgsSchema,
-} from "../types";
-import { Web3FunctionProxyProvider } from "../provider/Web3FunctionProxyProvider";
-import { ethers } from "ethers";
-import onExit from "signal-exit";
-import { randomUUID } from "crypto";
-import { MultiChainProviderConfig } from "../provider";
 
 const START_TIMEOUT = 5_000;
 const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
@@ -36,6 +37,7 @@ export class Web3FunctionRunner {
   private _debug: boolean;
   private _memory = 0;
   private _proxyProvider?: Web3FunctionProxyProvider;
+  private _httpProxy?: Web3FunctionHttpProxy;
   private _client?: Web3FunctionHttpClient;
   private _sandbox?: Web3FunctionAbstractSandbox;
   private _execTimeoutId?: NodeJS.Timeout;
@@ -224,10 +226,20 @@ export class Web3FunctionRunner {
       total: 0,
       throttled: 0,
     };
+    const networkStats = this._httpProxy?.getStats() ?? {
+      nbRequests: 0,
+      download: 0,
+      upload: 0,
+    };
+
     this._log(`Runtime duration=${duration.toFixed(2)}s`);
     this._log(`Runtime memory=${memory.toFixed(2)}mb`);
     this._log(`Runtime rpc calls=${JSON.stringify(rpcCalls)}`);
     this._log(`Runtime storage size=${storage?.size.toFixed(2)}kb`);
+    this._log(`Runtime network requests=${networkStats.nbRequests}`);
+    this._log(`Runtime network download=${networkStats.download}kb`);
+    this._log(`Runtime network upload=${networkStats.upload}kb`);
+
     if (success) {
       if (version === Web3FunctionVersion.V1_0_0) {
         return {
@@ -239,6 +251,7 @@ export class Web3FunctionRunner {
           duration,
           memory,
           rpcCalls,
+          network: networkStats,
         };
       } else {
         return {
@@ -250,6 +263,7 @@ export class Web3FunctionRunner {
           duration,
           memory,
           rpcCalls,
+          network: networkStats,
         };
       }
     } else {
@@ -261,6 +275,7 @@ export class Web3FunctionRunner {
         duration,
         memory,
         rpcCalls,
+        network: networkStats,
       };
     }
   }
@@ -287,9 +302,30 @@ export class Web3FunctionRunner {
     const mountPath = randomUUID();
     const serverPort =
       options.serverPort ?? (await Web3FunctionNetHelper.getAvailablePort());
+
+    const httpProxyPort = await Web3FunctionNetHelper.getAvailablePort();
+    const httpProxyHost =
+      options.runtime === "thread" ? "127.0.0.1" : "host.docker.internal";
+    this._httpProxy = new Web3FunctionHttpProxy(
+      options.downloadLimit,
+      options.uploadLimit,
+      options.requestLimit,
+      (url: URL) => options.blacklistedHosts?.includes(url.hostname) ?? false,
+      this._debug
+    );
+
+    this._httpProxy.start(httpProxyPort);
+
     try {
       this._log(`Sarting sandbox: ${script}`);
-      await this._sandbox.start(script, version, serverPort, mountPath);
+      await this._sandbox.start(
+        script,
+        version,
+        serverPort,
+        mountPath,
+        httpProxyHost,
+        httpProxyPort
+      );
     } catch (err) {
       this._log(`Fail to start Web3Function in sandbox ${err.message}`);
       throw new Error(`Web3Function failed to start sandbox: ${err.message}`);
@@ -470,6 +506,7 @@ export class Web3FunctionRunner {
     if (this._sandbox) await this._sandbox.stop();
     if (this._client) this._client.end();
     if (this._proxyProvider) this._proxyProvider.stop();
+    if (this._httpProxy) this._httpProxy.stop();
     if (this._execTimeoutId) clearTimeout(this._execTimeoutId);
     if (this._memoryIntervalId) clearInterval(this._memoryIntervalId);
     // Remove process exit handler

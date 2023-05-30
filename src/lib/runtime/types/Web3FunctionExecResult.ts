@@ -10,6 +10,11 @@ type Web3FunctionExecStats = {
   memory: number;
   rpcCalls: { total: number; throttled: number };
   logs: string[];
+  network: {
+    nbRequests: number;
+    download: number; // in KB
+    upload: number; // in KB
+  };
 };
 
 type Web3FunctionExecSuccessBase = Web3FunctionExecStats & {
