@@ -12,6 +12,7 @@ type Web3FunctionExecStats = {
   logs: string[];
   network: {
     nbRequests: number;
+    nbThrottled: number;
     download: number; // in KB
     upload: number; // in KB
   };
