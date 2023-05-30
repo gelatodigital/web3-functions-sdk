@@ -1,11 +1,11 @@
-import fs from "node:fs";
-import { performance } from "perf_hooks";
-import esbuild from "esbuild";
 import Ajv from "ajv";
-import * as web3FunctionSchema from "./web3function.schema.json";
+import esbuild from "esbuild";
+import fs from "node:fs";
 import path from "node:path";
+import { performance } from "perf_hooks";
 import { Web3FunctionSchema } from "../types";
 import { Web3FunctionUploader } from "../uploader";
+import * as web3FunctionSchema from "./web3function.schema.json";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const packageJson = require("../../../package.json");
@@ -84,55 +84,7 @@ export class Web3FunctionBuilder {
     await esbuild.build(options);
   }
 
-  public static async build(
-    input: string,
-    options?: {
-      debug?: boolean;
-      filePath?: string;
-      sourcePath?: string;
-      alias?: Record<string, string>;
-    }
-  ): Promise<Web3FunctionBuildResult> {
-    const {
-      debug = false,
-      filePath = path.join(process.cwd(), ".tmp", "index.js"),
-      sourcePath = path.join(process.cwd(), ".tmp", "source.js"),
-      alias,
-    } = options ?? {};
-
-    try {
-      const schemaPath = path.join(path.parse(input).dir, "schema.json");
-      const schema = await Web3FunctionBuilder._validateSchema(schemaPath);
-
-      const start = performance.now();
-      await Promise.all([
-        Web3FunctionBuilder._buildBundle(input, filePath, alias),
-        Web3FunctionBuilder._buildSource(input, sourcePath, alias),
-      ]);
-      const buildTime = performance.now() - start; // in ms
-
-      const stats = fs.statSync(filePath);
-      const fileSize = stats.size / 1024 / 1024; // size in mb
-
-      return {
-        success: true,
-        schemaPath,
-        sourcePath,
-        filePath,
-        fileSize,
-        buildTime,
-        schema,
-      };
-    } catch (err) {
-      if (debug) console.error(err);
-      return {
-        success: false,
-        error: err,
-      };
-    }
-  }
-
-  public static async _validateSchema(
+  private static async _validateSchema(
     input: string
   ): Promise<Web3FunctionSchema> {
     const hasSchema = fs.existsSync(input);
@@ -199,5 +151,53 @@ Please create 'schema.json', default:
       );
     }
     return schemaBody as Web3FunctionSchema;
+  }
+
+  public static async build(
+    input: string,
+    options?: {
+      debug?: boolean;
+      filePath?: string;
+      sourcePath?: string;
+      alias?: Record<string, string>;
+    }
+  ): Promise<Web3FunctionBuildResult> {
+    const {
+      debug = false,
+      filePath = path.join(process.cwd(), ".tmp", "index.js"),
+      sourcePath = path.join(process.cwd(), ".tmp", "source.js"),
+      alias,
+    } = options ?? {};
+
+    try {
+      const schemaPath = path.join(path.parse(input).dir, "schema.json");
+      const schema = await Web3FunctionBuilder._validateSchema(schemaPath);
+
+      const start = performance.now();
+      await Promise.all([
+        Web3FunctionBuilder._buildBundle(input, filePath, alias),
+        Web3FunctionBuilder._buildSource(input, sourcePath, alias),
+      ]);
+      const buildTime = performance.now() - start; // in ms
+
+      const stats = fs.statSync(filePath);
+      const fileSize = stats.size / 1024 / 1024; // size in mb
+
+      return {
+        success: true,
+        schemaPath,
+        sourcePath,
+        filePath,
+        fileSize,
+        buildTime,
+        schema,
+      };
+    } catch (err) {
+      if (debug) console.error(err);
+      return {
+        success: false,
+        error: err,
+      };
+    }
   }
 }
