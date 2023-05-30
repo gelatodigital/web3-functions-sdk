@@ -6,12 +6,17 @@ export class Web3FunctionMultiChainProvider {
   private _providers: Map<number, ethers.providers.StaticJsonRpcProvider>;
   private _defaultProvider: ethers.providers.StaticJsonRpcProvider;
 
-  constructor(proxyRpcUrlBase: string, rateLimitCallBack: () => void) {
+  constructor(
+    proxyRpcUrlBase: string,
+    defaultChainId: number,
+    rateLimitCallBack: () => void
+  ) {
     this._proxyRpcUrlBase = proxyRpcUrlBase;
     this._rateLimitCallback = rateLimitCallBack;
     this._providers = new Map();
     this._defaultProvider = new ethers.providers.StaticJsonRpcProvider(
-      proxyRpcUrlBase
+      proxyRpcUrlBase,
+      defaultChainId
     );
     this._subscribeProviderEvents(this._defaultProvider);
   }
@@ -29,7 +34,8 @@ export class Web3FunctionMultiChainProvider {
 
     if (!provider) {
       provider = new ethers.providers.StaticJsonRpcProvider(
-        `${this._proxyRpcUrlBase}/${chainId}`
+        `${this._proxyRpcUrlBase}/${chainId}`,
+        chainId
       );
 
       this._subscribeProviderEvents(provider);

@@ -72,7 +72,7 @@ export class Web3FunctionProxyProvider {
       try {
         const provider = this._providers.get(chainId);
 
-        if (!provider) throw ethErrors.provider.chainDisconnected;
+        if (!provider) throw ethErrors.provider.chainDisconnected();
 
         const result = await provider.send(method, params);
         // Send result as valid JsonRPC response

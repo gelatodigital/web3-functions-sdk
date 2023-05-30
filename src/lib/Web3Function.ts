@@ -89,7 +89,10 @@ export class Web3Function {
         ...ctxData.gelatoArgs,
         gasPrice: BigNumber.from(ctxData.gelatoArgs.gasPrice),
       },
-      multiChainProvider: this._initProvider(ctxData.rpcProviderUrl),
+      multiChainProvider: this._initProvider(
+        ctxData.rpcProviderUrl,
+        ctxData.gelatoArgs.chainId
+      ),
       userArgs: ctxData.userArgs,
       secrets: {
         get: async (key: string) => {
@@ -159,11 +162,13 @@ export class Web3Function {
   }
 
   private _initProvider(
-    providerUrl: string | undefined
+    providerUrl: string | undefined,
+    defaultChainId: number
   ): Web3FunctionMultiChainProvider {
     if (!providerUrl) throw new Error("Missing providerUrl");
     return new Web3FunctionMultiChainProvider(
       providerUrl,
+      defaultChainId,
       this._onRpcRateLimit.bind(this)
     );
   }
