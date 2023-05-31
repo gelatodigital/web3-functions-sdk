@@ -6,7 +6,7 @@ import { performance } from "perf_hooks";
 import { Web3FunctionSchema } from "../types";
 import { Web3FunctionUploader } from "../uploader";
 import { SDK_VERSION } from "../version";
-import * as web3FunctionSchema from "./web3function.schema.json";
+import web3FunctionSchema from "./web3function.schema.json";
 
 const ajv = new Ajv({ messages: true, allErrors: true });
 const web3FunctionSchemaValidator = ajv.compile(web3FunctionSchema);
