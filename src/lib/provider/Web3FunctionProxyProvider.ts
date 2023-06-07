@@ -1,9 +1,9 @@
-import express from "express";
-import http from "http";
 import bodyParser from "body-parser";
 import crypto from "crypto";
 import { ethErrors, serializeError } from "eth-rpc-errors";
 import { ethers } from "ethers";
+import express from "express";
+import http from "http";
 import { MultiChainProviderConfig } from "./types";
 
 export class Web3FunctionProxyProvider {
@@ -109,6 +109,12 @@ export class Web3FunctionProxyProvider {
     }
 
     this._log(`Providers injected for chainIds: ${JSON.stringify(chainIds)}`);
+
+    if (!chainIds.includes(this._mainChainId)) {
+      throw new Error(
+        `Proxy provider cannot be instantiated, default chainId ${this._mainChainId} doesn't have a provider configured`
+      );
+    }
   }
 
   public async start(): Promise<void> {
