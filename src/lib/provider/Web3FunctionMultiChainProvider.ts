@@ -18,6 +18,7 @@ export class Web3FunctionMultiChainProvider {
       proxyRpcUrlBase,
       defaultChainId
     );
+    this._providers.set(defaultChainId, this._defaultProvider);
     this._subscribeProviderEvents(this._defaultProvider);
   }
 
