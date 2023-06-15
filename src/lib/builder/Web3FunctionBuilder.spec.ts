@@ -22,9 +22,7 @@ describe("Web3FunctionBuilder.build", () => {
 
     expect(res.success).toBeFalsy();
     if (res.success === false) {
-      expect(
-        res.error.message.includes("Missing Web3Function schema")
-      ).toBeTruthy();
+      expect(res.error.message).toMatch("Missing Web3Function schema");
     }
   });
 
@@ -33,9 +31,7 @@ describe("Web3FunctionBuilder.build", () => {
 
     expect(res.success).toBeFalsy();
     if (res.success === false) {
-      expect(
-        res.error.message.includes("Missing Web3Function schema")
-      ).toBeTruthy();
+      expect(res.error.message).toMatch("Missing Web3Function schema");
     }
   });
 
@@ -46,9 +42,7 @@ describe("Web3FunctionBuilder.build", () => {
 
     expect(res.success).toBeFalsy();
     if (res.success === false) {
-      expect(
-        res.error.message.includes("must have required property")
-      ).toBeTruthy();
+      expect(res.error.message).toMatch("must have required property");
     }
   });
 
@@ -59,11 +53,9 @@ describe("Web3FunctionBuilder.build", () => {
 
     expect(res.success).toBeFalsy();
     if (res.success === false) {
-      expect(
-        res.error.message.includes(
-          "must match the major version of the installed sdk"
-        )
-      ).toBeTruthy();
+      expect(res.error.message).toMatch(
+        "must match the major version of the installed sdk"
+      );
     }
   });
 
@@ -74,11 +66,9 @@ describe("Web3FunctionBuilder.build", () => {
 
     expect(res.success).toBeFalsy();
     if (res.success === false) {
-      expect(
-        res.error.message.includes(
-          "'memory' must be equal to one of the allowed values"
-        )
-      ).toBeTruthy();
+      expect(res.error.message).toMatch(
+        "'memory' must be equal to one of the allowed values"
+      );
     }
   });
 
@@ -89,11 +79,9 @@ describe("Web3FunctionBuilder.build", () => {
 
     expect(res.success).toBeFalsy();
     if (res.success === false) {
-      expect(
-        res.error.message.includes(
-          "'runtime' must be equal to one of the allowed values"
-        )
-      ).toBeTruthy();
+      expect(res.error.message).toMatch(
+        "'runtime' must be equal to one of the allowed values"
+      );
     }
   });
 
@@ -115,9 +103,9 @@ describe("Web3FunctionBuilder.build", () => {
 
     expect(res.success).toBeFalsy();
     if (res.success === false) {
-      expect(
-        res.error.message.includes("must be equal to one of the allowed values")
-      ).toBeTruthy();
+      expect(res.error.message).toMatch(
+        "must be equal to one of the allowed values"
+      );
     }
   });
 
