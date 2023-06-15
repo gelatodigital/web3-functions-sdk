@@ -44004,6 +44004,7 @@ var require_Web3FunctionMultiChainProvider = __commonJS({
         this._rateLimitCallback = rateLimitCallBack;
         this._providers = /* @__PURE__ */ new Map();
         this._defaultProvider = new ethers_1.ethers.providers.StaticJsonRpcProvider(proxyRpcUrlBase, defaultChainId);
+        this._providers.set(defaultChainId, this._defaultProvider);
         this._subscribeProviderEvents(this._defaultProvider);
       }
       default() {

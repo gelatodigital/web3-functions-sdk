@@ -110,12 +110,14 @@ describe("Web3FunctionBuilder.build", () => {
 
   test("should fail when schema userArgs include unknown types", async () => {
     const res = await Web3FunctionBuilder.build(
-      buildSchemaPath("invalid-schema-timeout")
+      buildSchemaPath("invalid-schema-userargs")
     );
 
     expect(res.success).toBeFalsy();
     if (res.success === false) {
-      expect(res.error.message.includes("'timeout' must be")).toBeTruthy();
+      expect(
+        res.error.message.includes("must be equal to one of the allowed values")
+      ).toBeTruthy();
     }
   });
 
