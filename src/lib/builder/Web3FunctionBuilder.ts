@@ -1,14 +1,12 @@
-import fs from "node:fs";
-import { performance } from "perf_hooks";
-import esbuild from "esbuild";
 import Ajv from "ajv";
-import * as web3FunctionSchema from "./web3function.schema.json";
+import esbuild from "esbuild";
+import fs from "node:fs";
 import path from "node:path";
+import { performance } from "perf_hooks";
 import { Web3FunctionSchema } from "../types";
 import { Web3FunctionUploader } from "../uploader";
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const packageJson = require("../../../package.json");
+import { SDK_VERSION } from "../version";
+import web3FunctionSchema from "./web3function.schema.json";
 
 const ajv = new Ajv({ messages: true, allErrors: true });
 const web3FunctionSchemaValidator = ajv.compile(web3FunctionSchema);
@@ -84,6 +82,75 @@ export class Web3FunctionBuilder {
     await esbuild.build(options);
   }
 
+  private static async _validateSchema(
+    input: string
+  ): Promise<Web3FunctionSchema> {
+    const hasSchema = fs.existsSync(input);
+    if (!hasSchema) {
+      throw new Error(
+        `Web3FunctionSchemaError: Missing Web3Function schema at '${input}'
+Please create 'schema.json', default: 
+{
+  "web3FunctionVersion": "2.0.0",
+  "runtime": "js-1.0",
+  "memory": 128,
+  "timeout": 30,
+  "userArgs": {}
+}`
+      );
+    }
+
+    let schemaContent;
+    try {
+      schemaContent = fs.readFileSync(input).toString();
+    } catch (err) {
+      throw new Error(
+        `Web3FunctionSchemaError: Unable to read Web3Function schema at '${input}', ${err.message}`
+      );
+    }
+
+    let schemaBody;
+    try {
+      schemaBody = JSON.parse(schemaContent);
+    } catch (err) {
+      throw new Error(
+        `Web3FunctionSchemaError: Invalid json schema at '${input}', ${err.message}`
+      );
+    }
+
+    const res = web3FunctionSchemaValidator(schemaBody);
+    if (!res) {
+      let errorParts = "";
+      if (web3FunctionSchemaValidator.errors) {
+        errorParts = web3FunctionSchemaValidator.errors
+          .map((validationErr) => {
+            let msg = `\n - `;
+            if (validationErr.instancePath === "/web3FunctionVersion") {
+              msg += `'web3FunctionVersion' must match the major version of the installed sdk (${SDK_VERSION})`;
+              if (validationErr.params.allowedValues) {
+                msg += ` [${validationErr.params.allowedValues.join("|")}]`;
+              }
+              return msg;
+            } else if (validationErr.instancePath) {
+              msg += `'${validationErr.instancePath
+                .replace("/", ".")
+                .substring(1)}' `;
+            }
+            msg += `${validationErr.message}`;
+            if (validationErr.params.allowedValues) {
+              msg += ` [${validationErr.params.allowedValues.join("|")}]`;
+            }
+            return msg;
+          })
+          .join();
+      }
+      throw new Error(
+        `Web3FunctionSchemaError: invalid ${input} ${errorParts}`
+      );
+    }
+    return schemaBody as Web3FunctionSchema;
+  }
+
   public static async build(
     input: string,
     options?: {
@@ -130,74 +197,5 @@ export class Web3FunctionBuilder {
         error: err,
       };
     }
-  }
-
-  public static async _validateSchema(
-    input: string
-  ): Promise<Web3FunctionSchema> {
-    const hasSchema = fs.existsSync(input);
-    if (!hasSchema) {
-      throw new Error(
-        `Web3FunctionSchemaError: Missing Web3Function schema at '${input}'
-Please create 'schema.json', default: 
-{
-  "web3FunctionVersion": "2.0.0",
-  "runtime": "js-1.0",
-  "memory": 128,
-  "timeout": 30,
-  "userArgs": {}
-}`
-      );
-    }
-
-    let schemaContent;
-    try {
-      schemaContent = fs.readFileSync(input).toString();
-    } catch (err) {
-      throw new Error(
-        `Web3FunctionSchemaError: Unable to read Web3Function schema at '${input}', ${err.message}`
-      );
-    }
-
-    let schemaBody;
-    try {
-      schemaBody = JSON.parse(schemaContent);
-    } catch (err) {
-      throw new Error(
-        `Web3FunctionSchemaError: Invalid json schema at '${input}', ${err.message}`
-      );
-    }
-
-    const res = web3FunctionSchemaValidator(schemaBody);
-    if (!res) {
-      let errorParts = "";
-      if (web3FunctionSchemaValidator.errors) {
-        errorParts = web3FunctionSchemaValidator.errors
-          .map((validationErr) => {
-            let msg = `\n - `;
-            if (validationErr.instancePath === "/web3FunctionVersion") {
-              msg += `'web3FunctionVersion' must match the major version of the installed sdk (${packageJson.version})`;
-              if (validationErr.params.allowedValues) {
-                msg += ` [${validationErr.params.allowedValues.join("|")}]`;
-              }
-              return msg;
-            } else if (validationErr.instancePath) {
-              msg += `'${validationErr.instancePath
-                .replace("/", ".")
-                .substring(1)}' `;
-            }
-            msg += `${validationErr.message}`;
-            if (validationErr.params.allowedValues) {
-              msg += ` [${validationErr.params.allowedValues.join("|")}]`;
-            }
-            return msg;
-          })
-          .join();
-      }
-      throw new Error(
-        `Web3FunctionSchemaError: invalid ${input} ${errorParts}`
-      );
-    }
-    return schemaBody as Web3FunctionSchema;
   }
 }
