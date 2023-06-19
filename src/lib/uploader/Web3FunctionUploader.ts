@@ -1,10 +1,10 @@
+import axios from "axios";
 import "dotenv/config";
+import FormData from "form-data";
 import fs from "node:fs";
 import fsp from "node:fs/promises";
 import path from "node:path";
 import tar from "tar";
-import FormData from "form-data";
-import axios from "axios";
 import { Web3FunctionSchema } from "../types";
 
 const OPS_USER_API =
@@ -43,33 +43,14 @@ export class Web3FunctionUploader {
         }
       );
 
-      // store web3Function file in .tmp
-      let web3FunctionPath: string;
-
       const web3FunctionFileName = `${cid}.tgz`;
-      const tempWeb3FunctionPath = path.join(
-        process.cwd(),
-        ".tmp",
-        web3FunctionFileName
-      );
+      const web3FunctionPath = path.join(destDir, web3FunctionFileName);
 
-      if (!fs.existsSync(".tmp")) {
-        fs.mkdirSync(".tmp", { recursive: true });
+      if (!fs.existsSync(destDir)) {
+        fs.mkdirSync(destDir, { recursive: true });
       }
 
-      await fsp.writeFile(tempWeb3FunctionPath, res.data);
-      web3FunctionPath = tempWeb3FunctionPath;
-
-      // store web3Function to custom dir
-      if (destDir !== path.join(process.cwd(), ".tmp")) {
-        if (!fs.existsSync(destDir)) {
-          fs.mkdirSync(destDir, { recursive: true });
-        }
-
-        const customWeb3FunctionPath = path.join(destDir, web3FunctionFileName);
-        await fsp.rename(web3FunctionPath, customWeb3FunctionPath);
-        web3FunctionPath = customWeb3FunctionPath;
-      }
+      await fsp.writeFile(web3FunctionPath, res.data);
 
       return web3FunctionPath;
     } catch (err) {
