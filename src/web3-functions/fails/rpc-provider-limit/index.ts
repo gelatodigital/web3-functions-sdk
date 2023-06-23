@@ -2,8 +2,8 @@ import {
   Web3Function,
   Web3FunctionContext,
 } from "@gelatonetwork/web3-functions-sdk";
-import ky from "ky";
 import { Contract, ethers } from "ethers";
+import ky from "ky";
 
 const assert = {
   match: (a: string, b: RegExp) => {
@@ -35,10 +35,10 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
     await provider.send("eth_test", []);
   } catch (err) {
     failure = err.message;
-    console.log("Invalid Rpc method error:", err.message);
+    console.log("Invalid Rpc method error:", failure);
   }
-  assert.match(failure, /\"code\":-32600/);
-  assert.match(failure, /Unsupported method: eth_test/);
+  assert.match(failure, /\"code\":-32601/);
+  assert.match(failure, /the method eth_test does not exist/);
 
   // Test sending invalid params
   try {
@@ -48,7 +48,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
     console.log("Invalid Rpc params error:", err.message);
   }
   assert.match(failure, /\"code\":-32602/);
-  assert.match(failure, /invalid 1st argument/);
+  assert.match(failure, /invalid argument 0/);
 
   // Test sending http query
   try {
