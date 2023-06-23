@@ -13,7 +13,7 @@ const STD_STORAGE_LIMIT = 1024;
 const MAX_RPC_LIMIT = 100;
 const MAX_DOWNLOAD_LIMIT = 10 * 1024 * 1024;
 const MAX_UPLOAD_LIMIT = 5 * 1024 * 1024;
-const MAX_REQUEST_LIMIT = 100;
+const MAX_REQUEST_LIMIT = 110;
 
 const OK = colors.green("✓");
 const KO = colors.red("✗");
