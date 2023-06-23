@@ -178,7 +178,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
 
   // Show runtime stats
   console.log(`\nWeb3Function Runtime stats:`);
-  if (res.duration > 0.9 * buildRes.schema.timeout) {
+  if (res.throttled.duration) {
     console.log(` ${KO} Duration: ${res.duration.toFixed(2)}s`);
   } else if (res.duration > STD_TIMEOUT) {
     console.log(
@@ -189,7 +189,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   } else {
     console.log(` ${OK} Duration: ${res.duration.toFixed(2)}s`);
   }
-  const memoryStatus = res.memory < 0.9 * memory ? OK : KO;
+  const memoryStatus = res.throttled.memory ? KO : OK;
   console.log(` ${memoryStatus} Memory: ${res.memory.toFixed(2)}mb`);
 
   if (res.success && res.storage?.size > STD_STORAGE_LIMIT) {
@@ -202,27 +202,20 @@ export default async function test(callConfig?: Partial<CallConfig>) {
     console.log(` ${OK} Storage: ${res.storage.size.toFixed(2)}kb`);
   }
 
-  if (res.network.nbThrottled > 0) {
-    console.log(
-      ` ${KO} Network: ${
-        res.network.nbRequests
-      } req [DL: ${res.network.download.toFixed(
-        2
-      )}kb / UL: ${res.network.upload.toFixed(
-        2
-      )}kb] ${`(${res.network.nbThrottled} req throttled - Please reduce your network usage!)`}`
-    );
-  } else {
-    console.log(
-      ` ${OK} Network: ${
-        res.network.nbRequests
-      } req [DL: ${res.network.download.toFixed(
-        2
-      )}kb / UL: ${res.network.upload.toFixed(2)}kb]`
-    );
-  }
+  let networkMessage = ` ${res.throttled.networkRequest ? KO : OK} Network: ${
+    res.network.nbRequests
+  } req [${res.throttled.download ? KO : ""} DL: ${res.network.download.toFixed(
+    2
+  )}kb / UL: ${res.throttled.upload ? KO : ""} ${res.network.upload.toFixed(
+    2
+  )}kb]`;
 
-  if (res.rpcCalls.throttled > 0) {
+  if (res.throttled.networkRequest) {
+    networkMessage += ` ${`(${res.network.nbThrottled} req throttled - Please reduce your network usage!)`}`;
+  }
+  console.log(networkMessage);
+
+  if (res.throttled.rpcRequest) {
     console.log(
       ` ${KO} Rpc calls: ${
         res.rpcCalls.total
