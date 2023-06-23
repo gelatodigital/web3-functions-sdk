@@ -28,6 +28,7 @@ import {
   Web3FunctionExec,
   Web3FunctionRunnerOptions,
   Web3FunctionRunnerPayload,
+  Web3FunctionThrottled,
 } from "./types";
 
 const START_TIMEOUT = 5_000;
@@ -190,6 +191,7 @@ export class Web3FunctionRunner {
     payload: Web3FunctionRunnerPayload
   ): Promise<Web3FunctionExec> {
     const start = performance.now();
+    const throttled: Web3FunctionThrottled = {};
     let success: boolean;
     let result: Web3FunctionResult | undefined = undefined;
     let storage: Web3FunctionStorageWithSize | undefined = undefined;
@@ -243,6 +245,21 @@ export class Web3FunctionRunner {
     this._log(`Runtime network download=${networkStats.download.toFixed(2)}kb`);
     this._log(`Runtime network upload=${networkStats.upload.toFixed(2)}kb`);
 
+    if (networkStats.nbThrottled > 0) {
+      throttled.networkRequest =
+        networkStats.nbRequests >= options.requestLimit;
+
+      throttled.download =
+        networkStats.download >= options.downloadLimit / 1024;
+      this._log(
+        `Is throttled for download set: ${throttled.download}, statdownload: ${
+          networkStats.download
+        } limit: ${options.downloadLimit / 1024}`
+      );
+
+      throttled.upload = networkStats.upload >= options.uploadLimit / 1024;
+    }
+
     if (success) {
       if (version === Web3FunctionVersion.V1_0_0) {
         return {
@@ -255,6 +272,7 @@ export class Web3FunctionRunner {
           memory,
           rpcCalls,
           network: networkStats,
+          throttled,
         };
       } else {
         return {
@@ -267,9 +285,18 @@ export class Web3FunctionRunner {
           memory,
           rpcCalls,
           network: networkStats,
+          throttled,
         };
       }
     } else {
+      if (error && error.message) {
+        throttled.memory = error.message.includes("Memory limit exceeded");
+        throttled.rpcRequest = error.message.includes(
+          "RPC requests limit exceeded"
+        );
+        throttled.duration = error.message.includes("exceed execution timeout");
+      }
+
       return {
         success,
         version,
@@ -279,6 +306,7 @@ export class Web3FunctionRunner {
         memory,
         rpcCalls,
         network: networkStats,
+        throttled,
       };
     }
   }
@@ -428,6 +456,15 @@ export class Web3FunctionRunner {
             reject(
               new Error(
                 `Web3Function exited with code=${signal} (RPC requests limit exceeded)`
+              )
+            );
+          } else if (
+            (options.runtime === "docker" && signal === 137) ||
+            (options.runtime === "thread" && this._memory >= options.memory)
+          ) {
+            reject(
+              new Error(
+                `Web3Function exited with code=${signal} (Memory limit exceeded)`
               )
             );
           } else {

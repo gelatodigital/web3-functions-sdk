@@ -4,6 +4,16 @@ import {
   Web3FunctionResultV2,
 } from "../../types/Web3FunctionResult";
 
+export type Web3FunctionThrottled = {
+  memory?: boolean;
+  storage?: boolean;
+  duration?: boolean;
+  rpcRequest?: boolean;
+  networkRequest?: boolean;
+  download?: boolean;
+  upload?: boolean;
+};
+
 type Web3FunctionExecStats = {
   version: Web3FunctionVersion;
   duration: number;
@@ -16,6 +26,7 @@ type Web3FunctionExecStats = {
     download: number; // in KB
     upload: number; // in KB
   };
+  throttled: Web3FunctionThrottled;
 };
 
 type Web3FunctionExecSuccessBase = Web3FunctionExecStats & {
