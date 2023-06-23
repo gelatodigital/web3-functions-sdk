@@ -348,7 +348,7 @@ export class Web3FunctionRunner {
     this._httpProxy.start(httpProxyPort);
 
     try {
-      this._log(`Sarting sandbox: ${script}`);
+      this._log(`Starting sandbox: ${script}`);
       await this._sandbox.start(
         script,
         version,
