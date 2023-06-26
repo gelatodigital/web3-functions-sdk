@@ -290,24 +290,12 @@ export class Web3FunctionRunner {
         };
       }
     } else {
-      if (error && error instanceof Web3FunctionRuntimeError) {
-        switch (error.throttledReason) {
-          case "memory":
-            throttled.memory = error.message.includes("Memory limit exceeded");
-            break;
-          case "rpcRequest":
-            throttled.rpcRequest = error.message.includes(
-              "RPC requests limit exceeded"
-            );
-            break;
-          case "duration":
-            throttled.duration = error.message.includes(
-              "exceed execution timeout"
-            );
-            break;
-          default:
-            break;
-        }
+      if (
+        error &&
+        error instanceof Web3FunctionRuntimeError &&
+        error.throttledReason
+      ) {
+        throttled[error.throttledReason] = true;
       }
 
       return {
