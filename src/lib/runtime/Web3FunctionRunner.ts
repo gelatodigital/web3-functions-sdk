@@ -28,6 +28,7 @@ import {
   Web3FunctionExec,
   Web3FunctionRunnerOptions,
   Web3FunctionRunnerPayload,
+  Web3FunctionRuntimeError,
   Web3FunctionThrottled,
 } from "./types";
 
@@ -289,18 +290,30 @@ export class Web3FunctionRunner {
         };
       }
     } else {
-      if (error && error.message) {
-        throttled.memory = error.message.includes("Memory limit exceeded");
-        throttled.rpcRequest = error.message.includes(
-          "RPC requests limit exceeded"
-        );
-        throttled.duration = error.message.includes("exceed execution timeout");
+      if (error && error instanceof Web3FunctionRuntimeError) {
+        switch (error.throttledReason) {
+          case "memory":
+            throttled.memory = error.message.includes("Memory limit exceeded");
+            break;
+          case "rpcRequest":
+            throttled.rpcRequest = error.message.includes(
+              "RPC requests limit exceeded"
+            );
+            break;
+          case "duration":
+            throttled.duration = error.message.includes(
+              "exceed execution timeout"
+            );
+            break;
+          default:
+            break;
+        }
       }
 
       return {
         success,
         version,
-        error: error as Error,
+        error: error as Web3FunctionRuntimeError,
         logs,
         duration,
         memory,
@@ -438,8 +451,11 @@ export class Web3FunctionRunner {
       // Stop waiting for result after timeout expire
       this._execTimeoutId = setTimeout(() => {
         reject(
-          new Error(
-            `Web3Function exceed execution timeout (${options.timeout / 1000}s)`
+          new Web3FunctionRuntimeError(
+            `Web3Function exceed execution timeout (${
+              options.timeout / 1000
+            }s)`,
+            "duration"
           )
         );
       }, options.timeout);
@@ -454,8 +470,9 @@ export class Web3FunctionRunner {
             reject(new Error(`Web3Function exited without returning result`));
           } else if (signal === 250) {
             reject(
-              new Error(
-                `Web3Function exited with code=${signal} (RPC requests limit exceeded)`
+              new Web3FunctionRuntimeError(
+                `Web3Function exited with code=${signal} (RPC requests limit exceeded)`,
+                "rpcRequest"
               )
             );
           } else if (
@@ -463,8 +480,9 @@ export class Web3FunctionRunner {
             (options.runtime === "thread" && this._memory >= options.memory)
           ) {
             reject(
-              new Error(
-                `Web3Function exited with code=${signal} (Memory limit exceeded)`
+              new Web3FunctionRuntimeError(
+                `Web3Function exited with code=${signal} (Memory limit exceeded)`,
+                "memory"
               )
             );
           } else {

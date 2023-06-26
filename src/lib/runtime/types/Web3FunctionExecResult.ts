@@ -48,9 +48,21 @@ export type Web3FunctionExecSuccess =
   | Web3FunctionExecSuccessV1
   | Web3FunctionExecSuccessV2;
 
+export class Web3FunctionRuntimeError extends Error {
+  throttledReason?: "memory" | "duration" | "rpcRequest";
+
+  constructor(
+    message: string,
+    throttledReason?: "memory" | "duration" | "rpcRequest"
+  ) {
+    super(message);
+    this.throttledReason = throttledReason;
+  }
+}
+
 type Web3FunctionExecFail = Web3FunctionExecStats & {
   success: false;
-  error: Error;
+  error: Web3FunctionRuntimeError;
 };
 
 export type Web3FunctionExec = Web3FunctionExecSuccess | Web3FunctionExecFail;
