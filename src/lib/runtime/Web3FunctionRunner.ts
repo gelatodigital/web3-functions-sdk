@@ -28,6 +28,8 @@ import {
   Web3FunctionExec,
   Web3FunctionRunnerOptions,
   Web3FunctionRunnerPayload,
+  Web3FunctionRuntimeError,
+  Web3FunctionThrottled,
 } from "./types";
 
 const START_TIMEOUT = 5_000;
@@ -190,6 +192,7 @@ export class Web3FunctionRunner {
     payload: Web3FunctionRunnerPayload
   ): Promise<Web3FunctionExec> {
     const start = performance.now();
+    const throttled: Web3FunctionThrottled = {};
     let success: boolean;
     let result: Web3FunctionResult | undefined = undefined;
     let storage: Web3FunctionStorageWithSize | undefined = undefined;
@@ -243,6 +246,21 @@ export class Web3FunctionRunner {
     this._log(`Runtime network download=${networkStats.download.toFixed(2)}kb`);
     this._log(`Runtime network upload=${networkStats.upload.toFixed(2)}kb`);
 
+    if (networkStats.nbThrottled > 0) {
+      throttled.networkRequest =
+        networkStats.nbRequests >= options.requestLimit;
+
+      throttled.download =
+        networkStats.download >= options.downloadLimit / 1024;
+      this._log(
+        `Is throttled for download set: ${throttled.download}, statdownload: ${
+          networkStats.download
+        } limit: ${options.downloadLimit / 1024}`
+      );
+
+      throttled.upload = networkStats.upload >= options.uploadLimit / 1024;
+    }
+
     if (success) {
       if (version === Web3FunctionVersion.V1_0_0) {
         return {
@@ -255,6 +273,7 @@ export class Web3FunctionRunner {
           memory,
           rpcCalls,
           network: networkStats,
+          throttled,
         };
       } else {
         return {
@@ -267,18 +286,28 @@ export class Web3FunctionRunner {
           memory,
           rpcCalls,
           network: networkStats,
+          throttled,
         };
       }
     } else {
+      if (
+        error &&
+        error instanceof Web3FunctionRuntimeError &&
+        error.throttledReason
+      ) {
+        throttled[error.throttledReason] = true;
+      }
+
       return {
         success,
         version,
-        error: error as Error,
+        error: error as Web3FunctionRuntimeError,
         logs,
         duration,
         memory,
         rpcCalls,
         network: networkStats,
+        throttled,
       };
     }
   }
@@ -320,7 +349,7 @@ export class Web3FunctionRunner {
     this._httpProxy.start(httpProxyPort);
 
     try {
-      this._log(`Sarting sandbox: ${script}`);
+      this._log(`Starting sandbox: ${script}`);
       await this._sandbox.start(
         script,
         version,
@@ -410,8 +439,11 @@ export class Web3FunctionRunner {
       // Stop waiting for result after timeout expire
       this._execTimeoutId = setTimeout(() => {
         reject(
-          new Error(
-            `Web3Function exceed execution timeout (${options.timeout / 1000}s)`
+          new Web3FunctionRuntimeError(
+            `Web3Function exceed execution timeout (${
+              options.timeout / 1000
+            }s)`,
+            "duration"
           )
         );
       }, options.timeout);
@@ -426,8 +458,19 @@ export class Web3FunctionRunner {
             reject(new Error(`Web3Function exited without returning result`));
           } else if (signal === 250) {
             reject(
-              new Error(
-                `Web3Function exited with code=${signal} (RPC requests limit exceeded)`
+              new Web3FunctionRuntimeError(
+                `Web3Function exited with code=${signal} (RPC requests limit exceeded)`,
+                "rpcRequest"
+              )
+            );
+          } else if (
+            (options.runtime === "docker" && signal === 137) ||
+            (options.runtime === "thread" && this._memory >= options.memory)
+          ) {
+            reject(
+              new Web3FunctionRuntimeError(
+                `Web3Function exited with code=${signal} (Memory limit exceeded)`,
+                "memory"
               )
             );
           } else {
