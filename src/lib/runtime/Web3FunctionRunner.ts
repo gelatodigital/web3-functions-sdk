@@ -256,6 +256,10 @@ export class Web3FunctionRunner {
     }
 
     if (success) {
+      if (storage?.state === "updated") {
+        throttled.storage = storage.size > options.storageLimit;
+      }
+
       if (version === Web3FunctionVersion.V1_0_0) {
         return {
           success,
