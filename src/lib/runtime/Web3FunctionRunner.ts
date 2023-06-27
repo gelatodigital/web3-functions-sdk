@@ -252,12 +252,6 @@ export class Web3FunctionRunner {
 
       throttled.download =
         networkStats.download >= options.downloadLimit / 1024;
-      this._log(
-        `Is throttled for download set: ${throttled.download}, statdownload: ${
-          networkStats.download
-        } limit: ${options.downloadLimit / 1024}`
-      );
-
       throttled.upload = networkStats.upload >= options.uploadLimit / 1024;
     }
 
