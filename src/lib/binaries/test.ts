@@ -194,7 +194,13 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   const memoryStatus = res.throttled.memory ? KO : OK;
   console.log(` ${memoryStatus} Memory: ${res.memory.toFixed(2)}mb`);
 
-  if (res.success && res.storage?.size > STD_STORAGE_LIMIT) {
+  if (res.success && res.throttled.storage) {
+    console.log(
+      ` ${KO} Storage: ${res.storage.size.toFixed(
+        2
+      )}kb - Storage usage exceeds limit!`
+    );
+  } else if (res.success && res.storage?.size > STD_STORAGE_LIMIT) {
     console.log(
       ` ${KO} Storage: ${res.storage.size.toFixed(
         2
