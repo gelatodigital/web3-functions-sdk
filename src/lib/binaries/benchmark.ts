@@ -7,6 +7,7 @@ import { performance } from "perf_hooks";
 import {
   MAX_DOWNLOAD_LIMIT,
   MAX_REQUEST_LIMIT,
+  MAX_STORAGE_LIMIT,
   MAX_UPLOAD_LIMIT,
 } from "../../hardhat/constants";
 import { Web3FunctionBuilder } from "../builder";
@@ -125,6 +126,7 @@ export default async function benchmark() {
     downloadLimit: MAX_DOWNLOAD_LIMIT,
     uploadLimit: MAX_UPLOAD_LIMIT,
     requestLimit: MAX_REQUEST_LIMIT,
+    storageLimit: MAX_STORAGE_LIMIT,
   };
   const script = buildRes.filePath;
   const runner = new Web3FunctionRunnerPool(pool, debug);

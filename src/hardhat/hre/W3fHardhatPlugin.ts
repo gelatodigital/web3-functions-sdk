@@ -8,6 +8,7 @@ import {
   MAX_DOWNLOAD_LIMIT,
   MAX_REQUEST_LIMIT,
   MAX_RPC_LIMIT,
+  MAX_STORAGE_LIMIT,
   MAX_UPLOAD_LIMIT,
 } from "../constants";
 import {
@@ -72,6 +73,7 @@ export class Web3FunctionHardhat {
       downloadLimit: MAX_DOWNLOAD_LIMIT,
       uploadLimit: MAX_UPLOAD_LIMIT,
       requestLimit: MAX_REQUEST_LIMIT,
+      storageLimit: MAX_STORAGE_LIMIT,
       web3FunctionVersion,
     };
     const script = buildRes.filePath;

@@ -9,6 +9,7 @@ export interface Web3FunctionRunnerOptions {
   downloadLimit: number;
   uploadLimit: number;
   requestLimit: number;
+  storageLimit: number;
   runtime: "thread" | "docker";
   showLogs: boolean;
   serverPort?: number;
