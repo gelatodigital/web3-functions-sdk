@@ -28,7 +28,7 @@ yarn install
 - Example:
 ```typescript
 import { Web3Function, Web3FunctionContext } from "../lib";
-import { Contract, ethers } from "ethers";
+import { Contract } from "@ethersproject/contracts";
 import ky from "ky"; // we recommend using ky as axios doesn't support fetch by default
 
 const ORACLE_ABI = [
