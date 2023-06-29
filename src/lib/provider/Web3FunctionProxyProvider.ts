@@ -1,7 +1,7 @@
 import bodyParser from "body-parser";
 import crypto from "crypto";
 import { ethErrors, serializeError } from "eth-rpc-errors";
-import { ethers } from "ethers";
+import { StaticJsonRpcProvider } from "@ethersproject/providers";
 import express from "express";
 import http from "http";
 import { MultiChainProviderConfig } from "./types";
@@ -19,7 +19,7 @@ export class Web3FunctionProxyProvider {
   private _nbThrottledRpcCalls = 0;
   private _limit: number;
   private _whitelistedMethods = ["eth_chainId", "net_version"];
-  private _providers: Map<number, ethers.providers.StaticJsonRpcProvider>;
+  private _providers: Map<number, StaticJsonRpcProvider>;
   private _mainChainId: number;
 
   constructor(

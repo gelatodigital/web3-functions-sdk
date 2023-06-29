@@ -2,7 +2,8 @@ import {
   Web3Function,
   Web3FunctionContext,
 } from "@gelatonetwork/web3-functions-sdk";
-import { Contract, ethers } from "ethers";
+import { Contract } from "@ethersproject/contracts";
+import { StaticJsonRpcProvider } from "@ethersproject/providers";
 import ky from "ky";
 
 const assert = {
@@ -53,7 +54,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   // Test sending http query
   try {
     const res = await ky
-      .post((provider as ethers.providers.StaticJsonRpcProvider).connection.url)
+      .post((provider as StaticJsonRpcProvider).connection.url)
       .text();
     console.log(res);
     failure = res;

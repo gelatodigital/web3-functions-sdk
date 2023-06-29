@@ -1,4 +1,4 @@
-import { BigNumber } from "ethers";
+import { BigNumber } from "@ethersproject/bignumber";
 import { Web3FunctionHttpServer } from "./net/Web3FunctionHttpServer";
 import {
   Web3FunctionContext,

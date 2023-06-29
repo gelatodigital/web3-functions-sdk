@@ -1,5 +1,5 @@
 import colors from "colors/safe";
-import { ethers } from "ethers";
+import { StaticJsonRpcProvider } from "@ethersproject/providers";
 import path from "path";
 import { Web3FunctionBuilder } from "../builder";
 import { Web3FunctionLoader } from "../loader";
@@ -39,9 +39,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   let chainId = callConfig?.chainId ?? 5;
   const multiChainProviderConfig: MultiChainProviderConfig =
     callConfig?.multiChainProviderConfig ?? {
-      5: new ethers.providers.StaticJsonRpcProvider(
-        "https://eth-goerli.public.blastapi.io"
-      ),
+      5: new StaticJsonRpcProvider("https://eth-goerli.public.blastapi.io"),
     };
   let runtime: RunTime = callConfig?.runtime ?? "thread";
   let debug = callConfig?.debug ?? false;
@@ -61,7 +59,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
 
     const providerUrls = process.env.PROVIDER_URLS.split(",");
     for (const url of providerUrls) {
-      const provider = new ethers.providers.StaticJsonRpcProvider(url);
+      const provider = new StaticJsonRpcProvider(url);
       const chainId = (await provider.getNetwork()).chainId;
       multiChainProviderConfig[chainId] = provider;
     }
