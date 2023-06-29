@@ -14,6 +14,7 @@ const MAX_RPC_LIMIT = 100;
 const MAX_DOWNLOAD_LIMIT = 10 * 1024 * 1024;
 const MAX_UPLOAD_LIMIT = 5 * 1024 * 1024;
 const MAX_REQUEST_LIMIT = 110;
+const MAX_STORAGE_LIMIT = 1024; // kb
 
 const OK = colors.green("✓");
 const KO = colors.red("✗");
@@ -131,6 +132,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
     downloadLimit: MAX_DOWNLOAD_LIMIT,
     uploadLimit: MAX_UPLOAD_LIMIT,
     requestLimit: MAX_REQUEST_LIMIT,
+    storageLimit: MAX_STORAGE_LIMIT,
     blacklistedHosts: ["testblacklistedhost.com"],
   };
   const script = buildRes.filePath;
@@ -192,7 +194,13 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   const memoryStatus = res.throttled.memory ? KO : OK;
   console.log(` ${memoryStatus} Memory: ${res.memory.toFixed(2)}mb`);
 
-  if (res.success && res.storage?.size > STD_STORAGE_LIMIT) {
+  if (res.success && res.throttled.storage) {
+    console.log(
+      ` ${KO} Storage: ${res.storage.size.toFixed(
+        2
+      )}kb - Storage usage exceeds limit!`
+    );
+  } else if (res.success && res.storage?.size > STD_STORAGE_LIMIT) {
     console.log(
       ` ${KO} Storage: ${res.storage.size.toFixed(
         2
