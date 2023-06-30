@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { StaticJsonRpcProvider } from "@ethersproject/providers";
 import { EthereumProvider, HardhatRuntimeEnvironment } from "hardhat/types";
 import { MultiChainProviderConfig } from "../../lib/provider";
 
@@ -18,7 +18,7 @@ export async function getMultiChainProviderConfigs(
         const url = networkConfig["url"];
         if (!url) throw new Error(`'url' for network ${network} not found`);
 
-        const provider = new ethers.providers.StaticJsonRpcProvider(url);
+        const provider = new StaticJsonRpcProvider(url);
         const chainId =
           networkConfig.chainId ?? (await provider.getNetwork()).chainId;
 
@@ -39,7 +39,7 @@ export async function getMultiChainProviderConfigs(
   return multiChainProviderConfig;
 }
 
-export class EthersProviderWrapper extends ethers.providers.JsonRpcProvider {
+export class EthersProviderWrapper extends StaticJsonRpcProvider {
   private readonly _hardhatProvider: EthereumProvider;
 
   constructor(hardhatProvider: EthereumProvider) {

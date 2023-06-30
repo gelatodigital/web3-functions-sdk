@@ -1,6 +1,6 @@
 import colors from "colors/safe";
 import "dotenv/config";
-import { ethers } from "ethers";
+import { StaticJsonRpcProvider } from "@ethersproject/providers";
 import path from "path";
 import { performance } from "perf_hooks";
 
@@ -106,7 +106,7 @@ export default async function benchmark() {
 
   const multiChainProviderConfig: MultiChainProviderConfig = {};
   for (const url of providerUrls) {
-    const provider = new ethers.providers.StaticJsonRpcProvider(url);
+    const provider = new StaticJsonRpcProvider(url);
     const chainId = (await provider.getNetwork()).chainId;
     multiChainProviderConfig[chainId] = provider;
   }

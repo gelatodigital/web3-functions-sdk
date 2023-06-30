@@ -1,4 +1,4 @@
-import { BigNumber } from "ethers";
+import { BigNumber } from "@ethersproject/bignumber";
 import { Web3FunctionMultiChainProvider } from "../provider/Web3FunctionMultiChainProvider";
 import { Web3FunctionUserArgs } from "./Web3FunctionUserArgs";
 export interface Web3FunctionContextData {

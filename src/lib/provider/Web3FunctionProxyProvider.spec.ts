@@ -2,7 +2,7 @@ import { Web3FunctionProxyProvider } from "./Web3FunctionProxyProvider";
 import { MultiChainProviderConfig } from "./types";
 
 import axios from "axios";
-import { ethers } from "ethers";
+import { StaticJsonRpcProvider } from "@ethersproject/providers";
 
 describe("Web3FunctionProxyProvider", () => {
   enum TestChainIds {
@@ -26,8 +26,8 @@ describe("Web3FunctionProxyProvider", () => {
     proxyProviderPort = 3000;
 
     multiChainProviderConfig = {
-      5: new ethers.providers.JsonRpcProvider(TestChainProviders.Goerli),
-      80001: new ethers.providers.JsonRpcProvider(TestChainProviders.Mumbai),
+      5: new StaticJsonRpcProvider(TestChainProviders.Goerli),
+      80001: new StaticJsonRpcProvider(TestChainProviders.Mumbai),
     };
   });
 

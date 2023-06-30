@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { ethers } from "ethers";
+import { isAddress } from "@ethersproject/address";
 import { performance } from "perf_hooks";
 import onExit from "signal-exit";
 import { Web3FunctionHttpClient } from "../net/Web3FunctionHttpClient";
@@ -530,8 +530,7 @@ export class Web3FunctionRunner {
           );
 
         for (const { to, data, value } of result.callData) {
-          if (!ethers.utils.isAddress(to))
-            throwError("returned invalid to address");
+          if (!isAddress(to)) throwError("returned invalid to address");
 
           if (!isValidData(data)) throwError("returned invalid callData");
 

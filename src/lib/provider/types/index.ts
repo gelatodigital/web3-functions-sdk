@@ -1,5 +1,5 @@
-import { ethers } from "ethers";
+import { StaticJsonRpcProvider } from "@ethersproject/providers";
 
 export interface MultiChainProviderConfig {
-  [key: number]: ethers.providers.StaticJsonRpcProvider;
+  [key: number]: StaticJsonRpcProvider;
 }

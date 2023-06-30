@@ -1,4 +1,4 @@
-import { ethers } from "ethers";
+import { StaticJsonRpcProvider } from "@ethersproject/providers";
 import { Web3FunctionMultiChainProvider } from "./Web3FunctionMultiChainProvider";
 import { Web3FunctionProxyProvider } from "./Web3FunctionProxyProvider";
 
@@ -23,8 +23,8 @@ describe("Web3FunctionMultiChainProvider", () => {
     const proxyProviderPort = 3000;
 
     const multiChainProviderConfig = {
-      5: new ethers.providers.JsonRpcProvider(TestChainProviders.Goerli),
-      80001: new ethers.providers.JsonRpcProvider(TestChainProviders.Mumbai),
+      5: new StaticJsonRpcProvider(TestChainProviders.Goerli),
+      80001: new StaticJsonRpcProvider(TestChainProviders.Mumbai),
     };
 
     proxyProvider = new Web3FunctionProxyProvider(

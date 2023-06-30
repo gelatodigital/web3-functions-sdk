@@ -54,6 +54,7 @@ export class Web3FunctionBuilder {
       platform: "browser",
       target: "es2022",
       format: "esm",
+      minify: true,
       alias,
       outfile,
     };
