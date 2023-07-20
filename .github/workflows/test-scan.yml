@@ -1,0 +1,36 @@
+name: test-scan
+on: push
+
+jobs:
+  sonarcloud_unit-tests:
+    name: sonarcloud_unit-tests
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Install
+        run: yarn install --frozen-lockfile
+
+      - name: Build
+        run: yarn build
+
+      - name: Unit test
+        run: yarn test:unit
+
+      - name: Cleanup for SonarCloud
+        run: rm -rf ./node_modules .github .vscode .tmp
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-coverage
+          path: ${{ github.workspace }}/coverage
+          retention-days: 2
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Needed to get PR information, if any
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
