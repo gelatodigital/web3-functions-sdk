@@ -9,6 +9,7 @@ module.exports = {
     "jest.config.ts",
     "src/web3-functions",
     "lib/Web3Function.ts",
+    "lib/polyfill",
     "hardhat",
     ".d.ts",
     "__test__",
