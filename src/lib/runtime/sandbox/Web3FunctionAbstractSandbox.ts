@@ -36,7 +36,8 @@ export abstract class Web3FunctionAbstractSandbox extends EventEmitter {
     serverPort: number,
     mountPath: string,
     httpProxyHost: string,
-    httpProxyPort: number
+    httpProxyPort: number,
+    args: string[]
   ): Promise<void>;
   protected abstract _getMemoryUsage(): Promise<number>;
 
@@ -48,14 +49,37 @@ export abstract class Web3FunctionAbstractSandbox extends EventEmitter {
     httpProxyHost: string,
     httpProxyPort: number
   ) {
+    const args: string[] = [];
+
     this._log("Starting sandbox");
+
+    // Prepare common base args here
+    args.push("run");
+
+    if (version === Web3FunctionVersion.V1_0_0) {
+      args.push(`--allow-env=WEB3_FUNCTION_SERVER_PORT`);
+      args.push(`--unstable`);
+    } else {
+      args.push(
+        `--allow-env=WEB3_FUNCTION_SERVER_PORT,WEB3_FUNCTION_MOUNT_PATH`
+      );
+    }
+
+    args.push(`--allow-net`);
+
+    args.push(`--no-prompt`);
+    args.push(`--no-npm`);
+    args.push(`--no-remote`);
+    args.push(`--v8-flags=--max-old-space-size=${this._memoryLimit}`);
+
     await this._start(
       script,
       version,
       serverPort,
       mountPath,
       httpProxyHost,
-      httpProxyPort
+      httpProxyPort,
+      args
     );
   }
 

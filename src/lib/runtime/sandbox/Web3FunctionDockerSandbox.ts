@@ -51,24 +51,18 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
     serverPort: number,
     mountPath: string,
     httpProxyHost: string,
-    httpProxyPort: number
+    httpProxyPort: number,
+    args: string[]
   ): Promise<void> {
     const { dir, name, ext } = path.parse(script);
     const scriptName = `${name}${ext}`;
     const cmd = `deno`;
-    const args: string[] = [];
-    args.push("run");
 
     let env: string[] = [];
 
     if (version === Web3FunctionVersion.V1_0_0) {
-      args.push(`--allow-env=WEB3_FUNCTION_SERVER_PORT`);
-      args.push(`--unstable`);
       env = [`WEB3_FUNCTION_SERVER_PORT=${serverPort.toString()}`];
     } else {
-      args.push(
-        `--allow-env=WEB3_FUNCTION_SERVER_PORT,WEB3_FUNCTION_MOUNT_PATH`
-      );
       env = [
         `WEB3_FUNCTION_SERVER_PORT=${serverPort.toString()}`,
         `WEB3_FUNCTION_MOUNT_PATH=${mountPath}`,
@@ -79,11 +73,6 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
     env.push(`HTTP_PROXY=${httpProxyUrl}`);
     env.push(`HTTPS_PROXY=${httpProxyUrl}`);
 
-    args.push(`--allow-net`);
-    args.push(`--no-prompt`);
-    args.push(`--no-npm`);
-    args.push(`--no-remote`);
-    args.push(`--v8-flags=--max-old-space-size=${this._memoryLimit}`);
     args.push(`/web3Function/${scriptName}`);
 
     // See docker create options:
