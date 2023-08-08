@@ -2409,10 +2409,10 @@ delayed-stream@~1.0.0:
   resolved "https://registry.yarnpkg.com/delayed-stream/-/delayed-stream-1.0.0.tgz#df3ae199acadfb7d440aaae0b29e2272b24ec619"
   integrity sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==
 
-deno-bin@^1.28.1:
-  version "1.28.1"
-  resolved "https://registry.yarnpkg.com/deno-bin/-/deno-bin-1.28.1.tgz#4c628f7a56a3a98651df7c1ecabec48db0cd44b9"
-  integrity sha512-6nrNj71f/R8a/vhNF3RlrQVZchv977kO708EB4F3O6r4KvtDiWebd00FbHZtQ/Z+L7O2vYgt6Rw2wkAzLr4UiQ==
+deno-bin@^1.36.0:
+  version "1.36.0"
+  resolved "https://registry.yarnpkg.com/deno-bin/-/deno-bin-1.36.0.tgz#35f61891438ef5d012dde04fc342032ecc9c56f7"
+  integrity sha512-gJlrpILuliLlBTxM1Fo/304KI2lU/Nr/g0KZw6T7xhfG01BKTwUA+1amTg/m+8/4y2QnKwQC5tdHSuA9UllJJw==
   dependencies:
     adm-zip "^0.5.4"
     follow-redirects "^1.10.0"
