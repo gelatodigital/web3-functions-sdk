@@ -1,5 +1,5 @@
-import { randomUUID } from "crypto";
 import { isAddress } from "@ethersproject/address";
+import { randomUUID } from "crypto";
 import { performance } from "perf_hooks";
 import onExit from "signal-exit";
 import { Web3FunctionHttpClient } from "../net/Web3FunctionHttpClient";
@@ -340,7 +340,6 @@ export class Web3FunctionRunner {
       options.downloadLimit,
       options.uploadLimit,
       options.requestLimit,
-      (url: URL) => options.blacklistedHosts?.includes(url.hostname) ?? false,
       this._debug
     );
 
@@ -354,7 +353,8 @@ export class Web3FunctionRunner {
         serverPort,
         mountPath,
         httpProxyHost,
-        httpProxyPort
+        httpProxyPort,
+        options.blacklistedHosts
       );
     } catch (err) {
       this._log(`Fail to start Web3Function in sandbox ${err.message}`);

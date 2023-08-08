@@ -18,7 +18,6 @@ export class Web3FunctionHttpProxy {
   private readonly _maxDownload: number;
   private readonly _maxUpload: number;
   private readonly _maxRequests: number;
-  private _isBlacklisted: BlacklistedHandler;
 
   private _totalDownload = 0;
   private _totalUpload = 0;
@@ -31,7 +30,6 @@ export class Web3FunctionHttpProxy {
     maxDownloadSize: number,
     maxUploadSize: number,
     maxRequests: number,
-    blacklistedHandler: BlacklistedHandler,
     debug: boolean
   ) {
     this._debug = debug;
@@ -39,7 +37,6 @@ export class Web3FunctionHttpProxy {
     this._maxDownload = maxDownloadSize;
     this._maxUpload = maxUploadSize;
     this._maxRequests = maxRequests;
-    this._isBlacklisted = blacklistedHandler;
 
     this._server = http.createServer(this._handleServer.bind(this));
     this._server.on("connect", this._handleSecureServer.bind(this));
@@ -66,14 +63,6 @@ export class Web3FunctionHttpProxy {
 
     try {
       const reqUrl = new URL(req.url);
-
-      if (this._isBlacklisted(reqUrl)) {
-        res.writeHead(403, { "Content-Type": "text/plain" });
-        res.end("Destination is forbidden");
-
-        this._log(`W3F requested a blacklisted address: ${req.url}`);
-        return;
-      }
 
       this._log(`Request url is proxied: ${req.url}`);
 
@@ -146,12 +135,6 @@ export class Web3FunctionHttpProxy {
 
     try {
       const reqUrl = new URL(`https://${req.url}`);
-
-      if (this._isBlacklisted(reqUrl)) {
-        this._log(`W3F requested a blacklisted address: ${reqUrl}`);
-        socket.end();
-        return;
-      }
 
       this._log(`Secure request url is proxied: ${reqUrl.toString()}`);
 

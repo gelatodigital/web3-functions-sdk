@@ -47,7 +47,8 @@ export abstract class Web3FunctionAbstractSandbox extends EventEmitter {
     serverPort: number,
     mountPath: string,
     httpProxyHost: string,
-    httpProxyPort: number
+    httpProxyPort: number,
+    blacklistedHosts?: string[]
   ) {
     const args: string[] = [];
 
@@ -66,6 +67,9 @@ export abstract class Web3FunctionAbstractSandbox extends EventEmitter {
     }
 
     args.push(`--allow-net`);
+    if (blacklistedHosts && blacklistedHosts.length > 0) {
+      args.push(`--deny-net=${blacklistedHosts?.toString()}`);
+    }
 
     args.push(`--no-prompt`);
     args.push(`--no-npm`);
