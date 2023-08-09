@@ -12,7 +12,9 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
   protected async _stop(): Promise<void> {
     if (!this._container) return;
     try {
-      await this._container.kill();
+      await this._container.kill({
+        signal: "SIGKILL",
+      });
     } catch (err) {}
     try {
       await this._container.remove();
