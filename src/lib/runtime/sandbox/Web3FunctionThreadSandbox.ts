@@ -10,7 +10,7 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
 
   protected async _stop(): Promise<void> {
     if (!this._thread) return;
-    this._thread.kill();
+    this._thread.kill("SIGKILL");
   }
 
   protected async _start(
