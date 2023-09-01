@@ -49,6 +49,7 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
 
   protected async _start(
     script: string,
+    userScript: string,
     version: Web3FunctionVersion,
     serverPort: number,
     mountPath: string,
@@ -57,7 +58,14 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
     args: string[]
   ): Promise<void> {
     const { dir, name, ext } = path.parse(script);
+    const {
+      dir: userDir,
+      name: userName,
+      ext: userExt,
+    } = path.parse(userScript);
     const scriptName = `${name}${ext}`;
+    const userScriptName = `${userName}${userExt}`;
+    const userScriptPath = `/web3Function/${userScriptName}`;
     const cmd = `deno`;
 
     let env: string[] = [];
@@ -75,7 +83,11 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
     env.push(`HTTP_PROXY=${httpProxyUrl}`);
     env.push(`HTTPS_PROXY=${httpProxyUrl}`);
 
-    args.push(`/web3Function/${scriptName}`);
+    args.push(`--allow-read=${userScriptPath}`);
+    args.push(`/sandbox/${scriptName}`);
+    args.push(`--script=${userScriptPath}`);
+
+    this._log(`ARGS: ${args.toString()}`);
 
     // See docker create options:
     // https://docs.docker.com/engine/api/v1.37/#tag/Container/operation/ContainerCreate
@@ -85,7 +97,7 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
       },
       Env: env,
       Hostconfig: {
-        Binds: [`${dir}:/web3Function/`],
+        Binds: [`${dir}:/sandbox/`, `${userDir}:/web3Function/`],
         PortBindings: {
           [`${serverPort.toString()}/tcp`]: [
             { HostPort: `${serverPort.toString()}` },

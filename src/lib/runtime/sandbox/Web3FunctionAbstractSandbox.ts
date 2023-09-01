@@ -1,5 +1,6 @@
 import colors from "colors/safe";
 import { EventEmitter } from "node:stream";
+import path from "path";
 import { Web3FunctionVersion } from "../../types";
 import { Web3FunctionSandboxOptions } from "../types";
 
@@ -32,6 +33,7 @@ export abstract class Web3FunctionAbstractSandbox extends EventEmitter {
   protected abstract _stop(): Promise<void>;
   protected abstract _start(
     script: string,
+    actualScript: string,
     version: Web3FunctionVersion,
     serverPort: number,
     mountPath: string,
@@ -77,6 +79,7 @@ export abstract class Web3FunctionAbstractSandbox extends EventEmitter {
     args.push(`--v8-flags=--max-old-space-size=${this._memoryLimit}`);
 
     await this._start(
+      path.join(__dirname, "../../../../static/sandbox/index.ts"),
       script,
       version,
       serverPort,

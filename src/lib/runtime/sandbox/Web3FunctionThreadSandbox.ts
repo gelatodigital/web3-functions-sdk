@@ -15,6 +15,7 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
 
   protected async _start(
     script: string,
+    actualScript: string,
     version: Web3FunctionVersion,
     serverPort: number,
     mountPath: string,
@@ -41,7 +42,9 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
     env["HTTP_PROXY"] = httpProxyUrl;
     env["HTTPS_PROXY"] = httpProxyUrl;
 
+    args.push(`--allow-read=${actualScript}`);
     args.push(script);
+    args.push(`--script=${actualScript}`);
     this._thread = spawn(cmd, args, {
       shell: true,
       cwd: process.cwd(),

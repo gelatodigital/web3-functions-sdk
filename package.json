@@ -25,7 +25,8 @@
   "types": "dist/lib/types/index.d.ts",
   "files": [
     "dist/lib/**/*",
-    "dist/hardhat/**/*"
+    "dist/hardhat/**/*",
+    "static/**/*"
   ],
   "bin": {
     "w3f": "./dist/bin/index.js"
