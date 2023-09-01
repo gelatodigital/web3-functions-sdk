@@ -367,9 +367,7 @@ export class Web3FunctionRunner {
     // Proxy RPC provider
     const proxyProviderPort = await Web3FunctionNetHelper.getAvailablePort();
     this._proxyProvider = new Web3FunctionProxyProvider(
-      options.runtime === "thread"
-        ? "http://127.0.0.1"
-        : "http://host.docker.internal",
+      "http://127.0.0.1",
       proxyProviderPort,
       options.rpcLimit,
       context.gelatoArgs.chainId,
