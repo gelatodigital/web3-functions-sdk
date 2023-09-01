@@ -2,6 +2,7 @@
 import Docker, { ImageInfo } from "dockerode";
 import path from "path";
 import { Web3FunctionVersion } from "../../types";
+import { POLYFILL_FOLDER, SANDBOX_SCRIPT } from "../types/LibStatic";
 import { Web3FunctionAbstractSandbox } from "./Web3FunctionAbstractSandbox";
 
 export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
@@ -56,8 +57,15 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
     httpProxyPort: number,
     args: string[]
   ): Promise<void> {
+    const {
+      dir: sandboxDir,
+      name: sandboxName,
+      ext: sandboxExt,
+    } = path.parse(SANDBOX_SCRIPT);
     const { dir, name, ext } = path.parse(script);
+    const sandboxScript = `${sandboxName}${sandboxExt}`;
     const scriptName = `${name}${ext}`;
+    const scriptPath = `/web3Function/${scriptName}`;
     const cmd = `deno`;
 
     let env: string[] = [];
@@ -75,7 +83,11 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
     env.push(`HTTP_PROXY=${httpProxyUrl}`);
     env.push(`HTTPS_PROXY=${httpProxyUrl}`);
 
-    args.push(`/web3Function/${scriptName}`);
+    args.push(`--allow-read=${scriptPath}`);
+    args.push(`/sandbox/${sandboxScript}`);
+    args.push(`--script=${scriptPath}`);
+
+    this._log(`ARGS: ${args.toString()}`);
 
     // See docker create options:
     // https://docs.docker.com/engine/api/v1.37/#tag/Container/operation/ContainerCreate
@@ -85,7 +97,11 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
       },
       Env: env,
       Hostconfig: {
-        Binds: [`${dir}:/web3Function/`],
+        Binds: [
+          `${POLYFILL_FOLDER}:/polyfill`,
+          `${sandboxDir}:/sandbox/`,
+          `${dir}:/web3Function/`,
+        ],
         PortBindings: {
           [`${serverPort.toString()}/tcp`]: [
             { HostPort: `${serverPort.toString()}` },

@@ -3,6 +3,7 @@ import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import path from "path";
 import pidusage from "pidusage";
 import { Web3FunctionVersion } from "../../types";
+import { SANDBOX_SCRIPT } from "../types/LibStatic";
 import { Web3FunctionAbstractSandbox } from "./Web3FunctionAbstractSandbox";
 
 export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
@@ -41,7 +42,9 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
     env["HTTP_PROXY"] = httpProxyUrl;
     env["HTTPS_PROXY"] = httpProxyUrl;
 
-    args.push(script);
+    args.push(`--allow-read=${script}`);
+    args.push(SANDBOX_SCRIPT);
+    args.push(`--script=${script}`);
     this._thread = spawn(cmd, args, {
       shell: true,
       cwd: process.cwd(),

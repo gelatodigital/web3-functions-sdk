@@ -1,17 +1,16 @@
 import { BigNumber } from "@ethersproject/bignumber";
 import { Web3FunctionHttpServer } from "./net/Web3FunctionHttpServer";
+import { Web3FunctionMultiChainProvider } from "./provider/Web3FunctionMultiChainProvider";
 import {
   Web3FunctionContext,
   Web3FunctionContextData,
 } from "./types/Web3FunctionContext";
-import { Web3FunctionResult } from "./types/Web3FunctionResult";
 import {
   Web3FunctionEvent,
   Web3FunctionStorage,
 } from "./types/Web3FunctionEvent";
+import { Web3FunctionResult } from "./types/Web3FunctionResult";
 import objectHash = require("object-hash");
-import "./polyfill/XMLHttpRequest";
-import { Web3FunctionMultiChainProvider } from "./provider/Web3FunctionMultiChainProvider";
 
 export class Web3Function {
   private static Instance?: Web3Function;
