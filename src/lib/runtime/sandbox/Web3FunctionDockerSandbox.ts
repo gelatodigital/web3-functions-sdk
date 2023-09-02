@@ -7,7 +7,7 @@ import { Web3FunctionAbstractSandbox } from "./Web3FunctionAbstractSandbox";
 export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
   private _container?: Docker.Container;
   private _docker = new Docker();
-  private _denoImage = "denoland/deno:alpine-1.28.1";
+  private _denoImage = "denoland/deno:alpine-1.36.0";
 
   protected async _stop(): Promise<void> {
     if (!this._container) return;
