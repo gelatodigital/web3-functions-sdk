@@ -17,6 +17,9 @@
       "minimum": 5,
       "maximum": 30
     },
+    "executionMode": {
+      "enum": ["sequential", "parallel"]
+    },
     "userArgs": {
       "type": "object",
       "patternProperties": {
