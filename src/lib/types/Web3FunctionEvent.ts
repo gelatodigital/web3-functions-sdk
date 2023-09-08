@@ -21,6 +21,7 @@ export type Web3FunctionEvent =
 export type Web3FunctionStorage = {
   state: "updated" | "last";
   storage: { [key: string]: string | undefined };
+  diff: object;
 };
 
 export type Web3FunctionStorageWithSize = Web3FunctionStorage & {

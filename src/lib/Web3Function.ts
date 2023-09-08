@@ -1,17 +1,14 @@
 import { BigNumber } from "@ethersproject/bignumber";
+import { diff } from "deep-object-diff";
 import { Web3FunctionHttpServer } from "./net/Web3FunctionHttpServer";
+import "./polyfill/XMLHttpRequest";
+import { Web3FunctionMultiChainProvider } from "./provider/Web3FunctionMultiChainProvider";
 import {
   Web3FunctionContext,
   Web3FunctionContextData,
 } from "./types/Web3FunctionContext";
+import { Web3FunctionEvent } from "./types/Web3FunctionEvent";
 import { Web3FunctionResult } from "./types/Web3FunctionResult";
-import {
-  Web3FunctionEvent,
-  Web3FunctionStorage,
-} from "./types/Web3FunctionEvent";
-import objectHash = require("object-hash");
-import "./polyfill/XMLHttpRequest";
-import { Web3FunctionMultiChainProvider } from "./provider/Web3FunctionMultiChainProvider";
 
 export class Web3Function {
   private static Instance?: Web3Function;
@@ -33,30 +30,25 @@ export class Web3Function {
   private async _onEvent(event: Web3FunctionEvent): Promise<Web3FunctionEvent> {
     switch (event?.action) {
       case "start": {
-        let storage: Web3FunctionStorage = {
-          state: "last",
-          storage: { ...event.data.context.storage },
-        };
+        const prevStorage = { ...event.data.context.storage };
 
         try {
           const { result, ctxData } = await this._run(event.data.context);
 
-          const lastStorageHash = objectHash(storage.storage, {
-            algorithm: "md5",
-            unorderedObjects: true,
-          });
-
-          const returnedStoragehash = objectHash(ctxData.storage, {
-            algorithm: "md5",
-            unorderedObjects: true,
-          });
-
-          if (lastStorageHash !== returnedStoragehash)
-            storage = { state: "updated", storage: ctxData.storage };
+          const difference = diff(prevStorage, ctxData.storage);
+          const state =
+            Object.keys(difference).length === 0 ? "last" : "updated";
 
           return {
             action: "result",
-            data: { result, storage },
+            data: {
+              result,
+              storage: {
+                state,
+                storage: ctxData.storage,
+                diff: difference,
+              },
+            },
           };
         } catch (error) {
           return {
@@ -66,7 +58,11 @@ export class Web3Function {
                 name: error.name,
                 message: `${error.name}: ${error.message}`,
               },
-              storage,
+              storage: {
+                state: "last",
+                storage: prevStorage,
+                diff: { added: {}, deleted: {}, updated: {} },
+              },
             },
           };
         } finally {
