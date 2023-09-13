@@ -61,7 +61,7 @@ export class Web3Function {
               storage: {
                 state: "last",
                 storage: prevStorage,
-                diff: { added: {}, deleted: {}, updated: {} },
+                diff: {},
               },
             },
           };
