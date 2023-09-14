@@ -72,6 +72,19 @@ describe("Web3FunctionBuilder.build", () => {
     }
   });
 
+  test("should fail when schema execution mode is invalid", async () => {
+    const res = await Web3FunctionBuilder.build(
+      buildSchemaPath("invalid-schema-execution-mode")
+    );
+
+    expect(res.success).toBeFalsy();
+    if (res.success === false) {
+      expect(res.error.message).toMatch(
+        "'executionMode' must be equal to one of the allowed values [sequential|parallel]"
+      );
+    }
+  });
+
   test("should fail when schema runtime config is invalid", async () => {
     const res = await Web3FunctionBuilder.build(
       buildSchemaPath("invalid-schema-runtime")
