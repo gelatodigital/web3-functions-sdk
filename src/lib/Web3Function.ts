@@ -36,6 +36,12 @@ export class Web3Function {
           const { result, ctxData } = await this._run(event.data.context);
 
           const difference = diff(prevStorage, ctxData.storage);
+          for (const key in difference) {
+            if (difference[key] === undefined) {
+              difference[key] = null;
+            }
+          }
+
           const state =
             Object.keys(difference).length === 0 ? "last" : "updated";
 
