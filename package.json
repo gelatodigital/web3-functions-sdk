@@ -92,7 +92,7 @@
   },
   "devDependencies": {
     "@tsconfig/recommended": "^1.0.1",
-    "@types/jest": "^29.5.1",
+    "@types/jest": "^29.5.5",
     "@types/node": "^16.11.12",
     "@types/object-hash": "^3.0.2",
     "@types/signal-exit": "^3.0.1",
