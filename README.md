@@ -1,4 +1,5 @@
 # Web3 Functions SDK & Hardhat Plugin
+
 This SDK allows builders to build & run Web3 Functions as well as provides a [hardhat plugin](#hardhat-plugin) for ease integration in Hardhat developer environments:
 
 - [Getting Started with Web3 Functions](#getting-started-with-web3-functions)
@@ -9,23 +10,28 @@ This SDK allows builders to build & run Web3 Functions as well as provides a [ha
 ## Getting Started with Web3 Functions
 
 ### Project Setup
+
 1. Install project dependencies
+
 ```
 yarn install
 ```
 
-2. If you want to use a private RPC provider, 
+2. If you want to use a private RPC provider,
    - Copy `.env.example` to init your own `.env` file
-  ```
-  cp .env.example .env
-  ```
-   - Complete your `.env` file with your private settings
+
+```
+cp .env.example .env
+```
+
+- Complete your `.env` file with your private settings
 
 ### Write a Web3Function
 
 - Create a new file in `src/web3-functions`
 - Register your web3Function main function using `Web3Function.onRun`
 - Example:
+
 ```typescript
 import { Web3Function, Web3FunctionContext } from "../lib";
 import { Contract } from "@ethersproject/contracts";
@@ -71,23 +77,39 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   };
 });
 ```
+
+- If your function will use Event trigger, you can get event logs from context by changing context type to `Web3FunctionEventContext`
+
+```typescript
+import { Web3Function, Web3FunctionEventContext } from "../lib";
+
+Web3Function.onRun(async (context: Web3FunctionEventContext) => {
+  const { log } = context;
+
+  // Retrieve event block number
+  const blockNumber = log.blockNumber;
+  ...
+}
+```
+
 - create your web3Function `schema.json` to specify your runtime configuration:
+
 ```json
 {
   "web3FunctionVersion": "2.0.0",
   "runtime": "js-1.0",
-  "memory": 128, 
+  "memory": 128,
   "timeout": 30,
   "userArgs": {}
 }
 ```
-
 
 ### Test your web3Function
 
 - Use `yarn test FILENAME` command to test your web3Function
 
 - Options:
+
   - `--logs` Show internal Web3Function logs
   - `--runtime=thread|docker` Use `thread` if you don't have `docker`set up locally (default: `thread`)
   - `--debug` Show Runtime debug messages
@@ -95,6 +117,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 
 - Example: `yarn test src/web3-functions/index.ts --logs --runtime=thread`
 - Output:
+
   ```
   Web3Function Build result:
   ✓ File: ./.tmp/index.js
@@ -119,6 +142,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   ```
 
 ### Deploy / Fetch Web3Function
+
 Use `yarn deploy FILENAME` command to upload your web3Function.
 
 ```
@@ -126,12 +150,14 @@ Use `yarn deploy FILENAME` command to upload your web3Function.
 ```
 
 ### Use User arguments
+
 1. Declare your expected `userArgs` in you schema, accepted types are 'string', 'string[]', 'number', 'number[]', 'boolean', 'boolean[]':
+
 ```json
 {
   "web3FunctionVersion": "2.0.0",
   "runtime": "js-1.0",
-  "memory": 128, 
+  "memory": 128,
   "timeout": 30,
   "userArgs": {
     "currency": "string",
@@ -141,18 +167,19 @@ Use `yarn deploy FILENAME` command to upload your web3Function.
 ```
 
 2. Access your `userArgs` from the Web3Function context:
+
 ```typescript
 Web3Function.onRun(async (context: Web3FunctionContext) => {
   const { userArgs, gelatoArgs, secrets } = context;
 
   // User args:
-  console.log('Currency:', userArgs.currency)
-  console.log('Oracle:', userArgs.oracle)
-  
+  console.log("Currency:", userArgs.currency);
+  console.log("Oracle:", userArgs.oracle);
 });
 ```
 
 3. Add `userArgs.json` in your web3 function folder:
+
 ```
 {
   "oracle": "0x6a3c82330164822A8a39C7C0224D20DB35DD030a",
@@ -165,25 +192,24 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 Use secrets to store any private credentials that should not be published on IPFS with your web3 function.
 
 1. Create a `.env` file in your web3 function folder, containing your key / value secrets:
+
 ```bash
 API_KEY="XXXX"
 ```
 
 2. Access your `secrets` from the Web3Function context:
+
 ```typescript
 Web3Function.onRun(async (context: Web3FunctionContext) => {
   const { secrets } = context;
 
   // Get api key from secrets
   const apiKey = await context.secrets.get("API_KEY");
-  if (!apiKey)
-    return { canExec: false, message: `API_KEY not set in secrets` };
-    
+  if (!apiKey) return { canExec: false, message: `API_KEY not set in secrets` };
 });
 ```
 
 3. When creating a task on Gelato UI, you will be asked to enter secrets. They will be store securely in Gelato Network.
-
 
 ### Use State / Storage
 
@@ -221,24 +247,46 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
 ```
 
 Test storage execution:
+
 ```
 yarn test src/web3-functions/storage/index.ts --logs
 ```
 
 You will see your updated key/values:
+
 ```
 Simulated Web3Function Storage update:
  ✓ lastBlockNumber: '8321923'
 ```
 
 To run your web3 function using mock storage values, add a `storage.json` in your web3 function folder:
+
 ```
 {
   "lastBlockNumber": "8200000"
 }
 ```
 
+### Use mock Event Log
 
+To run your web3 function, that will be triggered by Events, with mock event logs, add a `log.json` in your web3 function folder
+
+```
+{
+  "blockNumber": 10000,
+  "blockHash": "0x...",
+  "transactionIndex": 60,
+  "removed": false,
+  "address": "0x...",
+  "data": "0x0...",
+  "topics": [
+    "0x000000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+  ],
+  "transactionHash": "0x...",
+  "logIndex": 0
+}
+
+```
 
 ## Speed run DevX with the Web3 Function Hardhat Plugin
 
@@ -246,8 +294,9 @@ The Web3 Function Hardhat Plugin provides built-in hardhat tasks that will speed
 
 In order to user the Hardhat Plugin you will need to:
 
-### Configure Hardhat 
-Import Web3 functions Hardhat plugin into `hardhat.config.ts`:  
+### Configure Hardhat
+
+Import Web3 functions Hardhat plugin into `hardhat.config.ts`:
 
 ```ts
 import "@gelatonetwork/web3-functions-sdk/hardhat-plugin";
@@ -258,27 +307,31 @@ const config: HardhatUserConfig = {
     debug: false,
     networks: ["mumbai", "goerli", "baseGoerli"], //(multiChainProvider) injects provider for these networks
   },
-}
+};
 ```
 
-### Web3 Function Simulation 
+### Web3 Function Simulation
+
 Use the following command to run your web3 function locally:<br/>
 `npx hardhat w3f-run W3F_NAME`
 
 - Options:
+
   - `--logs` Show internal Web3Function logs
 
 - Example:<br/>
-`npx hardhat w3f-run oracle --logs`
+  `npx hardhat w3f-run oracle --logs`
 
 ### Deploy Web3 Function to IPFS
+
 Use the following command to deploy your web3 function to IPFS:<br/>
 `npx hardhat w3f-deploy W3F_NAME`
 
 - Example:<br/>
-`npx hardhat w3f-deploy oracle`
+  `npx hardhat w3f-deploy oracle`
 
 ### E2E testing
+
 The Web3 Function hardhat plugin exposes the `w3f` object that can be imported directly from hardhat.
 
 This object will help you to instantiate your Web3 Function and run it.
