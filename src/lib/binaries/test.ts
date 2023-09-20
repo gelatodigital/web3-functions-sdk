@@ -5,7 +5,7 @@ import { Web3FunctionBuilder } from "../builder";
 import { Web3FunctionLoader } from "../loader";
 import { MultiChainProviderConfig } from "../provider";
 import { Web3FunctionRunner } from "../runtime";
-import { Web3FunctionContextData, Web3FunctionUserArgs } from "../types";
+import { Log, Web3FunctionContextData, Web3FunctionUserArgs } from "../types";
 
 const STD_TIMEOUT = 10;
 const STD_RPC_LIMIT = 10;
@@ -30,6 +30,7 @@ export interface CallConfig {
   secrets: { [key: string]: string };
   multiChainProviderConfig: MultiChainProviderConfig;
   chainId: number;
+  log?: Log;
 }
 
 export type RunTime = "docker" | "thread";
@@ -46,6 +47,8 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   let showLogs = callConfig?.showLogs ?? false;
   let storage = callConfig?.storage ?? {};
   let secrets = callConfig?.secrets ?? {};
+  let log = callConfig?.log;
+
   const web3FunctionPath =
     callConfig?.w3fPath ??
     process.argv[3] ??
@@ -87,6 +90,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
     userArgs = w3fDetails.userArgs;
     secrets = w3fDetails.secrets;
     storage = w3fDetails.storage;
+    log = w3fDetails.log;
   }
 
   // Build Web3Function
@@ -113,6 +117,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
       gasPrice: "10",
     },
     userArgs,
+    log,
   };
 
   // Configure Web3Function runner

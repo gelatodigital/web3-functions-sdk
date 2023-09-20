@@ -49,6 +49,7 @@ export class Web3FunctionHardhat {
     const storage = override?.storage ?? this.w3f.storage;
     const secrets = this.w3f.secrets;
     const debug = this.hre.config.w3f.debug;
+    const log = this.w3f.log;
 
     const buildRes = await Web3FunctionBuilder.build(this.w3f.path, { debug });
 
@@ -84,6 +85,7 @@ export class Web3FunctionHardhat {
       userArgs,
       secrets,
       storage,
+      log,
     };
 
     const multiChainProviderConfig = await getMultiChainProviderConfigs(

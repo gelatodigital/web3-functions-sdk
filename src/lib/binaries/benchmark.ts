@@ -76,6 +76,7 @@ export default async function benchmark() {
   const userArgs = w3fDetails.userArgs;
   const secrets = w3fDetails.secrets;
   const storage = w3fDetails.storage;
+  const log = w3fDetails.log;
 
   // Prepare mock content for test
   const context: Web3FunctionContextData = {
@@ -86,6 +87,7 @@ export default async function benchmark() {
       gasPrice: "10",
     },
     userArgs,
+    log,
   };
 
   // Validate user args against schema
