@@ -1,22 +1,7 @@
 import { BigNumber } from "@ethersproject/bignumber";
+import { Log } from "@ethersproject/providers";
 import { Web3FunctionMultiChainProvider } from "../provider/Web3FunctionMultiChainProvider";
 import { Web3FunctionUserArgs } from "./Web3FunctionUserArgs";
-
-export interface Log {
-  blockNumber: number;
-  blockHash: string;
-  transactionIndex: number;
-  transactionHash: string;
-
-  removed: boolean;
-
-  address: string;
-  data: string;
-
-  topics: Array<string>;
-
-  logIndex: number;
-}
 
 export interface Web3FunctionContextData {
   gelatoArgs: {

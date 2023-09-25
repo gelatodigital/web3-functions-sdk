@@ -1,8 +1,8 @@
+import { Log } from "@ethersproject/providers";
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as path from "path";
 
-import { Log } from "../types";
 import { W3fDetails } from "./types";
 
 export class Web3FunctionLoader {

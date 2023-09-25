@@ -1,4 +1,6 @@
-import { Log, Web3FunctionUserArgs } from "../../types";
+import { Log } from "@ethersproject/providers";
+
+import { Web3FunctionUserArgs } from "../../types";
 
 export interface W3fDetails {
   path: string;

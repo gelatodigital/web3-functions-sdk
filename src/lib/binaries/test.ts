@@ -1,11 +1,11 @@
-import { StaticJsonRpcProvider } from "@ethersproject/providers";
+import { Log, StaticJsonRpcProvider } from "@ethersproject/providers";
 import colors from "colors/safe";
 import path from "path";
 import { Web3FunctionBuilder } from "../builder";
 import { Web3FunctionLoader } from "../loader";
 import { MultiChainProviderConfig } from "../provider";
 import { Web3FunctionRunner } from "../runtime";
-import { Log, Web3FunctionContextData, Web3FunctionUserArgs } from "../types";
+import { Web3FunctionContextData, Web3FunctionUserArgs } from "../types";
 
 const STD_TIMEOUT = 10;
 const STD_RPC_LIMIT = 10;
