@@ -47,6 +47,7 @@ export class EthersProviderWrapper extends StaticJsonRpcProvider {
     this._hardhatProvider = hardhatProvider;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   public async send(method: string, params: any): Promise<any> {
     const result = await this._hardhatProvider.send(method, params);
 

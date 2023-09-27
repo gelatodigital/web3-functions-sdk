@@ -2,8 +2,6 @@ import http, { IncomingMessage, Server, ServerResponse } from "http";
 import net from "net";
 import { Duplex } from "stream";
 
-type BlacklistedHandler = (url: URL) => boolean;
-
 interface Web3FunctionHttpProxyStats {
   nbRequests: number;
   nbThrottled: number;
@@ -13,7 +11,7 @@ interface Web3FunctionHttpProxyStats {
 
 export class Web3FunctionHttpProxy {
   private _debug: boolean;
-  private _isStopped: boolean = true;
+  private _isStopped = true;
 
   private readonly _maxDownload: number;
   private readonly _maxUpload: number;
@@ -195,7 +193,7 @@ export class Web3FunctionHttpProxy {
     if (this._debug) console.log(`Web3FunctionHttpProxy: ${message}`);
   }
 
-  public start(port: number = 3000) {
+  public start(port = 3000) {
     this._server
       .listen(port, () => {
         this._log(`Started listening on ${port}`);

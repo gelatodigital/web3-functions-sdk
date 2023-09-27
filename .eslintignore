@@ -3,3 +3,8 @@ dist/
 node_modules
 src/resolvers/fails
 .tmp
+jest.config.ts
+__test__
+src/web3-functions
+polyfill
+src/lib/deno.d.ts
