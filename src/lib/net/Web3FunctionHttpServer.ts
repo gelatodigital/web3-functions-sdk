@@ -24,7 +24,9 @@ export class Web3FunctionHttpServer {
 
     for await (const conn of conns) {
       // eslint-disable-next-line @typescript-eslint/no-empty-function
-      let connectionReleaseResolver = () => {};
+      let connectionReleaseResolver = () => {
+        // Intentionally left empty to use as variable
+      };
       this._waitConnectionReleased = new Promise((resolve) => {
         connectionReleaseResolver = () => {
           resolve();

@@ -1,5 +1,5 @@
-import colors from "colors/safe";
 import { StaticJsonRpcProvider } from "@ethersproject/providers";
+import colors from "colors/safe";
 import path from "path";
 import { Web3FunctionBuilder } from "../builder";
 import { Web3FunctionLoader } from "../loader";
@@ -83,7 +83,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
     const parsedPathParts = path.parse(web3FunctionPath).dir.split(path.sep);
     const w3fName = parsedPathParts.pop() ?? "";
     const w3fRootDir = parsedPathParts.join(path.sep);
-    const w3fDetails = await Web3FunctionLoader.load(w3fName, w3fRootDir);
+    const w3fDetails = Web3FunctionLoader.load(w3fName, w3fRootDir);
     userArgs = w3fDetails.userArgs;
     secrets = w3fDetails.secrets;
     storage = w3fDetails.storage;

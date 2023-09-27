@@ -1,6 +1,6 @@
+import { StaticJsonRpcProvider } from "@ethersproject/providers";
 import colors from "colors/safe";
 import "dotenv/config";
-import { StaticJsonRpcProvider } from "@ethersproject/providers";
 import path from "path";
 import { performance } from "perf_hooks";
 
@@ -72,7 +72,7 @@ export default async function benchmark() {
   const parsedPathParts = path.parse(web3FunctionPath).dir.split(path.sep);
   const w3fName = parsedPathParts.pop() ?? "";
   const w3fRootDir = parsedPathParts.join(path.sep);
-  const w3fDetails = await Web3FunctionLoader.load(w3fName, w3fRootDir);
+  const w3fDetails = Web3FunctionLoader.load(w3fName, w3fRootDir);
   const userArgs = w3fDetails.userArgs;
   const secrets = w3fDetails.secrets;
   const storage = w3fDetails.storage;
