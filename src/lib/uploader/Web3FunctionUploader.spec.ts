@@ -1,6 +1,7 @@
 import axios from "axios";
 import MockAdapter from "axios-mock-adapter";
-import fsp from "node:fs/promises";
+import fs from "node:fs";
+import fsp, { constants } from "node:fs/promises";
 import path from "node:path";
 import tar from "tar";
 import { Web3FunctionUploader } from "./Web3FunctionUploader";
@@ -80,6 +81,24 @@ describe("Web3FunctionUploader", () => {
     cleanupExtractTest("valid-tar");
   });
 
+  test("should not extract unknown file from archive", async () => {
+    const testArchive = await prepareExtractTest("extra-file");
+
+    await Web3FunctionUploader.extract(testArchive);
+    await expect(
+      fsp.access(
+        path.join(
+          buildTestTempPath("extra-file"),
+          TEST_CID,
+          "extraschema.json"
+        ),
+        constants.F_OK
+      )
+    ).rejects.toThrow();
+
+    cleanupExtractTest("extra-file");
+  });
+
   // Compress
   const prepareCompressTest = async (folder: string): Promise<string> => {
     const testFolder = buildTestPath(folder);
@@ -148,13 +167,16 @@ describe("Web3FunctionUploader", () => {
   });
 
   test("fetched compressed W3F should be stored on the tmp folder", async () => {
-    const data = await fsp.readFile(
-      path.join(buildTestPath("valid-tar"), `${TEST_CID}.tgz`)
-    );
-
     mockUserApi
       .onGet(`${OPS_API_BASE}/users/web3-function/${TEST_CID}`)
-      .reply(200, data);
+      .reply(function () {
+        return [
+          200,
+          fs.createReadStream(
+            path.join(buildTestPath("valid-tar"), `${TEST_CID}.tgz`)
+          ),
+        ];
+      });
 
     const expectedPath = `.tmp/${TEST_CID}.tgz`;
     const testPath = await Web3FunctionUploader.fetch(TEST_CID);
@@ -165,13 +187,16 @@ describe("Web3FunctionUploader", () => {
   });
 
   test("fetched compressed W3F should be stored on the specified folder", async () => {
-    const data = await fsp.readFile(
-      path.join(buildTestPath("valid-tar"), `${TEST_CID}.tgz`)
-    );
-
     mockUserApi
       .onGet(`${OPS_API_BASE}/users/web3-function/${TEST_CID}`)
-      .reply(200, data);
+      .reply(function () {
+        return [
+          200,
+          fs.createReadStream(
+            path.join(buildTestPath("valid-tar"), `${TEST_CID}.tgz`)
+          ),
+        ];
+      });
 
     const expectedPath = `.tmp/my-test/${TEST_CID}.tgz`;
     const testPath = await Web3FunctionUploader.fetch(
@@ -186,13 +211,16 @@ describe("Web3FunctionUploader", () => {
 
   // Fetch schema
   test("fetching schema should fail for non-existing schema file", async () => {
-    const data = await fsp.readFile(
-      path.join(buildTestPath("no-schema-tar"), `${TEST_CID}.tgz`)
-    );
-
     mockUserApi
       .onGet(`${OPS_API_BASE}/users/web3-function/${TEST_CID}`)
-      .reply(200, data);
+      .reply(function () {
+        return [
+          200,
+          fs.createReadStream(
+            path.join(buildTestPath("no-schema-tar"), `${TEST_CID}.tgz`)
+          ),
+        ];
+      });
 
     try {
       await Web3FunctionUploader.fetchSchema(TEST_CID);
@@ -203,13 +231,16 @@ describe("Web3FunctionUploader", () => {
   });
 
   test("fetching schema should fail for malformed schema file", async () => {
-    const data = await fsp.readFile(
-      path.join(buildTestPath("malformed-schema-tar"), `${TEST_CID}.tgz`)
-    );
-
     mockUserApi
       .onGet(`${OPS_API_BASE}/users/web3-function/${TEST_CID}`)
-      .reply(200, data);
+      .reply(function () {
+        return [
+          200,
+          fs.createReadStream(
+            path.join(buildTestPath("malformed-schema-tar"), `${TEST_CID}.tgz`)
+          ),
+        ];
+      });
 
     try {
       await Web3FunctionUploader.fetchSchema(TEST_CID);
@@ -220,13 +251,16 @@ describe("Web3FunctionUploader", () => {
   });
 
   test("fetched function data should be removed after fetching schema", async () => {
-    const data = await fsp.readFile(
-      path.join(buildTestPath("valid-tar"), `${TEST_CID}.tgz`)
-    );
-
     mockUserApi
       .onGet(`${OPS_API_BASE}/users/web3-function/${TEST_CID}`)
-      .reply(200, data);
+      .reply(function () {
+        return [
+          200,
+          fs.createReadStream(
+            path.join(buildTestPath("valid-tar"), `${TEST_CID}.tgz`)
+          ),
+        ];
+      });
 
     const expectedPath = `.tmp/${TEST_CID}.tgz`;
 
