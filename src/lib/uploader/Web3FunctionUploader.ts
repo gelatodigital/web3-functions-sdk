@@ -177,6 +177,8 @@ export class Web3FunctionUploader {
     sourcePath: string;
     web3FunctionPath: string;
   }> {
+    const tarExpectedFileNames = ["schema.json", "index.js", "source.js"];
+
     try {
       const { dir, name } = path.parse(input);
 
@@ -186,7 +188,32 @@ export class Web3FunctionUploader {
         fs.mkdirSync(cidDirectory, { recursive: true });
       }
 
-      await tar.x({ file: input, cwd: cidDirectory });
+      let extractedSize = 0;
+
+      await tar.x({
+        file: input,
+        cwd: cidDirectory,
+        filter: (_, entry) => {
+          extractedSize += entry.size;
+
+          if (extractedSize >= MAX_SIZE) {
+            throw new Error(
+              `extracted size exceeds max size ${MAX_SIZE.toFixed(2)}mb`
+            );
+          }
+
+          const fileName = entry.path.split("/").pop();
+          if (
+            entry.type !== "File" ||
+            !tarExpectedFileNames.includes(fileName)
+          ) {
+            // Ignore unexpected files from archive
+            return false;
+          }
+
+          return true;
+        },
+      });
 
       // remove tar file
       fs.rmSync(input, { recursive: true });
