@@ -1,10 +1,10 @@
 import { task } from "hardhat/config";
 import test, { CallConfig } from "../../lib/binaries/test";
+import { Web3FunctionLoader } from "../../lib/loader";
 import {
   EthersProviderWrapper,
   getMultiChainProviderConfigs,
 } from "../provider";
-import { Web3FunctionLoader } from "../../lib/loader";
 
 task("w3f-run", "Runs Gelato Web3 Function")
   .addFlag("debug", "Enable debug mode")
@@ -35,6 +35,7 @@ task("w3f-run", "Runs Gelato Web3 Function")
       secrets: w3f.secrets,
       multiChainProviderConfig,
       chainId,
+      log: w3f.log,
     };
 
     await test(callConfig);

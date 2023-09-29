@@ -1,6 +1,7 @@
+import { Log } from "@ethersproject/providers";
+import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as path from "path";
-import * as dotenv from "dotenv";
 
 import { W3fDetails } from "./types";
 
@@ -26,6 +27,7 @@ export class Web3FunctionLoader {
       const tsPath = path.join(w3fPath, "index.ts");
       const userArgsJsonPath = path.join(w3fPath, "userArgs.json");
       const storageJsonPath = path.join(w3fPath, "storage.json");
+      const logJsonPath = path.join(w3fPath, "log.json");
       const secretsPath = path.join(w3fPath, ".env");
 
       // Get web3 function
@@ -68,6 +70,18 @@ export class Web3FunctionLoader {
           });
         } catch (error) {
           console.error(`Error reading .env for ${w3fName}: ${error.message}`);
+        }
+      }
+
+      // Get event log
+      if (fs.existsSync(logJsonPath)) {
+        try {
+          const logJsonString = fs.readFileSync(logJsonPath, "utf8");
+          details.log = JSON.parse(logJsonString) as Log;
+        } catch (error) {
+          console.error(
+            `Error reading log.json for ${w3fName}: ${error.message}`
+          );
         }
       }
     }

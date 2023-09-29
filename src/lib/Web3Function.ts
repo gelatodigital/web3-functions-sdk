@@ -6,15 +6,23 @@ import { Web3FunctionMultiChainProvider } from "./provider/Web3FunctionMultiChai
 import {
   Web3FunctionContext,
   Web3FunctionContextData,
+  Web3FunctionEventContext,
 } from "./types/Web3FunctionContext";
 import { Web3FunctionEvent } from "./types/Web3FunctionEvent";
 import { Web3FunctionResult } from "./types/Web3FunctionResult";
+
+type baseRunHandler = (ctx: Web3FunctionContext) => Promise<Web3FunctionResult>;
+type eventRunHandler = (
+  ctx: Web3FunctionEventContext
+) => Promise<Web3FunctionResult>;
+
+type runHandler = baseRunHandler | eventRunHandler;
 
 export class Web3Function {
   private static Instance?: Web3Function;
   private static _debug = false;
   private _server: Web3FunctionHttpServer;
-  private _onRun?: (ctx: Web3FunctionContext) => Promise<Web3FunctionResult>;
+  private _onRun?: runHandler;
 
   constructor() {
     const port = Number(Deno.env.get("WEB3_FUNCTION_SERVER_PORT") ?? 80);
@@ -23,11 +31,13 @@ export class Web3Function {
       port,
       mountPath,
       Web3Function._debug,
-      this._onEvent.bind(this)
+      this._onFunctionEvent.bind(this)
     );
   }
 
-  private async _onEvent(event: Web3FunctionEvent): Promise<Web3FunctionEvent> {
+  private async _onFunctionEvent(
+    event: Web3FunctionEvent
+  ): Promise<Web3FunctionEvent> {
     switch (event?.action) {
       case "start": {
         const prevStorage = { ...event.data.context.storage };
@@ -121,7 +131,10 @@ export class Web3Function {
       },
     };
 
-    const result = await this._onRun(context);
+    const result = ctxData.log
+      ? await (this._onRun as eventRunHandler)({ ...context, log: ctxData.log })
+      : await (this._onRun as baseRunHandler)(context);
+
     return { result, ctxData };
   }
 
@@ -143,9 +156,9 @@ export class Web3Function {
     return Web3Function.Instance;
   }
 
-  static onRun(
-    onRun: (ctx: Web3FunctionContext) => Promise<Web3FunctionResult>
-  ): void {
+  static onRun(onRun: baseRunHandler): void;
+  static onRun(onRun: eventRunHandler): void;
+  static onRun(onRun: any): void {
     Web3Function._log("Registering onRun function");
     Web3Function.getInstance()._onRun = onRun;
   }

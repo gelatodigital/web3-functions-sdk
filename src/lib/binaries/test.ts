@@ -1,4 +1,4 @@
-import { StaticJsonRpcProvider } from "@ethersproject/providers";
+import { Log, StaticJsonRpcProvider } from "@ethersproject/providers";
 import colors from "colors/safe";
 import path from "path";
 import { Web3FunctionBuilder } from "../builder";
@@ -30,6 +30,7 @@ export interface CallConfig {
   secrets: { [key: string]: string };
   multiChainProviderConfig: MultiChainProviderConfig;
   chainId: number;
+  log?: Log;
 }
 
 export type RunTime = "docker" | "thread";
@@ -46,6 +47,8 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   let showLogs = callConfig?.showLogs ?? false;
   let storage = callConfig?.storage ?? {};
   let secrets = callConfig?.secrets ?? {};
+  let log = callConfig?.log;
+
   const web3FunctionPath =
     callConfig?.w3fPath ??
     process.argv[3] ??
@@ -87,6 +90,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
     userArgs = w3fDetails.userArgs;
     secrets = w3fDetails.secrets;
     storage = w3fDetails.storage;
+    log = w3fDetails.log;
   }
 
   // Build Web3Function
@@ -113,6 +117,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
       gasPrice: "10",
     },
     userArgs,
+    log,
   };
 
   // Configure Web3Function runner
