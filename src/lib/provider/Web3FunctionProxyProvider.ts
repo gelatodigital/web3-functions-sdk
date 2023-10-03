@@ -1,7 +1,7 @@
+import { StaticJsonRpcProvider } from "@ethersproject/providers";
 import bodyParser from "body-parser";
 import crypto from "crypto";
 import { ethErrors, serializeError } from "eth-rpc-errors";
-import { StaticJsonRpcProvider } from "@ethersproject/providers";
 import express from "express";
 import http from "http";
 import { MultiChainProviderConfig } from "./types";
@@ -9,9 +9,8 @@ import { MultiChainProviderConfig } from "./types";
 export class Web3FunctionProxyProvider {
   private _debug: boolean;
   private _host: string;
-  private _port: number;
   private _mountPath: string;
-  private _proxyUrl: string;
+  private _proxyUrl!: string;
   private _app: express.Application = express();
   private _server: http.Server | undefined;
   private _isStopped = false;
@@ -24,7 +23,6 @@ export class Web3FunctionProxyProvider {
 
   constructor(
     host: string,
-    port: number,
     limit: number,
     mainChainId: number,
     multiChainProviderConfig: MultiChainProviderConfig,
@@ -32,11 +30,9 @@ export class Web3FunctionProxyProvider {
   ) {
     this._mainChainId = mainChainId;
     this._host = host;
-    this._port = port;
     this._debug = debug;
     this._limit = limit;
     this._mountPath = crypto.randomUUID();
-    this._proxyUrl = `${this._host}:${this._port}/${this._mountPath}`;
     this._providers = new Map();
     this._instantiateProvider(multiChainProviderConfig);
   }
@@ -117,21 +113,22 @@ export class Web3FunctionProxyProvider {
     }
   }
 
-  public async start(): Promise<void> {
-    this._app.use(bodyParser.json());
+  public async start(port = 3000): Promise<void> {
+    await new Promise<void>((resolve) => {
+      this._server = this._app.listen(port, () => {
+        this._log(`Listening on: ${this._proxyUrl}`);
+        resolve();
+      });
+    });
 
+    this._app.use(bodyParser.json());
     this._app.post(`/${this._mountPath}/`, this._requestHandler.bind(this));
     this._app.post(
       `/${this._mountPath}/:chainId`,
       this._requestHandler.bind(this)
     );
 
-    await new Promise<void>((resolve) => {
-      this._server = this._app.listen(this._port, () => {
-        this._log(`Listening on: ${this._proxyUrl}`);
-        resolve();
-      });
-    });
+    this._proxyUrl = `${this._host}:${port}/${this._mountPath}`;
   }
 
   public getNbRpcCalls(): { total: number; throttled: number } {
