@@ -410,7 +410,9 @@ export class Web3FunctionRunner {
       multiChainProviderConfig,
       this._debug
     );
-    const proxyProviderPort = await Web3FunctionNetHelper.getAvailablePort();
+    const proxyProviderPort = await Web3FunctionNetHelper.getAvailablePort(
+      this._portsOccupied
+    );
     await this._proxyProvider.start(proxyProviderPort);
     context.rpcProviderUrl = this._proxyProvider.getProxyUrl();
 
