@@ -93,6 +93,27 @@ export class Web3FunctionRunner {
     }
   }
 
+  private _getInvalidParseExample(type: string): string {
+    const useStr = (value: string) => `(use: '${value}')`;
+
+    switch (type) {
+      case "boolean":
+        return useStr("true");
+      case "boolean[]":
+        return useStr("[true, false]");
+      case "string":
+        return useStr('"a"');
+      case "string[]":
+        return useStr('["a", "b"]');
+      case "number":
+        return useStr("1");
+      case "number[]":
+        return useStr("[1, 2]");
+      default:
+        return "";
+    }
+  }
+
   public parseUserArgs(
     userArgsSchema: Web3FunctionUserArgsSchema,
     inputUserArgs: { [key: string]: string }
@@ -103,86 +124,30 @@ export class Web3FunctionRunner {
       if (typeof value === "undefined") {
         throw new Error(`Web3FunctionSchemaError: Missing user arg '${key}'`);
       }
+
       const type = userArgsSchema[key];
-      switch (type) {
-        case "boolean":
-          typedUserArgs[key] = !(value === "false");
-          break;
-        case "boolean[]": {
-          try {
-            const parsedValue = JSON.parse(value);
-            if (
-              !Array.isArray(parsedValue) ||
-              parsedValue.some((a) => typeof a !== "boolean")
-            ) {
-              throw new Error(
-                `Web3FunctionSchemaError: Invalid boolean[] value '${value}' for user arg '${key}' (use: '[true, false]')`
-              );
-            }
-            typedUserArgs[key] = parsedValue;
-          } catch (err) {
-            throw new Error(
-              `Parsing ${value} to boolean[] failed. \n${err.message}`
-            );
-          }
-          break;
-        }
-        case "string":
-          typedUserArgs[key] = value;
-          break;
-        case "string[]": {
-          try {
-            const parsedValue = JSON.parse(value);
-            if (
-              !Array.isArray(parsedValue) ||
-              parsedValue.some((a) => typeof a !== "string")
-            ) {
-              throw new Error(
-                `Web3FunctionSchemaError: Invalid string[] value '${value}' for user arg '${key}' (use: '["a", "b"]')`
-              );
-            }
-            typedUserArgs[key] = parsedValue;
-          } catch (err) {
-            throw new Error(
-              `Parsing ${value} to string[] failed. \n${err.message}`
-            );
-          }
-          break;
-        }
-        case "number": {
-          const parsedValue = value.includes(".")
-            ? parseFloat(value)
-            : parseInt(value);
-          if (isNaN(parsedValue)) {
-            throw new Error(
-              `Web3FunctionSchemaError: Invalid number value '${value}' for user arg '${key}'`
-            );
-          }
-          typedUserArgs[key] = parsedValue;
-          break;
-        }
-        case "number[]":
-          try {
-            const parsedValue = JSON.parse(value);
-            if (
-              !Array.isArray(parsedValue) ||
-              parsedValue.some((a) => typeof a !== "number")
-            ) {
-              throw new Error(
-                `Web3FunctionSchemaError: Invalid number[] value '${value}' for user arg '${key}' (use: '[1, 2]')`
-              );
-            }
-            typedUserArgs[key] = parsedValue;
-          } catch (err) {
-            throw new Error(
-              `Parsing ${value} to number[] failed. \n${err.message}`
-            );
-          }
-          break;
-        default:
+      const typing = type.split("[]");
+      const baseType = typing[0];
+
+      try {
+        const parsedValue = JSON.parse(value);
+        if (
+          (typing.length > 1 &&
+            (!Array.isArray(parsedValue) ||
+              parsedValue.some((a) => typeof a !== baseType))) ||
+          (typing.length === 1 && typeof parsedValue !== baseType)
+        ) {
+          // array type
           throw new Error(
-            `Web3FunctionSchemaError: Unrecognized type '${type}' for user arg '${key}'`
+            `Web3FunctionSchemaError: Invalid ${type} value '${value}' for user arg '${key}' ${this._getInvalidParseExample(
+              type
+            )}`
           );
+        }
+
+        typedUserArgs[key] = parsedValue;
+      } catch (err) {
+        throw new Error(`Parsing ${value} to ${type} failed. \n${err.message}`);
       }
     }
     return typedUserArgs;
