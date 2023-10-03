@@ -34,14 +34,13 @@ describe("Web3FunctionProxyProvider", () => {
   beforeEach(async () => {
     proxyProvider = new Web3FunctionProxyProvider(
       proxyProviderHost,
-      proxyProviderPort,
       rpcLimit,
       TestChainIds.Goerli,
       multiChainProviderConfig,
       false
     );
 
-    await proxyProvider.start();
+    await proxyProvider.start(proxyProviderPort);
   });
 
   afterEach(() => {
