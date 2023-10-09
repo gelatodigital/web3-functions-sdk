@@ -9,6 +9,10 @@ import { Web3FunctionSchema } from "../types";
 
 const OPS_USER_API =
   process.env.OPS_USER_API ?? "https://api.gelato.digital/automate/users";
+
+const DOWNLOAD_MAX_SIZE = 1 * 1024 * 1024; // 1 MB;
+const EXTRACT_MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+
 export class Web3FunctionUploader {
   public static async upload(
     schemaPath: string,
@@ -34,38 +38,73 @@ export class Web3FunctionUploader {
     cid: string,
     destDir = path.join(process.cwd(), ".tmp")
   ): Promise<string> {
-    try {
-      const res = await axios.get(
-        `${OPS_USER_API}/users/web3-function/${cid}`,
-        {
-          responseEncoding: "binary",
-          responseType: "arraybuffer",
-        }
-      );
+    return new Promise((resolve, reject) => {
+      // abort download when it exceeds the limit
+      const downloadAbort = new AbortController();
+      const chunks: Buffer[] = [];
 
-      const web3FunctionFileName = `${cid}.tgz`;
-      const web3FunctionPath = path.join(destDir, web3FunctionFileName);
+      axios
+        .get(`${OPS_USER_API}/users/web3-function/${cid}`, {
+          responseType: "stream",
+          signal: downloadAbort.signal,
+        })
+        .then((res) => {
+          const web3FunctionFileName = `${cid}.tgz`;
+          const web3FunctionPath = path.join(destDir, web3FunctionFileName);
 
-      if (!fs.existsSync(destDir)) {
-        fs.mkdirSync(destDir, { recursive: true });
-      }
+          let downloadedSize = 0;
+          res.data.on("data", (chunk) => {
+            downloadedSize += chunk.length;
 
-      await fsp.writeFile(web3FunctionPath, res.data);
+            if (downloadedSize >= DOWNLOAD_MAX_SIZE) {
+              downloadAbort.abort();
+            } else {
+              chunks.push(chunk);
+            }
+          });
 
-      return web3FunctionPath;
-    } catch (err) {
-      let errMsg = `${err.message} `;
-      if (axios.isAxiosError(err)) {
-        const data = JSON.parse(err.response?.data.toString("utf8")) as {
-          message?: string;
-        };
-        if (data.message) errMsg += data.message;
-      }
+          res.data.on("end", async () => {
+            const buffer = Buffer.concat(chunks);
 
-      throw new Error(
-        `Web3FunctionUploaderError: Fetch Web3Function to ${destDir} failed. \n${errMsg}`
-      );
-    }
+            if (!fs.existsSync(destDir)) {
+              fs.mkdirSync(destDir, { recursive: true });
+            }
+
+            await fsp.writeFile(web3FunctionPath, buffer);
+            resolve(web3FunctionPath);
+          });
+
+          res.data.on("error", (err: Error) => {
+            // handle download limit exceeding specifically
+            if (axios.isCancel(err)) {
+              reject(
+                new Error(
+                  `file size is exceeding download limit ${DOWNLOAD_MAX_SIZE.toFixed(
+                    2
+                  )}mb`
+                )
+              );
+            } else {
+              reject(err);
+            }
+          });
+        })
+        .catch((err) => {
+          let errMsg = `${err.message} `;
+          if (axios.isAxiosError(err)) {
+            const data = JSON.parse(err.response?.data.toString("utf8")) as {
+              message?: string;
+            };
+            if (data.message) errMsg += data.message;
+          }
+
+          reject(
+            new Error(
+              `Web3FunctionUploaderError: Fetch Web3Function to ${destDir} failed. \n${errMsg}`
+            )
+          );
+        });
+    });
   }
 
   public static async compress(
@@ -139,6 +178,8 @@ export class Web3FunctionUploader {
     sourcePath: string;
     web3FunctionPath: string;
   }> {
+    const tarExpectedFileNames = ["schema.json", "index.js", "source.js"];
+
     try {
       const { dir, name } = path.parse(input);
 
@@ -148,7 +189,32 @@ export class Web3FunctionUploader {
         fs.mkdirSync(cidDirectory, { recursive: true });
       }
 
-      await tar.x({ file: input, cwd: cidDirectory });
+      let extractedSize = 0;
+
+      await tar.x({
+        file: input,
+        cwd: cidDirectory,
+        filter: (_, entry) => {
+          extractedSize += entry.size;
+
+          if (extractedSize >= EXTRACT_MAX_SIZE) {
+            throw new Error(
+              `extracted size exceeds max size ${EXTRACT_MAX_SIZE.toFixed(2)}mb`
+            );
+          }
+
+          const fileName = entry.path.split("/").pop();
+          if (
+            entry.type !== "File" ||
+            !tarExpectedFileNames.includes(fileName)
+          ) {
+            // Ignore unexpected files from archive
+            return false;
+          }
+
+          return true;
+        },
+      });
 
       // remove tar file
       fs.rmSync(input, { recursive: true });
