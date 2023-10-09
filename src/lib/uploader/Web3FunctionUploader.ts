@@ -10,7 +10,8 @@ import { Web3FunctionSchema } from "../types";
 const OPS_USER_API =
   process.env.OPS_USER_API ?? "https://api.gelato.digital/automate/users";
 
-const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
+const DOWNLOAD_MAX_SIZE = 1 * 1024 * 1024; // 1 MB;
+const EXTRACT_MAX_SIZE = 10 * 1024 * 1024; // 10 MB
 
 export class Web3FunctionUploader {
   public static async upload(
@@ -55,7 +56,7 @@ export class Web3FunctionUploader {
           res.data.on("data", (chunk) => {
             downloadedSize += chunk.length;
 
-            if (downloadedSize >= MAX_SIZE) {
+            if (downloadedSize >= DOWNLOAD_MAX_SIZE) {
               downloadAbort.abort();
             } else {
               chunks.push(chunk);
@@ -78,7 +79,7 @@ export class Web3FunctionUploader {
             if (axios.isCancel(err)) {
               reject(
                 new Error(
-                  `file size is exceeding download limit ${MAX_SIZE.toFixed(
+                  `file size is exceeding download limit ${DOWNLOAD_MAX_SIZE.toFixed(
                     2
                   )}mb`
                 )
@@ -196,9 +197,9 @@ export class Web3FunctionUploader {
         filter: (_, entry) => {
           extractedSize += entry.size;
 
-          if (extractedSize >= MAX_SIZE) {
+          if (extractedSize >= EXTRACT_MAX_SIZE) {
             throw new Error(
-              `extracted size exceeds max size ${MAX_SIZE.toFixed(2)}mb`
+              `extracted size exceeds max size ${EXTRACT_MAX_SIZE.toFixed(2)}mb`
             );
           }
 
