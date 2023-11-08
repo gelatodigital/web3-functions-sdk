@@ -4,6 +4,8 @@ import path from "path";
 import { Web3FunctionVersion } from "../../types";
 import { Web3FunctionAbstractSandbox } from "./Web3FunctionAbstractSandbox";
 
+const HTTP_PROXY_HOST = "host.docker.internal";
+
 export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
   private _container?: Docker.Container;
   private _docker = new Docker();
@@ -52,7 +54,6 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
     version: Web3FunctionVersion,
     serverPort: number,
     mountPath: string,
-    httpProxyHost: string,
     httpProxyPort: number,
     args: string[]
   ): Promise<void> {
@@ -71,7 +72,7 @@ export class Web3FunctionDockerSandbox extends Web3FunctionAbstractSandbox {
       ];
     }
 
-    const httpProxyUrl = `${httpProxyHost}:${httpProxyPort}`;
+    const httpProxyUrl = `${HTTP_PROXY_HOST}:${httpProxyPort}`;
     env.push(`HTTP_PROXY=${httpProxyUrl}`);
     env.push(`HTTPS_PROXY=${httpProxyUrl}`);
 

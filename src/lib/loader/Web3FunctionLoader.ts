@@ -1,4 +1,3 @@
-import { Log } from "@ethersproject/providers";
 import * as dotenv from "dotenv";
 import * as fs from "fs";
 import * as path from "path";
@@ -7,6 +6,34 @@ import { W3fDetails } from "./types";
 
 export class Web3FunctionLoader {
   private static _cache = new Map<string, W3fDetails>();
+
+  private static _loadJson(path: string) {
+    if (fs.existsSync(path)) {
+      const jsonString = fs.readFileSync(path, "utf8");
+      return JSON.parse(jsonString);
+    }
+
+    return {};
+  }
+
+  private static _loadLog(path: string) {
+    const log = this._loadJson(path);
+
+    return Object.keys(log).length === 0 ? undefined : log;
+  }
+
+  private static _loadSecrets(path: string) {
+    const secrets = {};
+
+    if (fs.existsSync(path)) {
+      const config = dotenv.config({ path }).parsed ?? {};
+      Object.keys(config).forEach((key) => {
+        secrets[key] = config[key];
+      });
+    }
+
+    return secrets;
+  }
 
   public static load(w3fName: string, w3fRootDir: string): W3fDetails {
     const w3fPath = path.join(w3fRootDir, w3fName);
@@ -38,51 +65,37 @@ export class Web3FunctionLoader {
       } else throw new Error(`Web3 Function "${w3fName}" not found!`);
 
       // Get userArgs
-      if (fs.existsSync(userArgsJsonPath)) {
-        try {
-          const userArgsJsonString = fs.readFileSync(userArgsJsonPath, "utf8");
-          details.userArgs = JSON.parse(userArgsJsonString);
-        } catch (error) {
-          console.error(
-            `Error reading userArgs.json for ${w3fName}: ${error.message}`
-          );
-        }
+      try {
+        details.userArgs = this._loadJson(userArgsJsonPath);
+      } catch (error) {
+        console.error(
+          `Error reading userArgs.json for ${w3fName}: ${error.message}`
+        );
       }
 
       // Get storage
-      if (fs.existsSync(storageJsonPath)) {
-        try {
-          const storageJsonString = fs.readFileSync(storageJsonPath, "utf8");
-          details.storage = JSON.parse(storageJsonString);
-        } catch (error) {
-          console.error(
-            `Error reading storage.json for ${w3fName}: ${error.message}`
-          );
-        }
+      try {
+        details.storage = this._loadJson(storageJsonPath);
+      } catch (error) {
+        console.error(
+          `Error reading storage.json for ${w3fName}: ${error.message}`
+        );
       }
 
       // Get secrets
-      if (fs.existsSync(secretsPath)) {
-        try {
-          const config = dotenv.config({ path: secretsPath }).parsed ?? {};
-          Object.keys(config).forEach((key) => {
-            details.secrets[key] = config[key];
-          });
-        } catch (error) {
-          console.error(`Error reading .env for ${w3fName}: ${error.message}`);
-        }
+      try {
+        details.secrets = this._loadSecrets(secretsPath);
+      } catch (error) {
+        console.error(`Error reading .env for ${w3fName}: ${error.message}`);
       }
 
       // Get event log
-      if (fs.existsSync(logJsonPath)) {
-        try {
-          const logJsonString = fs.readFileSync(logJsonPath, "utf8");
-          details.log = JSON.parse(logJsonString) as Log;
-        } catch (error) {
-          console.error(
-            `Error reading log.json for ${w3fName}: ${error.message}`
-          );
-        }
+      try {
+        details.log = this._loadLog(logJsonPath);
+      } catch (error) {
+        console.error(
+          `Error reading log.json for ${w3fName}: ${error.message}`
+        );
       }
     }
 
