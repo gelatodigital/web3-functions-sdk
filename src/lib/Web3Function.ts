@@ -38,57 +38,54 @@ export class Web3Function {
   private async _onFunctionEvent(
     event: Web3FunctionEvent
   ): Promise<Web3FunctionEvent> {
-    switch (event?.action) {
-      case "start": {
-        const prevStorage = { ...event.data.context.storage };
+    if (event?.action === "start") {
+      const prevStorage = { ...event.data.context.storage };
 
-        try {
-          const { result, ctxData } = await this._run(event.data.context);
+      try {
+        const { result, ctxData } = await this._run(event.data.context);
 
-          const difference = diff(prevStorage, ctxData.storage);
-          for (const key in difference) {
-            if (difference[key] === undefined) {
-              difference[key] = null;
-            }
+        const difference = diff(prevStorage, ctxData.storage);
+        for (const key in difference) {
+          if (difference[key] === undefined) {
+            difference[key] = null;
           }
-
-          const state =
-            Object.keys(difference).length === 0 ? "last" : "updated";
-
-          return {
-            action: "result",
-            data: {
-              result,
-              storage: {
-                state,
-                storage: ctxData.storage,
-                diff: difference,
-              },
-            },
-          };
-        } catch (error) {
-          return {
-            action: "error",
-            data: {
-              error: {
-                name: error.name,
-                message: `${error.name}: ${error.message}`,
-              },
-              storage: {
-                state: "last",
-                storage: prevStorage,
-                diff: {},
-              },
-            },
-          };
-        } finally {
-          this._exit();
         }
+
+        const state = Object.keys(difference).length === 0 ? "last" : "updated";
+
+        return {
+          action: "result",
+          data: {
+            result,
+            storage: {
+              state,
+              storage: ctxData.storage,
+              diff: difference,
+            },
+          },
+        };
+      } catch (error) {
+        return {
+          action: "error",
+          data: {
+            error: {
+              name: error.name,
+              message: `${error.name}: ${error.message}`,
+            },
+            storage: {
+              state: "last",
+              storage: prevStorage,
+              diff: {},
+            },
+          },
+        };
+      } finally {
+        this._exit();
       }
-      default:
-        Web3Function._log(`Unrecognized parent process event: ${event.action}`);
-        throw new Error(`Unrecognized parent process event: ${event.action}`);
     }
+
+    Web3Function._log(`Unrecognized parent process event: ${event.action}`);
+    throw new Error(`Unrecognized parent process event: ${event.action}`);
   }
 
   private async _run(ctxData: Web3FunctionContextData) {

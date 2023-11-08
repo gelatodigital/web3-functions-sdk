@@ -7,7 +7,7 @@ export class Web3FunctionNetHelper {
       srv.listen(0, () => {
         const address = srv.address();
         const port = address && typeof address === "object" ? address.port : -1;
-        srv.close(() => (port ? res(port) : rej()));
+        srv.close(() => (port ? res(port) : rej("Could not get port")));
       });
     });
   }
