@@ -84,7 +84,6 @@ export class Web3Function {
         } finally {
           this._exit();
         }
-        break;
       }
       default:
         Web3Function._log(`Unrecognized parent process event: ${event.action}`);
