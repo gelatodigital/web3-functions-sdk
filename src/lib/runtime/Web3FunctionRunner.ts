@@ -158,7 +158,6 @@ export class Web3FunctionRunner {
   ): Promise<Web3FunctionExec> {
     const start = performance.now();
     const throttled: Web3FunctionThrottled = {};
-    let success: boolean;
     let result: Web3FunctionResult | undefined = undefined;
     let storage: Web3FunctionStorageWithSize | undefined = undefined;
     let error: Error | undefined = undefined;
@@ -179,10 +178,8 @@ export class Web3FunctionRunner {
         ...data.storage,
         size: Buffer.byteLength(JSON.stringify(data.storage), "utf-8") / 1024,
       };
-      success = true;
     } catch (err) {
       error = err;
-      success = false;
     } finally {
       await this.stop();
     }
@@ -220,17 +217,17 @@ export class Web3FunctionRunner {
       throttled.upload = networkStats.upload >= options.uploadLimit / 1024;
     }
 
-    if (success) {
+    if (storage && result) {
       if (storage?.state === "updated") {
         throttled.storage = storage.size > options.storageLimit;
       }
 
       if (version === Web3FunctionVersion.V1_0_0) {
         return {
-          success,
+          success: true,
           version,
           result: result as Web3FunctionResultV1,
-          storage: storage as Web3FunctionStorageWithSize,
+          storage,
           logs,
           duration,
           memory,
@@ -240,10 +237,10 @@ export class Web3FunctionRunner {
         };
       } else {
         return {
-          success,
+          success: true,
           version,
           result: result as Web3FunctionResultV2,
-          storage: storage as Web3FunctionStorageWithSize,
+          storage,
           logs,
           duration,
           memory,
@@ -262,7 +259,7 @@ export class Web3FunctionRunner {
       }
 
       return {
-        success,
+        success: false,
         version,
         error: error as Web3FunctionRuntimeError,
         logs,
