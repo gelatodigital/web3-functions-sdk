@@ -1,7 +1,7 @@
-import path from "path";
 import { extendConfig, extendEnvironment } from "hardhat/config";
 import { lazyObject } from "hardhat/plugins";
 import { HardhatConfig, HardhatUserConfig } from "hardhat/types";
+import path from "path";
 
 import { W3f_ROOT_DIR } from "../constants/index";
 import { W3fHardhatPlugin } from "./W3fHardhatPlugin";
@@ -18,13 +18,12 @@ extendConfig(
     let w3fRootDir: string;
     if (usrRootDir === undefined) {
       w3fRootDir = path.join(config.paths.root, W3f_ROOT_DIR);
+    } else if (path.isAbsolute(usrRootDir)) {
+      w3fRootDir = usrRootDir;
     } else {
-      if (path.isAbsolute(usrRootDir)) {
-        w3fRootDir = usrRootDir;
-      } else {
-        w3fRootDir = path.normalize(path.join(config.paths.root, usrRootDir));
-      }
+      w3fRootDir = path.normalize(path.join(config.paths.root, usrRootDir));
     }
+
     config.w3f.rootDir = w3fRootDir;
 
     // set up w3f networks for multi chain provider
