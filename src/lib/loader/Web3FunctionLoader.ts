@@ -37,8 +37,9 @@ export class Web3FunctionLoader {
 
   public static load(w3fName: string, w3fRootDir: string): W3fDetails {
     const w3fPath = path.join(w3fRootDir, w3fName);
-    if (this._cache.has(w3fPath)) {
-      return this._cache.get(w3fPath) as W3fDetails;
+    const cachedDetails = this._cache.get(w3fPath);
+    if (cachedDetails) {
+      return cachedDetails;
     }
 
     const details: W3fDetails = {
