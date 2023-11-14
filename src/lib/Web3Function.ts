@@ -82,10 +82,10 @@ export class Web3Function {
       } finally {
         this._exit();
       }
+    } else {
+      Web3Function._log(`Unrecognized parent process event: ${event.action}`);
+      throw new Error(`Unrecognized parent process event: ${event.action}`);
     }
-
-    Web3Function._log(`Unrecognized parent process event: ${event.action}`);
-    throw new Error(`Unrecognized parent process event: ${event.action}`);
   }
 
   private async _run(ctxData: Web3FunctionContextData) {
