@@ -49,9 +49,10 @@ function logStorage(storage: Web3FunctionStorageWithSize) {
   // Show storage update
   if (storage?.state === "updated") {
     console.log(`\nSimulated Web3Function Storage update:`);
-    Object.entries(storage.storage).forEach(([key, value]) =>
-      logWithStatus(OK, `${key}: ${colors.green(`'${value}'`)}`, 1)
-    );
+    Object.entries(storage.storage).forEach(([key, value]) => {
+      const coloredValue = colors.green(`'${value}'`);
+      logWithStatus(OK, `${key}: ${coloredValue}`, 1);
+    });
   }
 }
 
@@ -109,7 +110,7 @@ function logNetworkStats(res: Web3FunctionExec) {
   } ${res.network.upload.toFixed(2)}kb]`;
 
   if (res.throttled.networkRequest) {
-    networkMessage += ` ${`(${res.network.nbThrottled} req throttled - Please reduce your network usage!)`}`;
+    networkMessage += ` (${res.network.nbThrottled} req throttled - Please reduce your network usage!)`;
   }
   logWithStatus(res.throttled.networkRequest ? KO : OK, networkMessage, 1);
 }
@@ -118,17 +119,13 @@ function logRPCStats(res: Web3FunctionExec) {
   if (res.throttled.rpcRequest) {
     logWithStatus(
       KO,
-      `Rpc calls: ${
-        res.rpcCalls.total
-      } ${`(${res.rpcCalls.throttled} throttled - Please reduce your rpc usage!)`}`,
+      `Rpc calls: ${res.rpcCalls.total} (${res.rpcCalls.throttled} throttled - Please reduce your rpc usage!)`,
       1
     );
   } else if (res.rpcCalls.total > STD_RPC_LIMIT) {
     logWithStatus(
       WARN,
-      `Rpc calls: ${
-        res.rpcCalls.total
-      } ${`(RPC usage is above Standard plan limit: ${STD_RPC_LIMIT}!)`}`,
+      `Rpc calls: ${res.rpcCalls.total} (RPC usage is above Standard plan limit: ${STD_RPC_LIMIT}!)`,
       1
     );
   } else {
