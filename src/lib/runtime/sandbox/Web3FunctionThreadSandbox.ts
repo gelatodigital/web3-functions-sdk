@@ -5,6 +5,8 @@ import pidusage from "pidusage";
 import { Web3FunctionVersion } from "../../types";
 import { Web3FunctionAbstractSandbox } from "./Web3FunctionAbstractSandbox";
 
+const HTTP_PROXY_HOST = "127.0.0.1";
+
 export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
   private _thread?: ChildProcessWithoutNullStreams;
 
@@ -18,7 +20,6 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
     version: Web3FunctionVersion,
     serverPort: number,
     mountPath: string,
-    httpProxyHost: string,
     httpProxyPort: number,
     args: string[]
   ): Promise<void> {
@@ -37,7 +38,7 @@ export class Web3FunctionThreadSandbox extends Web3FunctionAbstractSandbox {
       };
     }
 
-    const httpProxyUrl = `${httpProxyHost}:${httpProxyPort}`;
+    const httpProxyUrl = `${HTTP_PROXY_HOST}:${httpProxyPort}`;
     env["HTTP_PROXY"] = httpProxyUrl;
     env["HTTPS_PROXY"] = httpProxyUrl;
 

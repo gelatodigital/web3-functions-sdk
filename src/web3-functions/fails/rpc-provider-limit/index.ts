@@ -1,9 +1,9 @@
+import { Contract } from "@ethersproject/contracts";
+import { StaticJsonRpcProvider } from "@ethersproject/providers";
 import {
   Web3Function,
   Web3FunctionContext,
 } from "@gelatonetwork/web3-functions-sdk";
-import { Contract } from "@ethersproject/contracts";
-import { StaticJsonRpcProvider } from "@ethersproject/providers";
 import ky from "ky";
 
 const assert = {
@@ -38,7 +38,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
     failure = err.message;
     console.log("Invalid Rpc method error:", failure);
   }
-  assert.match(failure, /\"code\":-32601/);
+  assert.match(failure, /"code":-32601/);
   assert.match(failure, /the method eth_test does not exist/);
 
   // Test sending invalid params
@@ -48,7 +48,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
     failure = err.message;
     console.log("Invalid Rpc params error:", err.message);
   }
-  assert.match(failure, /\"code\":-32602/);
+  assert.match(failure, /"code":-32602/);
   assert.match(failure, /invalid argument 0/);
 
   // Test sending http query
@@ -61,7 +61,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   } catch (err) {
     console.log("Invalid Rpc request error:", err.message);
   }
-  assert.match(failure, /\"code\":-32600/);
+  assert.match(failure, /"code":-32600/);
   assert.match(failure, /The JSON sent is not a valid Request object/);
 
   // Test soft rate limits
@@ -81,15 +81,13 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   // Test hard rate limits
   for (let j = 0; j < 20; j++) {
     try {
-      const promises: Promise<any>[] = [];
-      for (let i = 0; i < 10; i++) promises.push(oracle.lastUpdated());
-      const values = await Promise.all(promises);
+      await Promise.all(Array.from({ length: 10 }, () => oracle.lastUpdated()));
     } catch (err) {
       failure = err.message;
       console.log("Throttling RPC calls error:", err.message);
     }
   }
-  assert.match(failure, /\"code\":-32005/);
+  assert.match(failure, /"code":-32005/);
   assert.match(failure, /Request limit exceeded/);
 
   return { canExec: false, message: "RPC providers tests ok!" };

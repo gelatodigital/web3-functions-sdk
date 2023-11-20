@@ -158,7 +158,6 @@ export class Web3FunctionRunner {
   ): Promise<Web3FunctionExec> {
     const start = performance.now();
     const throttled: Web3FunctionThrottled = {};
-    let success: boolean;
     let result: Web3FunctionResult | undefined = undefined;
     let storage: Web3FunctionStorageWithSize | undefined = undefined;
     let error: Error | undefined = undefined;
@@ -179,10 +178,8 @@ export class Web3FunctionRunner {
         ...data.storage,
         size: Buffer.byteLength(JSON.stringify(data.storage), "utf-8") / 1024,
       };
-      success = true;
     } catch (err) {
       error = err;
-      success = false;
     } finally {
       await this.stop();
     }
@@ -220,17 +217,17 @@ export class Web3FunctionRunner {
       throttled.upload = networkStats.upload >= options.uploadLimit / 1024;
     }
 
-    if (success) {
+    if (storage && result) {
       if (storage?.state === "updated") {
         throttled.storage = storage.size > options.storageLimit;
       }
 
       if (version === Web3FunctionVersion.V1_0_0) {
         return {
-          success,
+          success: true,
           version,
           result: result as Web3FunctionResultV1,
-          storage: storage as Web3FunctionStorageWithSize,
+          storage,
           logs,
           duration,
           memory,
@@ -240,10 +237,10 @@ export class Web3FunctionRunner {
         };
       } else {
         return {
-          success,
+          success: true,
           version,
           result: result as Web3FunctionResultV2,
-          storage: storage as Web3FunctionStorageWithSize,
+          storage,
           logs,
           duration,
           memory,
@@ -262,7 +259,7 @@ export class Web3FunctionRunner {
       }
 
       return {
-        success,
+        success: false,
         version,
         error: error as Web3FunctionRuntimeError,
         logs,
@@ -275,6 +272,50 @@ export class Web3FunctionRunner {
     }
   }
 
+  private _createSandbox(
+    runtime: "thread" | "docker",
+    memoryLimit: number,
+    showLogs = false
+  ) {
+    const SandBoxClass =
+      runtime === "thread"
+        ? Web3FunctionThreadSandbox
+        : Web3FunctionDockerSandbox;
+
+    return new SandBoxClass(
+      {
+        memoryLimit: memoryLimit,
+      },
+      showLogs,
+      this._debug
+    );
+  }
+
+  private _getSandboxExitReason(
+    runtime: "thread" | "docker",
+    signal: number,
+    memoryLimit: number
+  ) {
+    if (signal === 0) {
+      return new Error(`Web3Function exited without returning result`);
+    } else if (signal === 250) {
+      return new Web3FunctionRuntimeError(
+        `Web3Function exited with code=${signal} (RPC requests limit exceeded)`,
+        "rpcRequest"
+      );
+    } else if (
+      (runtime === "docker" && signal === 137) ||
+      (runtime === "thread" && this._memory >= memoryLimit)
+    ) {
+      return new Web3FunctionRuntimeError(
+        `Web3Function exited with code=${signal} (Memory limit exceeded)`,
+        "memory"
+      );
+    } else {
+      return new Error(`Web3Function exited with code=${signal}`);
+    }
+  }
+
   private async _runInSandbox(
     script: string,
     version: Web3FunctionVersion,
@@ -282,16 +323,10 @@ export class Web3FunctionRunner {
     options: Web3FunctionRunnerOptions,
     multiChainProviderConfig: MultiChainProviderConfig
   ): Promise<{ result: Web3FunctionResult; storage: Web3FunctionStorage }> {
-    const SandBoxClass =
-      options.runtime === "thread"
-        ? Web3FunctionThreadSandbox
-        : Web3FunctionDockerSandbox;
-    this._sandbox = new SandBoxClass(
-      {
-        memoryLimit: options.memory,
-      },
-      options.showLogs ?? false,
-      this._debug
+    this._sandbox = this._createSandbox(
+      options.runtime,
+      options.memory,
+      options.showLogs
     );
 
     const mountPath = randomUUID();
@@ -299,8 +334,6 @@ export class Web3FunctionRunner {
       options.serverPort ?? (await Web3FunctionNetHelper.getAvailablePort());
 
     const httpProxyPort = await Web3FunctionNetHelper.getAvailablePort();
-    const httpProxyHost =
-      options.runtime === "thread" ? "127.0.0.1" : "host.docker.internal";
     this._httpProxy = new Web3FunctionHttpProxy(
       options.downloadLimit,
       options.uploadLimit,
@@ -317,7 +350,6 @@ export class Web3FunctionRunner {
         version,
         serverPort,
         mountPath,
-        httpProxyHost,
         httpProxyPort,
         options.blacklistedHosts
       );
@@ -414,29 +446,15 @@ export class Web3FunctionRunner {
         // Wait for result event to be received if it's racing with process exit signal
         if (!isResolved) await delay(100);
 
-        if (!isResolved)
-          if (signal === 0) {
-            reject(new Error(`Web3Function exited without returning result`));
-          } else if (signal === 250) {
-            reject(
-              new Web3FunctionRuntimeError(
-                `Web3Function exited with code=${signal} (RPC requests limit exceeded)`,
-                "rpcRequest"
-              )
-            );
-          } else if (
-            (options.runtime === "docker" && signal === 137) ||
-            (options.runtime === "thread" && this._memory >= options.memory)
-          ) {
-            reject(
-              new Web3FunctionRuntimeError(
-                `Web3Function exited with code=${signal} (Memory limit exceeded)`,
-                "memory"
-              )
-            );
-          } else {
-            reject(new Error(`Web3Function exited with code=${signal}`));
-          }
+        if (!isResolved) {
+          const reason = this._getSandboxExitReason(
+            options.runtime,
+            signal,
+            options.memory
+          );
+
+          reject(reason);
+        }
       });
     });
   }
@@ -452,58 +470,73 @@ export class Web3FunctionRunner {
     }, 100);
   }
 
+  private _throwError(message: string, result: Web3FunctionResult) {
+    throw new Error(
+      `Web3Function ${message}. Instead returned: ${JSON.stringify(result)}`
+    );
+  }
+
+  private _isValidData(data: string) {
+    return data.length >= 10 && data.startsWith("0x", 0);
+  }
+
+  private _validateResultV1(result: Web3FunctionResultV1) {
+    if (
+      result.canExec &&
+      (!Object.keys(result).includes("callData") ||
+        !this._isValidData(result.callData))
+    )
+      this._throwError("{canExec: bool, callData: string}", result);
+  }
+
+  private _validateResultV2(result: Web3FunctionResultV2) {
+    if (result.canExec) {
+      if (
+        !Object.keys(result).includes("callData") ||
+        !Array.isArray(result.callData)
+      )
+        this._throwError(
+          "must return {canExec: bool, callData: {to: string, data: string}[]}",
+          result
+        );
+
+      for (const { to, data, value } of result.callData) {
+        if (!isAddress(to))
+          this._throwError("returned invalid to address", result);
+
+        if (!this._isValidData(data))
+          this._throwError("returned invalid callData", result);
+
+        if (value) {
+          const isNumericString = /^\d+$/.test(value);
+          if (!isNumericString)
+            this._throwError(
+              "returned invalid value (must be numeric string)",
+              result
+            );
+        }
+      }
+    }
+  }
+
   private _validateResult(
     version: Web3FunctionVersion,
     result: Web3FunctionResult
   ) {
-    const isValidData = (data: string) =>
-      data.length >= 10 && data.slice(0, 2) === "0x";
-    const throwError = (message: string) => {
-      throw new Error(
-        `Web3Function ${message}. Instead returned: ${JSON.stringify(result)}`
-      );
-    };
-
     // validate canExec & callData exists
     if (!Object.keys(result).includes("canExec")) {
-      throwError("must return {canExec: bool}");
-    }
-
-    if (result.canExec && !Object.keys(result).includes("callData")) {
-      const returnType =
-        version === Web3FunctionVersion.V1_0_0
-          ? "{canExec: bool, callData: string}"
-          : "{canExec: bool, callData: {to: string, data: string}[]}";
-      throwError(`must return ${returnType}`);
+      this._throwError("must return {canExec: bool}", result);
     }
 
     // validate callData contents
     if (version === Web3FunctionVersion.V1_0_0) {
       result = result as Web3FunctionResultV1;
 
-      if (result.canExec && !isValidData(result.callData))
-        throwError("returned invalid callData");
+      this._validateResultV1(result);
     } else {
       result = result as Web3FunctionResultV2;
 
-      if (result.canExec) {
-        if (!Array.isArray(result.callData))
-          throwError(
-            "must return {canExec: bool, callData: {to: string, data: string}[]}"
-          );
-
-        for (const { to, data, value } of result.callData) {
-          if (!isAddress(to)) throwError("returned invalid to address");
-
-          if (!isValidData(data)) throwError("returned invalid callData");
-
-          if (value) {
-            const isNumericString = /^\d+$/.test(value);
-            if (!isNumericString)
-              throwError("returned invalid value (must be numeric string)");
-          }
-        }
-      }
+      this._validateResultV2(result);
     }
   }
 

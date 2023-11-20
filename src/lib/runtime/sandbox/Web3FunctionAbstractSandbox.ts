@@ -35,7 +35,6 @@ export abstract class Web3FunctionAbstractSandbox extends EventEmitter {
     version: Web3FunctionVersion,
     serverPort: number,
     mountPath: string,
-    httpProxyHost: string,
     httpProxyPort: number,
     args: string[]
   ): Promise<void>;
@@ -46,7 +45,6 @@ export abstract class Web3FunctionAbstractSandbox extends EventEmitter {
     version: Web3FunctionVersion,
     serverPort: number,
     mountPath: string,
-    httpProxyHost: string,
     httpProxyPort: number,
     blacklistedHosts?: string[]
   ) {
@@ -81,7 +79,6 @@ export abstract class Web3FunctionAbstractSandbox extends EventEmitter {
       version,
       serverPort,
       mountPath,
-      httpProxyHost,
       httpProxyPort,
       args
     );
