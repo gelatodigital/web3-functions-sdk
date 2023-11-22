@@ -9,14 +9,21 @@ export type Web3FunctionEvent =
         error: Error;
         storage: Web3FunctionStorage;
       };
+      callbacks: Web3FunctionCallbackStatus;
     }
   | {
       action: "result";
       data: {
-        result: Web3FunctionResult;
+        result: Web3FunctionResult | undefined;
         storage: Web3FunctionStorage;
       };
+      callbacks: Web3FunctionCallbackStatus;
     };
+
+export type Web3FunctionCallbackStatus = {
+  onSuccess: boolean;
+  onFail: boolean;
+};
 
 export type Web3FunctionStorage = {
   state: "updated" | "last";
