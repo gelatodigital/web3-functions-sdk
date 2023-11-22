@@ -65,7 +65,7 @@ export interface Web3FunctionEventSuccessContext
   transactionHash?: string;
 }
 
-type FailReason =
+export type FailReason =
   | "InsufficientFunds"
   | "SimulationFailed"
   | "ExecutionReverted";
