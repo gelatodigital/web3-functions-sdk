@@ -1,6 +1,10 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { Web3FunctionContextData, Web3FunctionUserArgs } from "../../lib";
+import {
+  Web3FunctionContextData,
+  Web3FunctionOperation,
+  Web3FunctionUserArgs,
+} from "../../lib";
 import { Web3FunctionBuilder } from "../../lib/builder";
 import { W3fDetails, Web3FunctionLoader } from "../../lib/loader";
 import { Web3FunctionExecSuccess, Web3FunctionRunner } from "../../lib/runtime";
@@ -41,15 +45,19 @@ export class Web3FunctionHardhat {
     this.provider = new EthersProviderWrapper(_hre.network.provider);
   }
 
-  public async run(override?: {
-    storage?: { [key: string]: string };
-    userArgs?: Web3FunctionUserArgs;
-  }): Promise<Web3FunctionExecSuccess> {
+  public async run(
+    operation?: Web3FunctionOperation,
+    override?: {
+      storage?: { [key: string]: string };
+      userArgs?: Web3FunctionUserArgs;
+    }
+  ): Promise<Web3FunctionExecSuccess> {
     const userArgs = override?.userArgs ?? this.w3f.userArgs;
     const storage = override?.storage ?? this.w3f.storage;
     const secrets = this.w3f.secrets;
     const debug = this.hre.config.w3f.debug;
     const log = this.w3f.log;
+    operation = operation ?? "onRun";
 
     const buildRes = await Web3FunctionBuilder.build(this.w3f.path, { debug });
 
@@ -80,13 +88,27 @@ export class Web3FunctionHardhat {
     const script = buildRes.filePath;
 
     const gelatoArgs = await this.getGelatoArgs();
-    const context: Web3FunctionContextData = {
+    let context: Web3FunctionContextData = {
+      operation: "onRun",
       gelatoArgs,
       userArgs,
       secrets,
       storage,
       log,
     };
+    if (operation === "onFail") {
+      context = {
+        ...context,
+        operation: "onFail",
+        onFailReason: "SimulationFailed",
+      };
+    }
+    if (operation === "onSuccess") {
+      context = {
+        ...context,
+        operation: "onSuccess",
+      };
+    }
 
     const multiChainProviderConfig = await getMultiChainProviderConfigs(
       this.hre

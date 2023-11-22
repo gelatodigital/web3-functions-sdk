@@ -9,6 +9,8 @@ import {
 task("w3f-run", "Runs Gelato Web3 Function")
   .addFlag("debug", "Enable debug mode")
   .addFlag("logs", "Show Web3 Function logs")
+  .addFlag("onfail", "Runs onFail callback")
+  .addFlag("onsuccess", "Runs onSuccess callback")
   .addPositionalParam<string>(
     "name",
     "Web3 Function name defined in hardhat config"
@@ -20,12 +22,17 @@ task("w3f-run", "Runs Gelato Web3 Function")
 
     const debug = taskArgs.debug ?? hre.config.w3f.debug;
 
+    const onFail = taskArgs.onfail ?? false;
+    const onSuccess = taskArgs.onsuccess ?? false;
+    const operation = onFail ? "onFail" : onSuccess ? "onSuccess" : "onRun";
+
     const chainId =
       hre.network.config.chainId ?? (await provider.getNetwork()).chainId;
 
     const multiChainProviderConfig = await getMultiChainProviderConfigs(hre);
 
     const callConfig: CallConfig = {
+      operation,
       w3fPath: w3f.path,
       debug,
       showLogs: taskArgs.logs,
