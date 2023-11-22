@@ -17,6 +17,7 @@ import {
 } from "../types";
 import { Web3FunctionContextData } from "../types/Web3FunctionContext";
 import {
+  Web3FunctionCallbackStatus,
   Web3FunctionEvent,
   Web3FunctionStorage,
   Web3FunctionStorageWithSize,
@@ -159,21 +160,28 @@ export class Web3FunctionRunner {
     const start = performance.now();
     const throttled: Web3FunctionThrottled = {};
     let result: Web3FunctionResult | undefined = undefined;
+    let callbackStatus: Web3FunctionCallbackStatus | undefined = undefined;
     let storage: Web3FunctionStorageWithSize | undefined = undefined;
     let error: Error | undefined = undefined;
+
     const { script, context, options, version, multiChainProviderConfig } =
       payload;
+
     try {
-      const data = await this._runInSandbox(
+      const { data, callbacks } = await this._runInSandbox(
         script,
         version,
         context,
         options,
         multiChainProviderConfig
       );
-      this._validateResult(version, data.result);
+
+      if (context.operation === "onRun") {
+        this._validateResult(version, data.result as Web3FunctionResult);
+      }
 
       result = data.result;
+      callbackStatus = callbacks;
       storage = {
         ...data.storage,
         size: Buffer.byteLength(JSON.stringify(data.storage), "utf-8") / 1024,
@@ -217,7 +225,7 @@ export class Web3FunctionRunner {
       throttled.upload = networkStats.upload >= options.uploadLimit / 1024;
     }
 
-    if (storage && result) {
+    if (context.operation === "onRun" && storage && result && callbackStatus) {
       if (storage?.state === "updated") {
         throttled.storage = storage.size > options.storageLimit;
       }
@@ -227,6 +235,7 @@ export class Web3FunctionRunner {
           success: true,
           version,
           result: result as Web3FunctionResultV1,
+          callbacks: callbackStatus,
           storage,
           logs,
           duration,
@@ -240,6 +249,7 @@ export class Web3FunctionRunner {
           success: true,
           version,
           result: result as Web3FunctionResultV2,
+          callbacks: callbackStatus,
           storage,
           logs,
           duration,
@@ -249,6 +259,24 @@ export class Web3FunctionRunner {
           throttled,
         };
       }
+    } else if (context.operation !== "onRun" && storage && callbackStatus) {
+      if (storage?.state === "updated") {
+        throttled.storage = storage.size > options.storageLimit;
+      }
+
+      return {
+        success: true,
+        version,
+        result: undefined,
+        callbacks: callbackStatus,
+        storage,
+        logs,
+        duration,
+        memory,
+        rpcCalls,
+        network: networkStats,
+        throttled,
+      };
     } else {
       if (
         error &&
@@ -322,7 +350,13 @@ export class Web3FunctionRunner {
     context: Web3FunctionContextData,
     options: Web3FunctionRunnerOptions,
     multiChainProviderConfig: MultiChainProviderConfig
-  ): Promise<{ result: Web3FunctionResult; storage: Web3FunctionStorage }> {
+  ): Promise<{
+    data: {
+      result: Web3FunctionResult | undefined;
+      storage: Web3FunctionStorage;
+    };
+    callbacks: Web3FunctionCallbackStatus;
+  }> {
     this._sandbox = this._createSandbox(
       options.runtime,
       options.memory,
@@ -418,7 +452,7 @@ export class Web3FunctionRunner {
         switch (event.action) {
           case "result":
             isResolved = true;
-            resolve(event.data);
+            resolve({ data: event.data, callbacks: event.callbacks });
             break;
           case "error":
             isResolved = true;
