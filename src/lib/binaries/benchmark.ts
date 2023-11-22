@@ -18,7 +18,7 @@ import {
   Web3FunctionRunner,
   Web3FunctionRunnerPool,
 } from "../runtime";
-import { Web3FunctionContextData } from "../types";
+import { Web3FunctionContextData, Web3FunctionOperation } from "../types";
 
 const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
 
@@ -31,6 +31,7 @@ const providerUrls = (process.env.PROVIDER_URLS as string).split(",");
 const web3FunctionPath =
   process.argv[3] ??
   path.join(process.cwd(), "src", "web3-functions", "index.ts");
+let operation: Web3FunctionOperation = "onRun";
 let chainId = 5;
 let runtime: "docker" | "thread" = "thread";
 let debug = false;
@@ -52,6 +53,10 @@ if (process.argv.length > 2) {
       load = parseInt(arg.split("=")[1]) ?? load;
     } else if (arg.startsWith("--pool")) {
       pool = parseInt(arg.split("=")[1]) ?? pool;
+    } else if (arg.startsWith("--onFail")) {
+      operation = "onFail" as Web3FunctionOperation;
+    } else if (arg.startsWith("--onSuccess")) {
+      operation = "onSuccess" as Web3FunctionOperation;
     }
   });
 }
@@ -79,7 +84,8 @@ export default async function benchmark() {
   const log = w3fDetails.log;
 
   // Prepare mock content for test
-  const context: Web3FunctionContextData = {
+  let context: Web3FunctionContextData = {
+    operation: "onRun",
     secrets,
     storage,
     gelatoArgs: {
@@ -89,6 +95,21 @@ export default async function benchmark() {
     userArgs,
     log,
   };
+
+  if (operation === "onFail") {
+    context = {
+      ...context,
+      operation: "onFail",
+      onFailReason: "SimulationFailed",
+    };
+  }
+
+  if (operation === "onSuccess") {
+    context = {
+      ...context,
+      operation: "onSuccess",
+    };
+  }
 
   // Validate user args against schema
   if (Object.keys(buildRes.schema.userArgs).length > 0) {

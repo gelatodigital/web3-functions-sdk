@@ -8,6 +8,7 @@ import { Web3FunctionRunner } from "../runtime";
 import {
   Web3FunctionContextData,
   Web3FunctionExec,
+  Web3FunctionOperation,
   Web3FunctionStorageWithSize,
   Web3FunctionUserArgs,
 } from "../types";
@@ -26,6 +27,7 @@ const KO = colors.red("✗");
 const WARN = colors.yellow("⚠");
 
 export interface CallConfig {
+  operation: Web3FunctionOperation;
   w3fPath: string;
   debug: boolean;
   showLogs: boolean;
@@ -133,11 +135,16 @@ function logRPCStats(res: Web3FunctionExec) {
   }
 }
 
-function logResult(res: Web3FunctionExec) {
+function logResult(operation: Web3FunctionOperation, res: Web3FunctionExec) {
   // Show Web3Function result
-  console.log(`\nWeb3Function Result:`);
+  console.log(`\nWeb3Function ${operation} result:`);
+
   if (res.success) {
-    logWithStatus(OK, `Return value: ${JSON.stringify(res.result)}`, 1);
+    if (operation === "onRun") {
+      logWithStatus(OK, `Return value: ${JSON.stringify(res.result)}`, 1);
+    } else {
+      logWithStatus(OK, `Success`, 1);
+    }
     logStorage(res.storage);
   } else {
     logWithStatus(KO, `Error: ${res.error.message}`, 1);
@@ -154,6 +161,7 @@ function logResult(res: Web3FunctionExec) {
 
 export default async function test(callConfig?: Partial<CallConfig>) {
   const defaultCallConfig: CallConfig = {
+    operation: "onRun",
     userArgs: {},
     chainId: 5,
     multiChainProviderConfig: {
@@ -195,6 +203,10 @@ export default async function test(callConfig?: Partial<CallConfig>) {
         callConfig.runtime = type === "docker" ? "docker" : "thread";
       } else if (arg.startsWith("--chain-id")) {
         callConfig.chainId = parseInt(arg.split("=")[1]);
+      } else if (arg.startsWith("--onFail")) {
+        callConfig.operation = "onFail" as Web3FunctionOperation;
+      } else if (arg.startsWith("--onSuccess")) {
+        callConfig.operation = "onSuccess" as Web3FunctionOperation;
       }
     }
 
@@ -222,6 +234,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   console.log(`Web3Function building...`);
 
   const {
+    operation,
     w3fPath,
     debug,
     secrets,
@@ -248,7 +261,8 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   logWithStatus(OK, `Build time: ${buildRes.buildTime.toFixed(2)}ms`, 1);
 
   // Prepare mock content for test
-  const context: Web3FunctionContextData = {
+  let context: Web3FunctionContextData = {
+    operation: "onRun",
     secrets,
     storage,
     gelatoArgs: {
@@ -258,6 +272,21 @@ export default async function test(callConfig?: Partial<CallConfig>) {
     userArgs,
     log,
   };
+
+  if (operation === "onFail") {
+    context = {
+      ...context,
+      operation: "onFail",
+      onFailReason: "SimulationFailed",
+    };
+  }
+
+  if (operation === "onSuccess") {
+    context = {
+      ...context,
+      operation: "onSuccess",
+    };
+  }
 
   // Configure Web3Function runner
   const runner = new Web3FunctionRunner(debug);
@@ -302,5 +331,5 @@ export default async function test(callConfig?: Partial<CallConfig>) {
     multiChainProviderConfig,
   });
 
-  logResult(res);
+  logResult(context.operation, res);
 }
