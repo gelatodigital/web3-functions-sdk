@@ -107,7 +107,11 @@ export class Web3Function {
   private async _invokeOnRun(ctxData: Web3FunctionOnRunContextData) {
     const context = this._context(ctxData);
 
-    if (ctxData.operation === "onRun" && !this._onRun)
+    if (ctxData.operation !== "onRun")
+      throw new Error(
+        `Invalid '${ctxData.operation}' operation for _invokeOnRun`
+      );
+    if (!this._onRun)
       throw new Error("Web3Function.onRun function is not registered");
 
     const result = ctxData.log
@@ -123,7 +127,11 @@ export class Web3Function {
   private async _invokeOnFail(ctxData: Web3FunctionOnFailContextData) {
     const context = this._context(ctxData);
 
-    if (ctxData.operation === "onFail" && !this._onFail)
+    if (ctxData.operation !== "onFail")
+      throw new Error(
+        `Invalid '${ctxData.operation}' operation for _invokeOnFail`
+      );
+    if (!this._onFail)
       throw new Error("Web3Function.onFail function is not registered");
 
     if (ctxData.log) {
@@ -148,17 +156,21 @@ export class Web3Function {
   private async _invokeOnSuccess(ctxData: Web3FunctionOnSuccessContextData) {
     const context = this._context(ctxData);
 
-    if (ctxData.operation === "onSuccess" && !this._onSuccess)
+    if (ctxData.operation !== "onSuccess")
+      throw new Error(
+        `Invalid '${ctxData.operation}' operation for _invokeOnSuccess`
+      );
+    if (!this._onSuccess)
       throw new Error("Web3Function.onSuccess function is not registered");
 
     if (ctxData.log) {
-      await (this._onFail as EventSuccessHandler)({
+      await (this._onSuccess as EventSuccessHandler)({
         ...context,
         transactionHash: ctxData.transactionHash,
         log: ctxData.log,
       });
     } else {
-      await (this._onFail as BaseSuccessHandler)({
+      await (this._onSuccess as BaseSuccessHandler)({
         ...context,
         transactionHash: ctxData.transactionHash,
       });
