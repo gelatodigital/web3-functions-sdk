@@ -16,7 +16,7 @@ export class Web3FunctionRunnerPool {
 
   public async init() {
     this._tcpPortsAvailable = await Web3FunctionNetHelper.getAvailablePorts(
-      this._poolSize
+      this._poolSize + 10
     );
   }
 
