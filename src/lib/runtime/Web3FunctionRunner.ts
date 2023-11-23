@@ -5,9 +5,10 @@ import onExit from "signal-exit";
 import { Web3FunctionHttpClient } from "../net/Web3FunctionHttpClient";
 import { Web3FunctionHttpProxy } from "../net/Web3FunctionHttpProxy";
 import { Web3FunctionNetHelper } from "../net/Web3FunctionNetHelper";
-import { MultiChainProviderConfig } from "../provider";
 import { Web3FunctionProxyProvider } from "../provider/Web3FunctionProxyProvider";
 import {
+  MultiChainProviderConfig,
+  Web3FunctionContextData,
   Web3FunctionResult,
   Web3FunctionResultV1,
   Web3FunctionResultV2,
@@ -15,7 +16,6 @@ import {
   Web3FunctionUserArgsSchema,
   Web3FunctionVersion,
 } from "../types";
-import { Web3FunctionContextData } from "../types/Web3FunctionContext";
 import {
   Web3FunctionCallbackStatus,
   Web3FunctionEvent,
@@ -27,6 +27,7 @@ import { Web3FunctionDockerSandbox } from "./sandbox/Web3FunctionDockerSandbox";
 import { Web3FunctionThreadSandbox } from "./sandbox/Web3FunctionThreadSandbox";
 import {
   Web3FunctionExec,
+  Web3FunctionExecSuccessBase,
   Web3FunctionRunnerOptions,
   Web3FunctionRunnerPayload,
   Web3FunctionRuntimeError,
@@ -160,7 +161,7 @@ export class Web3FunctionRunner {
     const start = performance.now();
     const throttled: Web3FunctionThrottled = {};
     let result: Web3FunctionResult | undefined = undefined;
-    let callbackStatus: Web3FunctionCallbackStatus | undefined = undefined;
+    let callbacks: Web3FunctionCallbackStatus | undefined = undefined;
     let storage: Web3FunctionStorageWithSize | undefined = undefined;
     let error: Error | undefined = undefined;
 
@@ -168,7 +169,7 @@ export class Web3FunctionRunner {
       payload;
 
     try {
-      const { data, callbacks } = await this._runInSandbox(
+      const { data } = await this._runInSandbox(
         script,
         version,
         context,
@@ -181,12 +182,13 @@ export class Web3FunctionRunner {
       }
 
       result = data.result;
-      callbackStatus = callbacks;
+      callbacks = data.callbacks;
       storage = {
         ...data.storage,
         size: Buffer.byteLength(JSON.stringify(data.storage), "utf-8") / 1024,
       };
     } catch (err) {
+      console.log("ERROR: ", err);
       error = err;
     } finally {
       await this.stop();
@@ -225,50 +227,15 @@ export class Web3FunctionRunner {
       throttled.upload = networkStats.upload >= options.uploadLimit / 1024;
     }
 
-    if (context.operation === "onRun" && storage && result && callbackStatus) {
-      if (storage?.state === "updated") {
-        throttled.storage = storage.size > options.storageLimit;
-      }
+    if (storage && storage?.state === "updated") {
+      throttled.storage = storage.size > options.storageLimit;
+    }
 
-      if (version === Web3FunctionVersion.V1_0_0) {
-        return {
-          success: true,
-          version,
-          result: result as Web3FunctionResultV1,
-          callbacks: callbackStatus,
-          storage,
-          logs,
-          duration,
-          memory,
-          rpcCalls,
-          network: networkStats,
-          throttled,
-        };
-      } else {
-        return {
-          success: true,
-          version,
-          result: result as Web3FunctionResultV2,
-          callbacks: callbackStatus,
-          storage,
-          logs,
-          duration,
-          memory,
-          rpcCalls,
-          network: networkStats,
-          throttled,
-        };
-      }
-    } else if (context.operation !== "onRun" && storage && callbackStatus) {
-      if (storage?.state === "updated") {
-        throttled.storage = storage.size > options.storageLimit;
-      }
-
-      return {
+    if (storage && callbacks) {
+      const web3FunctionExec: Web3FunctionExecSuccessBase = {
         success: true,
         version,
-        result: undefined,
-        callbacks: callbackStatus,
+        callbacks,
         storage,
         logs,
         duration,
@@ -277,6 +244,24 @@ export class Web3FunctionRunner {
         network: networkStats,
         throttled,
       };
+
+      if (context.operation === "onRun") {
+        if (version == Web3FunctionVersion.V1_0_0) {
+          return {
+            ...web3FunctionExec,
+            version: Web3FunctionVersion.V1_0_0,
+            result: result as Web3FunctionResultV1,
+          };
+        } else {
+          return {
+            ...web3FunctionExec,
+            version: Web3FunctionVersion.V2_0_0,
+            result: result as Web3FunctionResultV2,
+          };
+        }
+      } else {
+        return { ...web3FunctionExec, result: undefined };
+      }
     } else {
       if (
         error &&
@@ -290,6 +275,7 @@ export class Web3FunctionRunner {
         success: false,
         version,
         error: error as Web3FunctionRuntimeError,
+        callbacks,
         logs,
         duration,
         memory,
@@ -354,8 +340,8 @@ export class Web3FunctionRunner {
     data: {
       result: Web3FunctionResult | undefined;
       storage: Web3FunctionStorage;
+      callbacks: Web3FunctionCallbackStatus;
     };
-    callbacks: Web3FunctionCallbackStatus;
   }> {
     this._sandbox = this._createSandbox(
       options.runtime,
@@ -452,7 +438,7 @@ export class Web3FunctionRunner {
         switch (event.action) {
           case "result":
             isResolved = true;
-            resolve({ data: event.data, callbacks: event.callbacks });
+            resolve({ data: event.data });
             break;
           case "error":
             isResolved = true;

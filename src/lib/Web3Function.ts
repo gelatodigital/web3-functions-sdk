@@ -70,10 +70,10 @@ export class Web3Function {
               storage: ctxData.storage,
               diff: difference,
             },
-          },
-          callbacks: {
-            onFail: this._onFail !== undefined,
-            onSuccess: this._onSuccess !== undefined,
+            callbacks: {
+              onFail: this._onFail !== undefined,
+              onSuccess: this._onSuccess !== undefined,
+            },
           },
         };
       } catch (error) {
@@ -89,10 +89,10 @@ export class Web3Function {
               storage: prevStorage,
               diff: {},
             },
-          },
-          callbacks: {
-            onFail: this._onFail !== undefined,
-            onSuccess: this._onSuccess !== undefined,
+            callbacks: {
+              onFail: this._onFail !== undefined,
+              onSuccess: this._onSuccess !== undefined,
+            },
           },
         };
       } finally {

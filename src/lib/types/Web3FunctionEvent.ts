@@ -8,16 +8,16 @@ export type Web3FunctionEvent =
       data: {
         error: Error;
         storage: Web3FunctionStorage;
+        callbacks: Web3FunctionCallbackStatus;
       };
-      callbacks: Web3FunctionCallbackStatus;
     }
   | {
       action: "result";
       data: {
         result: Web3FunctionResult | undefined;
         storage: Web3FunctionStorage;
+        callbacks: Web3FunctionCallbackStatus;
       };
-      callbacks: Web3FunctionCallbackStatus;
     };
 
 export type Web3FunctionCallbackStatus = {
