@@ -12,12 +12,8 @@ import {
 } from "./types/Web3FunctionContext";
 import { Web3FunctionEvent } from "./types/Web3FunctionEvent";
 import {
-  BaseFailHandler,
   BaseRunHandler,
-  BaseSuccessHandler,
-  EventFailHandler,
   EventRunHandler,
-  EventSuccessHandler,
   FailHandler,
   RunHandler,
   SuccessHandler,
@@ -134,18 +130,10 @@ export class Web3Function {
     if (!this._onFail)
       throw new Error("Web3Function.onFail function is not registered");
 
-    if (ctxData.log) {
-      await (this._onFail as EventFailHandler)({
-        ...context,
-        reason: ctxData.onFailReason,
-        log: ctxData.log,
-      });
-    } else {
-      await (this._onFail as BaseFailHandler)({
-        ...context,
-        reason: ctxData.onFailReason,
-      });
-    }
+    await this._onFail({
+      ...context,
+      reason: ctxData.onFailReason,
+    });
 
     return {
       result: undefined,
@@ -163,18 +151,11 @@ export class Web3Function {
     if (!this._onSuccess)
       throw new Error("Web3Function.onSuccess function is not registered");
 
-    if (ctxData.log) {
-      await (this._onSuccess as EventSuccessHandler)({
-        ...context,
-        transactionHash: ctxData.transactionHash,
-        log: ctxData.log,
-      });
-    } else {
-      await (this._onSuccess as BaseSuccessHandler)({
-        ...context,
-        transactionHash: ctxData.transactionHash,
-      });
-    }
+    await this._onSuccess({
+      ...context,
+      transactionHash: ctxData.transactionHash,
+    });
+
     return {
       result: undefined,
       ctxData,
@@ -264,15 +245,13 @@ export class Web3Function {
     Web3Function.getInstance()._onRun = onRun;
   }
 
-  static onSuccess(onSuccess: BaseSuccessHandler): void;
-  static onSuccess(onSuccess: EventSuccessHandler): void;
+  static onSuccess(onSuccess: SuccessHandler): void;
   static onSuccess(onSuccess: any): void {
     Web3Function._log("Registering onSuccess function");
     Web3Function.getInstance()._onSuccess = onSuccess;
   }
 
-  static onFail(onFail: BaseFailHandler): void;
-  static onFail(onFail: EventFailHandler): void;
+  static onFail(onFail: FailHandler): void;
   static onFail(onFail: any): void {
     Web3Function._log("Registering onFail function");
     Web3Function.getInstance()._onFail = onFail;

@@ -60,10 +60,6 @@ export interface Web3FunctionEventContext extends Web3FunctionContext {
 export interface Web3FunctionSuccessContext extends Web3FunctionContext {
   transactionHash?: string;
 }
-export interface Web3FunctionEventSuccessContext
-  extends Web3FunctionEventContext {
-  transactionHash?: string;
-}
 
 export type FailReason =
   | "InsufficientFunds"
@@ -71,8 +67,5 @@ export type FailReason =
   | "ExecutionReverted";
 
 export interface Web3FunctionFailContext extends Web3FunctionContext {
-  reason: FailReason;
-}
-export interface Web3FunctionEventFailContext extends Web3FunctionEventContext {
   reason: FailReason;
 }
