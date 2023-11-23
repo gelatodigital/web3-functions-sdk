@@ -32,7 +32,7 @@ export class Web3FunctionRunnerPool {
     return new Promise((resolve, reject) => {
       this._queuedRunners.push(async (): Promise<void> => {
         this._activeRunners = this._activeRunners + 1;
-        const port = this._tcpPortsAvailable.pop();
+        const port = this._tcpPortsAvailable.shift();
         try {
           this._log(
             `Starting Web3FunctionRunner, active=${this._activeRunners} port=${port}`
