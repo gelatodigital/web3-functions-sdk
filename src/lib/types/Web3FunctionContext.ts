@@ -16,6 +16,8 @@ export interface Web3FunctionOnFailContextData
   extends Web3FunctionContextDataBase {
   operation: "onFail";
   onFailReason: FailReason;
+  callData?: string;
+  transactionHash?: string;
 }
 export interface Web3FunctionOnSuccessContextData
   extends Web3FunctionContextDataBase {
@@ -66,6 +68,27 @@ export type FailReason =
   | "SimulationFailed"
   | "ExecutionReverted";
 
-export interface Web3FunctionFailContext extends Web3FunctionContext {
+export interface Web3FunctionFailContextBase extends Web3FunctionContext {
   reason: FailReason;
 }
+
+export interface Web3FunctionSimulationFailContext
+  extends Web3FunctionFailContextBase {
+  reason: "SimulationFailed";
+  callData: string;
+}
+export interface Web3FunctionExecutionRevertedContext
+  extends Web3FunctionFailContextBase {
+  reason: "ExecutionReverted";
+  transactionHash: string;
+}
+
+export interface Web3FunctionInsufficientFundsContext
+  extends Web3FunctionFailContextBase {
+  reason: "InsufficientFunds";
+}
+
+export type Web3FunctionFailContext =
+  | Web3FunctionSimulationFailContext
+  | Web3FunctionExecutionRevertedContext
+  | Web3FunctionInsufficientFundsContext;

@@ -130,10 +130,19 @@ export class Web3Function {
     if (!this._onFail)
       throw new Error("Web3Function.onFail function is not registered");
 
-    await this._onFail({
-      ...context,
-      reason: ctxData.onFailReason,
-    });
+    if (ctxData.onFailReason === "SimulationFailed") {
+      await this._onFail({
+        ...context,
+        reason: ctxData.onFailReason,
+        callData: ctxData.callData as string,
+      });
+    } else if (ctxData.onFailReason === "ExecutionReverted") {
+      await this._onFail({
+        ...context,
+        reason: ctxData.onFailReason,
+        transactionHash: ctxData.transactionHash as string,
+      });
+    }
 
     return {
       result: undefined,
