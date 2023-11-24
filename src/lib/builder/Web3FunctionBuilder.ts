@@ -55,6 +55,7 @@ export class Web3FunctionBuilder {
       target: "es2022",
       format: "esm",
       minify: true,
+      inject: [path.join(__dirname, "../polyfill/XMLHttpRequest.js")],
       alias,
       outfile,
     };

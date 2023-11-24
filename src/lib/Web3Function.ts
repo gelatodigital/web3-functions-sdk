@@ -1,7 +1,6 @@
 import { BigNumber } from "@ethersproject/bignumber";
 import { diff } from "deep-object-diff";
 import { Web3FunctionHttpServer } from "./net/Web3FunctionHttpServer";
-import "./polyfill/XMLHttpRequest";
 import { Web3FunctionMultiChainProvider } from "./provider/Web3FunctionMultiChainProvider";
 import {
   Web3FunctionContext,

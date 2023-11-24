@@ -1,5 +1,6 @@
-import { Web3Function } from "@gelatonetwork/web3-functions-sdk";
 import axios from "axios";
+
+import { Web3Function } from "@gelatonetwork/web3-functions-sdk";
 
 Web3Function.onRun(async () => {
   try {
