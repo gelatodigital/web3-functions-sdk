@@ -11,6 +11,8 @@ module.exports = {
     "src/web3-functions",
     "lib/Web3Function.ts",
     "lib/polyfill",
+    "lib/binaries",
+    "bin",
     "hardhat",
     ".d.ts",
     "__test__",
