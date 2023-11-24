@@ -1,6 +1,7 @@
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
+  module: "commonjs",
   transform: {},
   collectCoverage: true,
   collectCoverageFrom: ["src/**/*.ts"],
@@ -25,4 +26,5 @@ module.exports = {
   moduleNameMapper: {
     "^(\\.{1,2}/.*)\\.js$": "$1",
   },
+  setupFilesAfterEnv: ["./jest.setup.ts"],
 };

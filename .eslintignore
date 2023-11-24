@@ -4,6 +4,7 @@ node_modules
 src/resolvers/fails
 .tmp
 jest.config.ts
+jest.setup.ts
 __test__
 src/web3-functions
 polyfill
