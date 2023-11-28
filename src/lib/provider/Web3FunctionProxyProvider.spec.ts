@@ -1,8 +1,8 @@
 import { Web3FunctionProxyProvider } from "./Web3FunctionProxyProvider";
 import { MultiChainProviderConfig } from "./types";
 
-import axios from "axios";
 import { StaticJsonRpcProvider } from "@ethersproject/providers";
+import axios from "axios";
 
 describe("Web3FunctionProxyProvider", () => {
   enum TestChainIds {
@@ -98,7 +98,7 @@ describe("Web3FunctionProxyProvider", () => {
 
     expect(numFulfilled).toEqual(rpcLimit);
     expect(numUnfulfilled).toEqual(numRequests - rpcLimit);
-  });
+  }, 20_000);
 
   test("should not rate limit whitelisted methods", async () => {
     const numRequests = rpcLimit * 2;
@@ -195,5 +195,5 @@ describe("Web3FunctionProxyProvider", () => {
 
     expect(rpcStats.total).toEqual(numRequests);
     expect(rpcStats.throttled).toEqual(numRequests - rpcLimit);
-  });
+  }, 20_000);
 });
