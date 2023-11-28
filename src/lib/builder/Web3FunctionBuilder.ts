@@ -51,7 +51,7 @@ export class Web3FunctionBuilder {
       bundle: true,
       entryPoints: [input],
       absWorkingDir: process.cwd(),
-      platform: "browser",
+      platform: "node",
       target: "es2022",
       format: "esm",
       minify: true,
@@ -75,7 +75,7 @@ export class Web3FunctionBuilder {
       absWorkingDir: process.cwd(),
       packages: "external", // exclude all npm packages
       target: "es2022",
-      platform: "browser",
+      platform: "node",
       format: "esm",
       alias,
       outfile,
