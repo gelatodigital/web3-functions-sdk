@@ -81,7 +81,7 @@
     "format:check": "prettier --check '*/**/*.{js,json,md,ts}'",
     "lint": "eslint --cache .",
     "test": "ts-node src/bin/index.ts test",
-    "test:unit": "node --experimental-vm-modules ./node_modules/.bin/jest src/lib/runtime/Web3FunctionRunner.spec.ts --verbose --detectOpenHandles --forceExit --silent=true",
+    "test:unit": "node --experimental-vm-modules ./node_modules/.bin/jest src --verbose --detectOpenHandles --forceExit --silent=true",
     "benchmark": "ts-node src/bin/index.ts benchmark",
     "deploy": "ts-node src/bin/index.ts deploy",
     "fetch": "ts-node src/bin/index.ts fetch",
