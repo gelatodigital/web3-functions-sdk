@@ -11,12 +11,8 @@ import {
 } from "./types/Web3FunctionContext";
 import { Web3FunctionEvent } from "./types/Web3FunctionEvent";
 import {
-  BaseFailHandler,
   BaseRunHandler,
-  BaseSuccessHandler,
-  EventFailHandler,
   EventRunHandler,
-  EventSuccessHandler,
   FailHandler,
   RunHandler,
   SuccessHandler,
@@ -69,10 +65,10 @@ export class Web3Function {
               storage: ctxData.storage,
               diff: difference,
             },
-          },
-          callbacks: {
-            onFail: this._onFail !== undefined,
-            onSuccess: this._onSuccess !== undefined,
+            callbacks: {
+              onFail: this._onFail !== undefined,
+              onSuccess: this._onSuccess !== undefined,
+            },
           },
         };
       } catch (error) {
@@ -88,10 +84,10 @@ export class Web3Function {
               storage: prevStorage,
               diff: {},
             },
-          },
-          callbacks: {
-            onFail: this._onFail !== undefined,
-            onSuccess: this._onSuccess !== undefined,
+            callbacks: {
+              onFail: this._onFail !== undefined,
+              onSuccess: this._onSuccess !== undefined,
+            },
           },
         };
       } finally {
@@ -106,7 +102,11 @@ export class Web3Function {
   private async _invokeOnRun(ctxData: Web3FunctionOnRunContextData) {
     const context = this._context(ctxData);
 
-    if (ctxData.operation === "onRun" && !this._onRun)
+    if (ctxData.operation !== "onRun")
+      throw new Error(
+        `Invalid '${ctxData.operation}' operation for _invokeOnRun`
+      );
+    if (!this._onRun)
       throw new Error("Web3Function.onRun function is not registered");
 
     const result = ctxData.log
@@ -122,19 +122,24 @@ export class Web3Function {
   private async _invokeOnFail(ctxData: Web3FunctionOnFailContextData) {
     const context = this._context(ctxData);
 
-    if (ctxData.operation === "onFail" && !this._onFail)
+    if (ctxData.operation !== "onFail")
+      throw new Error(
+        `Invalid '${ctxData.operation}' operation for _invokeOnFail`
+      );
+    if (!this._onFail)
       throw new Error("Web3Function.onFail function is not registered");
 
-    if (ctxData.log) {
-      await (this._onFail as EventFailHandler)({
+    if (ctxData.onFailReason === "SimulationFailed") {
+      await this._onFail({
         ...context,
         reason: ctxData.onFailReason,
-        log: ctxData.log,
+        callData: ctxData.callData as string,
       });
-    } else {
-      await (this._onFail as BaseFailHandler)({
+    } else if (ctxData.onFailReason === "ExecutionReverted") {
+      await this._onFail({
         ...context,
         reason: ctxData.onFailReason,
+        transactionHash: ctxData.transactionHash as string,
       });
     }
 
@@ -147,21 +152,18 @@ export class Web3Function {
   private async _invokeOnSuccess(ctxData: Web3FunctionOnSuccessContextData) {
     const context = this._context(ctxData);
 
-    if (ctxData.operation === "onSuccess" && !this._onSuccess)
+    if (ctxData.operation !== "onSuccess")
+      throw new Error(
+        `Invalid '${ctxData.operation}' operation for _invokeOnSuccess`
+      );
+    if (!this._onSuccess)
       throw new Error("Web3Function.onSuccess function is not registered");
 
-    if (ctxData.log) {
-      await (this._onFail as EventSuccessHandler)({
-        ...context,
-        transactionHash: ctxData.transactionHash,
-        log: ctxData.log,
-      });
-    } else {
-      await (this._onFail as BaseSuccessHandler)({
-        ...context,
-        transactionHash: ctxData.transactionHash,
-      });
-    }
+    await this._onSuccess({
+      ...context,
+      transactionHash: ctxData.transactionHash,
+    });
+
     return {
       result: undefined,
       ctxData,
@@ -251,15 +253,13 @@ export class Web3Function {
     Web3Function.getInstance()._onRun = onRun;
   }
 
-  static onSuccess(onSuccess: BaseSuccessHandler): void;
-  static onSuccess(onSuccess: EventSuccessHandler): void;
+  static onSuccess(onSuccess: SuccessHandler): void;
   static onSuccess(onSuccess: any): void {
     Web3Function._log("Registering onSuccess function");
     Web3Function.getInstance()._onSuccess = onSuccess;
   }
 
-  static onFail(onFail: BaseFailHandler): void;
-  static onFail(onFail: EventFailHandler): void;
+  static onFail(onFail: FailHandler): void;
   static onFail(onFail: any): void {
     Web3Function._log("Registering onFail function");
     Web3Function.getInstance()._onFail = onFail;

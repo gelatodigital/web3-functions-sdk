@@ -33,7 +33,7 @@ type Web3FunctionExecStats = {
   throttled: Web3FunctionThrottled;
 };
 
-type Web3FunctionExecSuccessBase = Web3FunctionExecStats & {
+export type Web3FunctionExecSuccessBase = Web3FunctionExecStats & {
   success: true;
   storage: Web3FunctionStorageWithSize;
   callbacks: Web3FunctionCallbackStatus;
@@ -73,6 +73,7 @@ export class Web3FunctionRuntimeError extends Error {
 type Web3FunctionExecFail = Web3FunctionExecStats & {
   success: false;
   error: Web3FunctionRuntimeError;
+  callbacks?: Web3FunctionCallbackStatus;
 };
 
 export type Web3FunctionExec = Web3FunctionExecSuccess | Web3FunctionExecFail;

@@ -101,6 +101,7 @@ export class Web3FunctionHardhat {
         ...context,
         operation: "onFail",
         onFailReason: "SimulationFailed",
+        callData: "0x00000000",
       };
     }
     if (operation === "onSuccess") {

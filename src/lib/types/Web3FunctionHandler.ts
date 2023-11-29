@@ -1,8 +1,6 @@
 import {
   Web3FunctionContext,
   Web3FunctionEventContext,
-  Web3FunctionEventFailContext,
-  Web3FunctionEventSuccessContext,
   Web3FunctionFailContext,
   Web3FunctionSuccessContext,
 } from "./Web3FunctionContext";
@@ -16,16 +14,8 @@ export type EventRunHandler = (
 ) => Promise<Web3FunctionResult>;
 export type RunHandler = BaseRunHandler | EventRunHandler;
 
-export type BaseFailHandler = (ctx: Web3FunctionFailContext) => Promise<void>;
-export type EventFailHandler = (
-  ctx: Web3FunctionEventFailContext
-) => Promise<void>;
-export type FailHandler = BaseFailHandler | EventFailHandler;
+type BaseFailHandler = (ctx: Web3FunctionFailContext) => Promise<void>;
+export type FailHandler = BaseFailHandler;
 
-export type BaseSuccessHandler = (
-  ctx: Web3FunctionSuccessContext
-) => Promise<void>;
-export type EventSuccessHandler = (
-  ctx: Web3FunctionEventSuccessContext
-) => Promise<void>;
-export type SuccessHandler = BaseSuccessHandler | EventSuccessHandler;
+type BaseSuccessHandler = (ctx: Web3FunctionSuccessContext) => Promise<void>;
+export type SuccessHandler = BaseSuccessHandler;
