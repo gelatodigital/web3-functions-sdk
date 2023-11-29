@@ -6,10 +6,14 @@ import { Web3FunctionThreadSandbox } from "./Web3FunctionThreadSandbox";
 describe("Web3FunctionThreadSandbox", () => {
   const SCRIPT_FOLDER = path.join(
     process.cwd(),
-    "src/lib/runtime/sandbox/__test__/"
+    "src",
+    "lib",
+    "runtime",
+    "sandbox",
+    "__test__"
   );
 
-  test("pass correct arguments to runner v1", async () => {
+  test("pass correct arguments to runner", async () => {
     const runner = new Web3FunctionThreadSandbox(
       {
         memoryLimit: 10,

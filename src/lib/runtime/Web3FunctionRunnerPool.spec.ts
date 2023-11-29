@@ -17,7 +17,13 @@ const MAX_REQUEST_LIMIT = 110;
 const MAX_STORAGE_LIMIT = 1024; // kb
 
 describe("Web3FunctionRunnerPool", () => {
-  const LOCAL_BASE_PATH = path.join(process.cwd(), "src/lib/runtime/__test__");
+  const LOCAL_BASE_PATH = path.join(
+    process.cwd(),
+    "src",
+    "lib",
+    "runtime",
+    "__test__"
+  );
   test("runner pool", async () => {
     const consoleSpy = jest.spyOn(console, "log");
 

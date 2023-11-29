@@ -8,7 +8,13 @@ import { Web3FunctionRunner } from "./Web3FunctionRunner";
 
 describe("Web3FunctionRunner", () => {
   const FUNCTIONS_BASE_PATH = path.join(process.cwd(), "src", "web3-functions");
-  const LOCAL_BASE_PATH = path.join(process.cwd(), "src/lib/runtime/__test__");
+  const LOCAL_BASE_PATH = path.join(
+    process.cwd(),
+    "src",
+    "lib",
+    "runtime",
+    "__test__"
+  );
 
   describe("Parse User arguments", () => {
     const userArgsSchema: Web3FunctionUserArgsSchema = {
