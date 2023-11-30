@@ -97,11 +97,17 @@ export class Web3FunctionHardhat {
       log,
     };
     if (operation === "onFail") {
+      //Todo: accept arguments
       context = {
         ...context,
         operation: "onFail",
         onFailReason: "SimulationFailed",
-        callData: "0x00000000",
+        callData: [
+          {
+            to: "0x0000000000000000000000000000000000000000",
+            data: "0x00000000",
+          },
+        ],
       };
     }
     if (operation === "onSuccess") {
