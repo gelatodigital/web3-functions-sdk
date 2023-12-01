@@ -188,7 +188,6 @@ export class Web3FunctionRunner {
         size: Buffer.byteLength(JSON.stringify(data.storage), "utf-8") / 1024,
       };
     } catch (err) {
-      console.log("ERROR: ", err);
       error = err;
     } finally {
       await this.stop();
