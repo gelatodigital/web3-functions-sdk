@@ -1,5 +1,5 @@
 import colors from "colors/safe";
-import { EventEmitter } from "node:stream";
+import { EventEmitter } from "events";
 import { Web3FunctionVersion } from "../../types";
 import { Web3FunctionSandboxOptions } from "../types";
 

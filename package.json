@@ -81,7 +81,7 @@
     "format:check": "prettier --check '*/**/*.{js,json,md,ts}'",
     "lint": "eslint --cache .",
     "test": "ts-node src/bin/index.ts test",
-    "test:unit": "node --experimental-vm-modules ./node_modules/.bin/jest src --verbose --detectOpenHandles --forceExit --silent=false",
+    "test:unit": "node --experimental-vm-modules ./node_modules/.bin/jest src --verbose --detectOpenHandles --forceExit --silent=true",
     "benchmark": "ts-node src/bin/index.ts benchmark",
     "deploy": "ts-node src/bin/index.ts deploy",
     "fetch": "ts-node src/bin/index.ts fetch",
@@ -93,6 +93,7 @@
   "devDependencies": {
     "@changesets/cli": "^2.26.2",
     "@ethersproject/abi": "^5.7.0",
+    "@jest/globals": "^29.7.0",
     "@tsconfig/recommended": "^1.0.1",
     "@types/jest": "^29.5.5",
     "@types/node": "^16.11.12",

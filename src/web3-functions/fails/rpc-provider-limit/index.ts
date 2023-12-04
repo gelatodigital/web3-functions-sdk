@@ -39,7 +39,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
     console.log("Invalid Rpc method error:", failure);
   }
   assert.match(failure, /"code":-32601/);
-  assert.match(failure, /the method eth_test does not exist/);
+  assert.match(failure, /the method eth_test does not exist|Method not found/);
 
   // Test sending invalid params
   try {

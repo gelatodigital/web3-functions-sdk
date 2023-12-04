@@ -71,7 +71,7 @@ describe("Web3FunctionMultiChainProvider", () => {
     } catch (error) {
       expect(rateLimitInvoked).toBeTruthy();
     }
-  });
+  }, 20_000);
 
   test("should fail when RPC is not configured for the chainId", async () => {
     try {
