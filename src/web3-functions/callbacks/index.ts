@@ -32,7 +32,9 @@ Web3Function.onFail(async (context: Web3FunctionFailContext) => {
   if (reason === "ExecutionReverted") {
     console.log(`onFail: ${reason} txHash: ${context.transactionHash}`);
   } else if (reason === "SimulationFailed") {
-    console.log(`onFail: ${reason} callData: ${context.callData}`);
+    console.log(
+      `onFail: ${reason} callData: ${JSON.stringify(context.callData)}`
+    );
   } else {
     console.log(`onFail: ${reason}`);
   }

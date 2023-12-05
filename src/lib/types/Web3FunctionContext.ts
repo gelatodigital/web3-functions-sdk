@@ -2,6 +2,7 @@ import { BigNumber } from "@ethersproject/bignumber";
 import { Log } from "@ethersproject/providers";
 import { Web3FunctionMultiChainProvider } from "../provider/Web3FunctionMultiChainProvider";
 import { Web3FunctionOperation } from "./Web3FunctionOperation";
+import { Web3FunctionResultCallData } from "./Web3FunctionResult";
 import { Web3FunctionUserArgs } from "./Web3FunctionUserArgs";
 
 export type Web3FunctionContextData =
@@ -16,7 +17,7 @@ export interface Web3FunctionOnFailContextData
   extends Web3FunctionContextDataBase {
   operation: "onFail";
   onFailReason: FailReason;
-  callData?: string;
+  callData?: Web3FunctionResultCallData[];
   transactionHash?: string;
 }
 export interface Web3FunctionOnSuccessContextData
@@ -75,7 +76,7 @@ export interface Web3FunctionFailContextBase extends Web3FunctionContext {
 export interface Web3FunctionSimulationFailContext
   extends Web3FunctionFailContextBase {
   reason: "SimulationFailed";
-  callData: string;
+  callData: Web3FunctionResultCallData[];
 }
 export interface Web3FunctionExecutionRevertedContext
   extends Web3FunctionFailContextBase {

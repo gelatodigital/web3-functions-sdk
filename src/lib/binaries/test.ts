@@ -278,7 +278,12 @@ export default async function test(callConfig?: Partial<CallConfig>) {
       ...context,
       operation: "onFail",
       onFailReason: "SimulationFailed",
-      callData: "0x00000000",
+      callData: [
+        {
+          to: "0x0000000000000000000000000000000000000000",
+          data: "0x00000000",
+        },
+      ],
     };
   }
 

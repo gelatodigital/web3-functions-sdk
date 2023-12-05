@@ -2,6 +2,7 @@ import { BigNumber } from "@ethersproject/bignumber";
 import { diff } from "deep-object-diff";
 import { Web3FunctionHttpServer } from "./net/Web3FunctionHttpServer";
 import { Web3FunctionMultiChainProvider } from "./provider/Web3FunctionMultiChainProvider";
+import { Web3FunctionResultCallData } from "./types";
 import {
   Web3FunctionContext,
   Web3FunctionContextData,
@@ -133,7 +134,7 @@ export class Web3Function {
       await this._onFail({
         ...context,
         reason: ctxData.onFailReason,
-        callData: ctxData.callData as string,
+        callData: ctxData.callData as Web3FunctionResultCallData[],
       });
     } else if (ctxData.onFailReason === "ExecutionReverted") {
       await this._onFail({
