@@ -174,6 +174,7 @@ export class Web3FunctionRunner {
       const { data } = await this._runInSandbox(
         script,
         version,
+        operation,
         context,
         options,
         multiChainProviderConfig
@@ -337,6 +338,7 @@ export class Web3FunctionRunner {
   private async _runInSandbox(
     script: string,
     version: Web3FunctionVersion,
+    operation: Web3FunctionOperation,
     context: Web3FunctionContextDataBase,
     options: Web3FunctionRunnerOptions,
     multiChainProviderConfig: MultiChainProviderConfig
@@ -428,7 +430,10 @@ export class Web3FunctionRunner {
 
     return new Promise((resolve, reject) => {
       let isResolved = false;
-      this._client?.emit("input_event", { action: "start", data: { context } });
+      this._client?.emit("input_event", {
+        action: "start",
+        data: { operation, context },
+      });
       this._client?.on("error", async (error: Error) => {
         this._log(`Client error: ${error.message}`);
         try {
