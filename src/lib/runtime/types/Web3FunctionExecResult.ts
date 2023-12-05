@@ -1,5 +1,6 @@
 import {
   Web3FunctionCallbackStatus,
+  Web3FunctionOperation,
   Web3FunctionStorageWithSize,
   Web3FunctionVersion,
 } from "../../types";
@@ -53,10 +54,9 @@ export type Web3FunctionExecSuccessCallback = Web3FunctionExecSuccessBase & {
   result: undefined;
 };
 
-export type Web3FunctionExecSuccess =
-  | Web3FunctionExecSuccessV1
-  | Web3FunctionExecSuccessV2
-  | Web3FunctionExecSuccessCallback;
+export type Web3FunctionExecSuccess<T> = T extends "onRun"
+  ? Web3FunctionExecSuccessV1 | Web3FunctionExecSuccessV2
+  : Web3FunctionExecSuccessCallback;
 
 export class Web3FunctionRuntimeError extends Error {
   throttledReason?: "memory" | "duration" | "rpcRequest";
@@ -76,4 +76,6 @@ type Web3FunctionExecFail = Web3FunctionExecStats & {
   callbacks?: Web3FunctionCallbackStatus;
 };
 
-export type Web3FunctionExec = Web3FunctionExecSuccess | Web3FunctionExecFail;
+export type Web3FunctionExec<T extends Web3FunctionOperation = "onRun"> =
+  | Web3FunctionExecSuccess<T>
+  | Web3FunctionExecFail;

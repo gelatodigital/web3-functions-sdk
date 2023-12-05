@@ -45,13 +45,13 @@ export class Web3FunctionHardhat {
     this.provider = new EthersProviderWrapper(_hre.network.provider);
   }
 
-  public async run(
+  public async run<T extends Web3FunctionOperation = "onRun">(
     operation?: Web3FunctionOperation,
     override?: {
       storage?: { [key: string]: string };
       userArgs?: Web3FunctionUserArgs;
     }
-  ): Promise<Web3FunctionExecSuccess> {
+  ): Promise<Web3FunctionExecSuccess<T>> {
     const userArgs = override?.userArgs ?? this.w3f.userArgs;
     const storage = override?.storage ?? this.w3f.storage;
     const secrets = this.w3f.secrets;
@@ -132,7 +132,7 @@ export class Web3FunctionHardhat {
     if (!res.success)
       throw new Error(`Fail to run web3 function: ${res.error.message}`);
 
-    return res;
+    return res as Web3FunctionExecSuccess<T>;
   }
 
   public async deploy() {

@@ -9,6 +9,7 @@ import { Web3FunctionProxyProvider } from "../provider/Web3FunctionProxyProvider
 import {
   MultiChainProviderConfig,
   Web3FunctionContextData,
+  Web3FunctionOperation,
   Web3FunctionResult,
   Web3FunctionResultV1,
   Web3FunctionResultV2,
@@ -155,9 +156,9 @@ export class Web3FunctionRunner {
     return typedUserArgs;
   }
 
-  public async run(
+  public async run<T extends Web3FunctionOperation = "onRun">(
     payload: Web3FunctionRunnerPayload
-  ): Promise<Web3FunctionExec> {
+  ): Promise<Web3FunctionExec<T>> {
     const start = performance.now();
     const throttled: Web3FunctionThrottled = {};
     let result: Web3FunctionResult | undefined = undefined;
@@ -249,17 +250,20 @@ export class Web3FunctionRunner {
           return {
             ...web3FunctionExec,
             version: Web3FunctionVersion.V1_0_0,
-            result: result as Web3FunctionResultV1,
-          };
+            result: result,
+          } as Web3FunctionExec<T>;
         } else {
           return {
             ...web3FunctionExec,
             version: Web3FunctionVersion.V2_0_0,
             result: result as Web3FunctionResultV2,
-          };
+          } as Web3FunctionExec<T>;
         }
       } else {
-        return { ...web3FunctionExec, result: undefined };
+        return {
+          ...web3FunctionExec,
+          result: undefined,
+        } as Web3FunctionExec<T>;
       }
     } else {
       if (
