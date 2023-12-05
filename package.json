@@ -1,6 +1,6 @@
 {
   "name": "@gelatonetwork/web3-functions-sdk",
-  "version": "2.1.9",
+  "version": "2.1.10",
   "description": "Gelato Automate Web3 Functions sdk",
   "repository": {
     "type": "git",
