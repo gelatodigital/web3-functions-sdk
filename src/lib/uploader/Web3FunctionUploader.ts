@@ -92,15 +92,19 @@ export class Web3FunctionUploader {
         .catch((err) => {
           let errMsg = `${err.message} `;
           if (axios.isAxiosError(err)) {
-            const data = JSON.parse(err.response?.data.toString("utf8")) as {
-              message?: string;
-            };
-            if (data.message) errMsg += data.message;
+            try {
+              const data = JSON.parse(err.response?.data.toString("utf8")) as {
+                message?: string;
+              };
+              if (data.message) errMsg += data.message;
+            } catch (err) {
+              errMsg += err.message;
+            }
           }
 
           reject(
             new Error(
-              `Web3FunctionUploaderError: Fetch Web3Function to ${destDir} failed. \n${errMsg}`
+              `Web3FunctionUploaderError: Fetch Web3Function ${cid} to ${destDir} failed. \n${errMsg}`
             )
           );
         });
