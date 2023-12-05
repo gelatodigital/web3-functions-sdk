@@ -5,28 +5,27 @@ import { Web3FunctionOperation } from "./Web3FunctionOperation";
 import { Web3FunctionResultCallData } from "./Web3FunctionResult";
 import { Web3FunctionUserArgs } from "./Web3FunctionUserArgs";
 
-export type Web3FunctionContextData =
-  | Web3FunctionOnRunContextData
-  | Web3FunctionOnFailContextData
-  | Web3FunctionOnSuccessContextData;
-export interface Web3FunctionOnRunContextData
-  extends Web3FunctionContextDataBase {
-  operation: "onRun";
-}
+export type Web3FunctionContextData<T extends Web3FunctionOperation> =
+  T extends "onRun"
+    ? Web3FunctionOnRunContextData
+    : T extends "onFail"
+    ? Web3FunctionOnFailContextData
+    : T extends "onSuccess"
+    ? Web3FunctionOnSuccessContextData
+    : never;
+
+export type Web3FunctionOnRunContextData = Web3FunctionContextDataBase;
 export interface Web3FunctionOnFailContextData
   extends Web3FunctionContextDataBase {
-  operation: "onFail";
   onFailReason: FailReason;
   callData?: Web3FunctionResultCallData[];
   transactionHash?: string;
 }
 export interface Web3FunctionOnSuccessContextData
   extends Web3FunctionContextDataBase {
-  operation: "onSuccess";
   transactionHash?: string;
 }
 export interface Web3FunctionContextDataBase {
-  operation: Web3FunctionOperation;
   gelatoArgs: {
     chainId: number;
     gasPrice: string;

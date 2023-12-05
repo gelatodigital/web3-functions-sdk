@@ -8,7 +8,7 @@ import { Web3FunctionNetHelper } from "../net/Web3FunctionNetHelper";
 import { Web3FunctionProxyProvider } from "../provider/Web3FunctionProxyProvider";
 import {
   MultiChainProviderConfig,
-  Web3FunctionContextData,
+  Web3FunctionContextDataBase,
   Web3FunctionOperation,
   Web3FunctionResult,
   Web3FunctionResultV1,
@@ -156,9 +156,10 @@ export class Web3FunctionRunner {
     return typedUserArgs;
   }
 
-  public async run<T extends Web3FunctionOperation = "onRun">(
-    payload: Web3FunctionRunnerPayload
-  ): Promise<Web3FunctionExec<T>> {
+  public async run(
+    operation: Web3FunctionOperation,
+    payload: Web3FunctionRunnerPayload<typeof operation>
+  ): Promise<Web3FunctionExec<typeof operation>> {
     const start = performance.now();
     const throttled: Web3FunctionThrottled = {};
     let result: Web3FunctionResult | undefined = undefined;
@@ -178,7 +179,7 @@ export class Web3FunctionRunner {
         multiChainProviderConfig
       );
 
-      if (context.operation === "onRun") {
+      if (operation === "onRun") {
         this._validateResult(version, data.result as Web3FunctionResult);
       }
 
@@ -245,25 +246,25 @@ export class Web3FunctionRunner {
         throttled,
       };
 
-      if (context.operation === "onRun") {
+      if (operation === "onRun") {
         if (version == Web3FunctionVersion.V1_0_0) {
           return {
             ...web3FunctionExec,
             version: Web3FunctionVersion.V1_0_0,
             result: result,
-          } as Web3FunctionExec<T>;
+          } as Web3FunctionExec<typeof operation>;
         } else {
           return {
             ...web3FunctionExec,
             version: Web3FunctionVersion.V2_0_0,
             result: result as Web3FunctionResultV2,
-          } as Web3FunctionExec<T>;
+          } as Web3FunctionExec<typeof operation>;
         }
       } else {
         return {
           ...web3FunctionExec,
           result: undefined,
-        } as Web3FunctionExec<T>;
+        } as Web3FunctionExec<typeof operation>;
       }
     } else {
       if (
@@ -336,7 +337,7 @@ export class Web3FunctionRunner {
   private async _runInSandbox(
     script: string,
     version: Web3FunctionVersion,
-    context: Web3FunctionContextData,
+    context: Web3FunctionContextDataBase,
     options: Web3FunctionRunnerOptions,
     multiChainProviderConfig: MultiChainProviderConfig
   ): Promise<{
