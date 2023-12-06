@@ -46,11 +46,11 @@ export class Web3Function {
 
       try {
         const { result, ctxData } =
-          event.data.operation === "onRun"
-            ? await this._invokeOnRun(event.data.context)
+          event.data.operation === "onSuccess"
+            ? await this._invokeOnSuccess(event.data.context)
             : event.data.operation === "onFail"
             ? await this._invokeOnFail(event.data.context)
-            : await this._invokeOnSuccess(event.data.context);
+            : await this._invokeOnRun(event.data.context);
 
         const { difference, state } = this._compareStorage(
           prevStorage,
