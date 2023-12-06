@@ -27,10 +27,10 @@ import { Web3FunctionAbstractSandbox } from "./sandbox/Web3FunctionAbstractSandb
 import { Web3FunctionDockerSandbox } from "./sandbox/Web3FunctionDockerSandbox";
 import { Web3FunctionThreadSandbox } from "./sandbox/Web3FunctionThreadSandbox";
 import {
-  Web3FunctionExecAny,
+  Web3FunctionExec,
   Web3FunctionExecSuccessBase,
   Web3FunctionRunnerOptions,
-  Web3FunctionRunnerPayloadAny,
+  Web3FunctionRunnerPayload,
   Web3FunctionRuntimeError,
   Web3FunctionThrottled,
 } from "./types";
@@ -156,10 +156,10 @@ export class Web3FunctionRunner {
     return typedUserArgs;
   }
 
-  public async run(
-    operation: Web3FunctionOperation,
-    payload: Web3FunctionRunnerPayloadAny
-  ): Promise<Web3FunctionExecAny> {
+  public async run<T extends Web3FunctionOperation>(
+    operation: T,
+    payload: Web3FunctionRunnerPayload<T>
+  ): Promise<Web3FunctionExec<T>> {
     const start = performance.now();
     const throttled: Web3FunctionThrottled = {};
     let result: Web3FunctionResult | undefined = undefined;
@@ -258,19 +258,19 @@ export class Web3FunctionRunner {
             ...web3FunctionExec,
             version: Web3FunctionVersion.V1_0_0,
             result: result,
-          } as Web3FunctionExecAny;
+          } as Web3FunctionExec<T>;
         } else {
           return {
             ...web3FunctionExec,
             version: Web3FunctionVersion.V2_0_0,
             result: result as Web3FunctionResultV2,
-          } as Web3FunctionExecAny;
+          } as Web3FunctionExec<T>;
         }
       } else {
         return {
           ...web3FunctionExec,
           result: undefined,
-        } as Web3FunctionExecAny;
+        } as Web3FunctionExec<T>;
       }
     } else {
       if (
@@ -340,10 +340,10 @@ export class Web3FunctionRunner {
     }
   }
 
-  private async _runInSandbox(
+  private async _runInSandbox<T extends Web3FunctionOperation>(
     script: string,
     version: Web3FunctionVersion,
-    operation: Web3FunctionOperation,
+    operation: T,
     context: Web3FunctionContextDataBase,
     options: Web3FunctionRunnerOptions,
     multiChainProviderConfig: MultiChainProviderConfig

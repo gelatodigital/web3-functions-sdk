@@ -54,9 +54,10 @@ export type Web3FunctionExecSuccessCallback = Web3FunctionExecSuccessBase & {
   result: undefined;
 };
 
-export type Web3FunctionExecSuccess<T> = T extends "onRun"
-  ? Web3FunctionExecSuccessV1 | Web3FunctionExecSuccessV2
-  : Web3FunctionExecSuccessCallback;
+export type Web3FunctionExecSuccess<T extends Web3FunctionOperation> =
+  T extends "onRun"
+    ? Web3FunctionExecSuccessV1 | Web3FunctionExecSuccessV2
+    : Web3FunctionExecSuccessCallback;
 
 export class Web3FunctionRuntimeError extends Error {
   throttledReason?: "memory" | "duration" | "rpcRequest";
@@ -76,7 +77,7 @@ type Web3FunctionExecFail = Web3FunctionExecStats & {
   callbacks?: Web3FunctionCallbackStatus;
 };
 
-export type Web3FunctionExec<T extends Web3FunctionOperation = "onRun"> =
+export type Web3FunctionExec<T extends Web3FunctionOperation> =
   | Web3FunctionExecSuccess<T>
   | Web3FunctionExecFail;
 

@@ -46,13 +46,13 @@ export class Web3FunctionHardhat {
     this.provider = new EthersProviderWrapper(_hre.network.provider);
   }
 
-  public async run(
-    operation: Web3FunctionOperation,
+  public async run<T extends Web3FunctionOperation>(
+    operation: T,
     override?: {
       storage?: { [key: string]: string };
       userArgs?: Web3FunctionUserArgs;
     }
-  ): Promise<Web3FunctionExecSuccess<typeof operation>> {
+  ): Promise<Web3FunctionExecSuccess<T>> {
     const userArgs = override?.userArgs ?? this.w3f.userArgs;
     const storage = override?.storage ?? this.w3f.storage;
     const secrets = this.w3f.secrets;
@@ -95,7 +95,7 @@ export class Web3FunctionHardhat {
       storage,
       log,
     };
-    let context: Web3FunctionContextData<typeof operation>;
+    let context: Web3FunctionContextData<T>;
     if (operation === "onFail") {
       //Todo: accept arguments
       context = {
@@ -107,15 +107,15 @@ export class Web3FunctionHardhat {
             data: "0x00000000",
           },
         ],
-      };
+      } as Web3FunctionContextData<T>;
     } else if (operation === "onSuccess") {
       context = {
         ...baseContext,
-      };
+      } as Web3FunctionContextData<T>;
     } else {
       context = {
         ...baseContext,
-      };
+      } as Web3FunctionContextData<T>;
     }
 
     const multiChainProviderConfig = await getMultiChainProviderConfigs(
