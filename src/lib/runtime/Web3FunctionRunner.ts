@@ -27,10 +27,10 @@ import { Web3FunctionAbstractSandbox } from "./sandbox/Web3FunctionAbstractSandb
 import { Web3FunctionDockerSandbox } from "./sandbox/Web3FunctionDockerSandbox";
 import { Web3FunctionThreadSandbox } from "./sandbox/Web3FunctionThreadSandbox";
 import {
-  Web3FunctionExec,
+  Web3FunctionExecAny,
   Web3FunctionExecSuccessBase,
   Web3FunctionRunnerOptions,
-  Web3FunctionRunnerPayload,
+  Web3FunctionRunnerPayloadAny,
   Web3FunctionRuntimeError,
   Web3FunctionThrottled,
 } from "./types";
@@ -158,8 +158,8 @@ export class Web3FunctionRunner {
 
   public async run(
     operation: Web3FunctionOperation,
-    payload: Web3FunctionRunnerPayload<typeof operation>
-  ): Promise<Web3FunctionExec<typeof operation>> {
+    payload: Web3FunctionRunnerPayloadAny
+  ): Promise<Web3FunctionExecAny> {
     const start = performance.now();
     const throttled: Web3FunctionThrottled = {};
     let result: Web3FunctionResult | undefined = undefined;
@@ -258,19 +258,19 @@ export class Web3FunctionRunner {
             ...web3FunctionExec,
             version: Web3FunctionVersion.V1_0_0,
             result: result,
-          } as Web3FunctionExec<typeof operation>;
+          } as Web3FunctionExecAny;
         } else {
           return {
             ...web3FunctionExec,
             version: Web3FunctionVersion.V2_0_0,
             result: result as Web3FunctionResultV2,
-          } as Web3FunctionExec<typeof operation>;
+          } as Web3FunctionExecAny;
         }
       } else {
         return {
           ...web3FunctionExec,
           result: undefined,
-        } as Web3FunctionExec<typeof operation>;
+        } as Web3FunctionExecAny;
       }
     } else {
       if (

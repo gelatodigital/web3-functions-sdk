@@ -80,7 +80,4 @@ export type Web3FunctionExec<T extends Web3FunctionOperation = "onRun"> =
   | Web3FunctionExecSuccess<T>
   | Web3FunctionExecFail;
 
-export type Web3FunctionExecAny =
-  | Web3FunctionExec<"onRun">
-  | Web3FunctionExec<"onFail">
-  | Web3FunctionExec<"onSuccess">;
+export type Web3FunctionExecAny = Web3FunctionExec<Web3FunctionOperation>;

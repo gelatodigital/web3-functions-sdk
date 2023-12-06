@@ -23,3 +23,6 @@ export interface Web3FunctionRunnerPayload<T extends Web3FunctionOperation> {
   multiChainProviderConfig: MultiChainProviderConfig;
   version: Web3FunctionVersion;
 }
+
+export type Web3FunctionRunnerPayloadAny =
+  Web3FunctionRunnerPayload<Web3FunctionOperation>;
