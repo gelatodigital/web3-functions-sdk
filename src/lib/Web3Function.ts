@@ -5,7 +5,7 @@ import { Web3FunctionMultiChainProvider } from "./provider/Web3FunctionMultiChai
 import { Web3FunctionResultCallData } from "./types";
 import {
   Web3FunctionContext,
-  Web3FunctionContextData,
+  Web3FunctionContextDataBase,
   Web3FunctionOnFailContextData,
   Web3FunctionOnRunContextData,
   Web3FunctionOnSuccessContextData,
@@ -46,9 +46,9 @@ export class Web3Function {
 
       try {
         const { result, ctxData } =
-          event.data.context.operation === "onRun"
+          event.data.operation === "onRun"
             ? await this._invokeOnRun(event.data.context)
-            : event.data.context.operation === "onFail"
+            : event.data.operation === "onFail"
             ? await this._invokeOnFail(event.data.context)
             : await this._invokeOnSuccess(event.data.context);
 
@@ -103,10 +103,6 @@ export class Web3Function {
   private async _invokeOnRun(ctxData: Web3FunctionOnRunContextData) {
     const context = this._context(ctxData);
 
-    if (ctxData.operation !== "onRun")
-      throw new Error(
-        `Invalid '${ctxData.operation}' operation for _invokeOnRun`
-      );
     if (!this._onRun)
       throw new Error("Web3Function.onRun function is not registered");
 
@@ -123,10 +119,6 @@ export class Web3Function {
   private async _invokeOnFail(ctxData: Web3FunctionOnFailContextData) {
     const context = this._context(ctxData);
 
-    if (ctxData.operation !== "onFail")
-      throw new Error(
-        `Invalid '${ctxData.operation}' operation for _invokeOnFail`
-      );
     if (!this._onFail)
       throw new Error("Web3Function.onFail function is not registered");
 
@@ -153,10 +145,6 @@ export class Web3Function {
   private async _invokeOnSuccess(ctxData: Web3FunctionOnSuccessContextData) {
     const context = this._context(ctxData);
 
-    if (ctxData.operation !== "onSuccess")
-      throw new Error(
-        `Invalid '${ctxData.operation}' operation for _invokeOnSuccess`
-      );
     if (!this._onSuccess)
       throw new Error("Web3Function.onSuccess function is not registered");
 
@@ -171,7 +159,7 @@ export class Web3Function {
     };
   }
 
-  private _context(ctxData: Web3FunctionContextData) {
+  private _context(ctxData: Web3FunctionContextDataBase) {
     const context: Web3FunctionContext = {
       gelatoArgs: {
         ...ctxData.gelatoArgs,

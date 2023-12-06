@@ -21,15 +21,17 @@ export class Web3FunctionRunnerPool {
     );
   }
 
-  public async run<T extends Web3FunctionOperation = "onRun">(
-    payload: Web3FunctionRunnerPayload
-  ): Promise<Web3FunctionExec<T>> {
-    return this._enqueueAndWait(payload);
+  public async run(
+    operation: Web3FunctionOperation,
+    payload: Web3FunctionRunnerPayload<typeof operation>
+  ): Promise<Web3FunctionExec<typeof operation>> {
+    return this._enqueueAndWait(operation, payload);
   }
 
-  private async _enqueueAndWait<T extends Web3FunctionOperation = "onRun">(
-    payload: Web3FunctionRunnerPayload
-  ): Promise<Web3FunctionExec<T>> {
+  private async _enqueueAndWait(
+    operation: Web3FunctionOperation,
+    payload: Web3FunctionRunnerPayload<typeof operation>
+  ): Promise<Web3FunctionExec<typeof operation>> {
     return new Promise((resolve, reject) => {
       this._queuedRunners.push(async (): Promise<void> => {
         this._activeRunners = this._activeRunners + 1;
@@ -40,7 +42,7 @@ export class Web3FunctionRunnerPool {
           );
           const runner = new Web3FunctionRunner(this._debug);
           payload.options.serverPort = port;
-          const exec = await runner.run<T>(payload);
+          const exec = await runner.run(operation, payload);
           resolve(exec);
         } catch (err) {
           reject(err);

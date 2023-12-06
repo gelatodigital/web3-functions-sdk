@@ -2,7 +2,22 @@ import { Web3FunctionContextData } from "./Web3FunctionContext";
 import { Web3FunctionResult } from "./Web3FunctionResult";
 
 export type Web3FunctionEvent =
-  | { action: "start"; data: { context: Web3FunctionContextData } }
+  | {
+      action: "start";
+      data:
+        | {
+            operation: "onRun";
+            context: Web3FunctionContextData<"onRun">;
+          }
+        | {
+            operation: "onFail";
+            context: Web3FunctionContextData<"onFail">;
+          }
+        | {
+            operation: "onSuccess";
+            context: Web3FunctionContextData<"onSuccess">;
+          };
+    }
   | {
       action: "error";
       data: {

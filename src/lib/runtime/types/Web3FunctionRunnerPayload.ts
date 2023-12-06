@@ -1,5 +1,5 @@
 import { MultiChainProviderConfig } from "../../provider";
-import { Web3FunctionVersion } from "../../types";
+import { Web3FunctionOperation, Web3FunctionVersion } from "../../types";
 import { Web3FunctionContextData } from "../../types/Web3FunctionContext";
 
 export interface Web3FunctionRunnerOptions {
@@ -16,9 +16,9 @@ export interface Web3FunctionRunnerOptions {
   blacklistedHosts?: string[];
 }
 
-export interface Web3FunctionRunnerPayload {
+export interface Web3FunctionRunnerPayload<T extends Web3FunctionOperation> {
   script: string;
-  context: Web3FunctionContextData;
+  context: Web3FunctionContextData<T>;
   options: Web3FunctionRunnerOptions;
   multiChainProviderConfig: MultiChainProviderConfig;
   version: Web3FunctionVersion;

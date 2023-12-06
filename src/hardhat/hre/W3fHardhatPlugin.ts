@@ -2,6 +2,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 
 import {
   Web3FunctionContextData,
+  Web3FunctionContextDataBase,
   Web3FunctionOperation,
   Web3FunctionUserArgs,
 } from "../../lib";
@@ -45,19 +46,18 @@ export class Web3FunctionHardhat {
     this.provider = new EthersProviderWrapper(_hre.network.provider);
   }
 
-  public async run<T extends Web3FunctionOperation = "onRun">(
-    operation?: Web3FunctionOperation,
+  public async run(
+    operation: Web3FunctionOperation,
     override?: {
       storage?: { [key: string]: string };
       userArgs?: Web3FunctionUserArgs;
     }
-  ): Promise<Web3FunctionExecSuccess<T>> {
+  ): Promise<Web3FunctionExecSuccess<typeof operation>> {
     const userArgs = override?.userArgs ?? this.w3f.userArgs;
     const storage = override?.storage ?? this.w3f.storage;
     const secrets = this.w3f.secrets;
     const debug = this.hre.config.w3f.debug;
     const log = this.w3f.log;
-    operation = operation ?? "onRun";
 
     const buildRes = await Web3FunctionBuilder.build(this.w3f.path, { debug });
 
@@ -88,19 +88,18 @@ export class Web3FunctionHardhat {
     const script = buildRes.filePath;
 
     const gelatoArgs = await this.getGelatoArgs();
-    let context: Web3FunctionContextData = {
-      operation: "onRun",
+    const baseContext: Web3FunctionContextDataBase = {
       gelatoArgs,
       userArgs,
       secrets,
       storage,
       log,
     };
+    let context: Web3FunctionContextData<typeof operation>;
     if (operation === "onFail") {
       //Todo: accept arguments
       context = {
-        ...context,
-        operation: "onFail",
+        ...baseContext,
         onFailReason: "SimulationFailed",
         callData: [
           {
@@ -109,11 +108,13 @@ export class Web3FunctionHardhat {
           },
         ],
       };
-    }
-    if (operation === "onSuccess") {
+    } else if (operation === "onSuccess") {
       context = {
-        ...context,
-        operation: "onSuccess",
+        ...baseContext,
+      };
+    } else {
+      context = {
+        ...baseContext,
       };
     }
 
@@ -121,7 +122,7 @@ export class Web3FunctionHardhat {
       this.hre
     );
 
-    const res = await runner.run({
+    const res = await runner.run(operation, {
       script,
       context,
       options,
@@ -132,7 +133,7 @@ export class Web3FunctionHardhat {
     if (!res.success)
       throw new Error(`Fail to run web3 function: ${res.error.message}`);
 
-    return res as Web3FunctionExecSuccess<T>;
+    return res;
   }
 
   public async deploy() {

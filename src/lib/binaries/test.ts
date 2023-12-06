@@ -7,7 +7,8 @@ import { MultiChainProviderConfig } from "../provider";
 import { Web3FunctionRunner } from "../runtime";
 import {
   Web3FunctionContextData,
-  Web3FunctionExec,
+  Web3FunctionContextDataBase,
+  Web3FunctionExecAny,
   Web3FunctionOperation,
   Web3FunctionStorageWithSize,
   Web3FunctionUserArgs,
@@ -58,7 +59,7 @@ function logStorage(storage: Web3FunctionStorageWithSize) {
   }
 }
 
-function logDurationStats(res: Web3FunctionExec) {
+function logDurationStats(res: Web3FunctionExecAny) {
   if (res.throttled.duration) {
     logWithStatus(KO, `Duration: ${res.duration.toFixed(2)}s`, 1);
   } else if (res.duration > STD_TIMEOUT) {
@@ -74,7 +75,7 @@ function logDurationStats(res: Web3FunctionExec) {
   }
 }
 
-function logMemoryStats(res: Web3FunctionExec) {
+function logMemoryStats(res: Web3FunctionExecAny) {
   logWithStatus(
     res.throttled.memory ? KO : OK,
     `Memory: ${res.memory.toFixed(2)}mb`,
@@ -82,7 +83,7 @@ function logMemoryStats(res: Web3FunctionExec) {
   );
 }
 
-function logStorageStats(res: Web3FunctionExec) {
+function logStorageStats(res: Web3FunctionExecAny) {
   if (res.success && res.throttled.storage) {
     logWithStatus(
       KO,
@@ -104,7 +105,7 @@ function logStorageStats(res: Web3FunctionExec) {
   }
 }
 
-function logNetworkStats(res: Web3FunctionExec) {
+function logNetworkStats(res: Web3FunctionExecAny) {
   let networkMessage = `Network: ${res.network.nbRequests} req [${
     res.throttled.download ? KO : ""
   } DL: ${res.network.download.toFixed(2)}kb / UL: ${
@@ -117,7 +118,7 @@ function logNetworkStats(res: Web3FunctionExec) {
   logWithStatus(res.throttled.networkRequest ? KO : OK, networkMessage, 1);
 }
 
-function logRPCStats(res: Web3FunctionExec) {
+function logRPCStats(res: Web3FunctionExecAny) {
   if (res.throttled.rpcRequest) {
     logWithStatus(
       KO,
@@ -135,7 +136,7 @@ function logRPCStats(res: Web3FunctionExec) {
   }
 }
 
-function logResult(operation: Web3FunctionOperation, res: Web3FunctionExec) {
+function logResult(operation: Web3FunctionOperation, res: Web3FunctionExecAny) {
   // Show Web3Function result
   console.log(`\nWeb3Function ${operation} result:`);
 
@@ -204,9 +205,9 @@ export default async function test(callConfig?: Partial<CallConfig>) {
       } else if (arg.startsWith("--chain-id")) {
         callConfig.chainId = parseInt(arg.split("=")[1]);
       } else if (arg.startsWith("--onFail")) {
-        callConfig.operation = "onFail" as Web3FunctionOperation;
+        callConfig.operation = "onFail";
       } else if (arg.startsWith("--onSuccess")) {
-        callConfig.operation = "onSuccess" as Web3FunctionOperation;
+        callConfig.operation = "onSuccess";
       }
     }
 
@@ -261,8 +262,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   logWithStatus(OK, `Build time: ${buildRes.buildTime.toFixed(2)}ms`, 1);
 
   // Prepare mock content for test
-  let context: Web3FunctionContextData = {
-    operation: "onRun",
+  const baseContext: Web3FunctionContextDataBase = {
     secrets,
     storage,
     gelatoArgs: {
@@ -273,10 +273,11 @@ export default async function test(callConfig?: Partial<CallConfig>) {
     log,
   };
 
+  let context: Web3FunctionContextData<typeof operation>;
   if (operation === "onFail") {
+    //Todo: accept arguments
     context = {
-      ...context,
-      operation: "onFail",
+      ...baseContext,
       onFailReason: "SimulationFailed",
       callData: [
         {
@@ -285,12 +286,13 @@ export default async function test(callConfig?: Partial<CallConfig>) {
         },
       ],
     };
-  }
-
-  if (operation === "onSuccess") {
+  } else if (operation === "onSuccess") {
     context = {
-      ...context,
-      operation: "onSuccess",
+      ...baseContext,
+    };
+  } else {
+    context = {
+      ...baseContext,
     };
   }
 
@@ -329,7 +331,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
 
   // Run Web3Function
   console.log(`\nWeb3Function running${showLogs ? " logs:" : "..."}`);
-  const res = await runner.run({
+  const res = await runner.run(operation, {
     script,
     version,
     context,
@@ -337,5 +339,5 @@ export default async function test(callConfig?: Partial<CallConfig>) {
     multiChainProviderConfig,
   });
 
-  logResult(context.operation, res);
+  logResult(operation, res);
 }

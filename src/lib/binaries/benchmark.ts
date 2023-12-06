@@ -18,7 +18,11 @@ import {
   Web3FunctionRunner,
   Web3FunctionRunnerPool,
 } from "../runtime";
-import { Web3FunctionContextData, Web3FunctionOperation } from "../types";
+import {
+  Web3FunctionContextData,
+  Web3FunctionContextDataBase,
+  Web3FunctionOperation,
+} from "../types";
 
 const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
 
@@ -54,9 +58,9 @@ if (process.argv.length > 2) {
     } else if (arg.startsWith("--pool")) {
       pool = parseInt(arg.split("=")[1]) ?? pool;
     } else if (arg.startsWith("--onFail")) {
-      operation = "onFail" as Web3FunctionOperation;
+      operation = "onFail";
     } else if (arg.startsWith("--onSuccess")) {
-      operation = "onSuccess" as Web3FunctionOperation;
+      operation = "onSuccess";
     }
   });
 }
@@ -84,8 +88,7 @@ export default async function benchmark() {
   const log = w3fDetails.log;
 
   // Prepare mock content for test
-  let context: Web3FunctionContextData = {
-    operation: "onRun",
+  const baseContext: Web3FunctionContextDataBase = {
     secrets,
     storage,
     gelatoArgs: {
@@ -96,18 +99,26 @@ export default async function benchmark() {
     log,
   };
 
+  let context: Web3FunctionContextData<typeof operation>;
   if (operation === "onFail") {
+    //Todo: accept arguments
     context = {
-      ...context,
-      operation: "onFail",
+      ...baseContext,
       onFailReason: "SimulationFailed",
+      callData: [
+        {
+          to: "0x0000000000000000000000000000000000000000",
+          data: "0x00000000",
+        },
+      ],
     };
-  }
-
-  if (operation === "onSuccess") {
+  } else if (operation === "onSuccess") {
     context = {
-      ...context,
-      operation: "onSuccess",
+      ...baseContext,
+    };
+  } else {
+    context = {
+      ...baseContext,
     };
   }
 
@@ -154,12 +165,12 @@ export default async function benchmark() {
   const script = buildRes.filePath;
   const runner = new Web3FunctionRunnerPool(pool, debug);
   await runner.init();
-  const promises: Promise<Web3FunctionExec>[] = [];
+  const promises: Promise<Web3FunctionExec<typeof operation>>[] = [];
 
   for (let i = 0; i < load; i++) {
     console.log(`#${i} Queuing Web3Function`);
     promises.push(
-      runner.run({
+      runner.run(operation, {
         script,
         version,
         context,
