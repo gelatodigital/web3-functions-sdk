@@ -2,26 +2,30 @@ import { BigNumber } from "@ethersproject/bignumber";
 import { diff } from "deep-object-diff";
 import { Web3FunctionHttpServer } from "./net/Web3FunctionHttpServer";
 import { Web3FunctionMultiChainProvider } from "./provider/Web3FunctionMultiChainProvider";
+import { Web3FunctionResultCallData } from "./types";
 import {
   Web3FunctionContext,
-  Web3FunctionContextData,
-  Web3FunctionEventContext,
+  Web3FunctionContextDataBase,
+  Web3FunctionOnFailContextData,
+  Web3FunctionOnRunContextData,
+  Web3FunctionOnSuccessContextData,
 } from "./types/Web3FunctionContext";
 import { Web3FunctionEvent } from "./types/Web3FunctionEvent";
-import { Web3FunctionResult } from "./types/Web3FunctionResult";
-
-type baseRunHandler = (ctx: Web3FunctionContext) => Promise<Web3FunctionResult>;
-type eventRunHandler = (
-  ctx: Web3FunctionEventContext
-) => Promise<Web3FunctionResult>;
-
-type runHandler = baseRunHandler | eventRunHandler;
+import {
+  BaseRunHandler,
+  EventRunHandler,
+  FailHandler,
+  RunHandler,
+  SuccessHandler,
+} from "./types/Web3FunctionHandler";
 
 export class Web3Function {
   private static Instance?: Web3Function;
   private static _debug = false;
   private _server: Web3FunctionHttpServer;
-  private _onRun?: runHandler;
+  private _onRun?: RunHandler;
+  private _onSuccess?: SuccessHandler;
+  private _onFail?: FailHandler;
 
   constructor() {
     const port = Number(Deno.env.get("WEB3_FUNCTION_SERVER_PORT") ?? 80);
@@ -41,16 +45,17 @@ export class Web3Function {
       const prevStorage = { ...event.data.context.storage };
 
       try {
-        const { result, ctxData } = await this._run(event.data.context);
+        const { result, ctxData } =
+          event.data.operation === "onSuccess"
+            ? await this._invokeOnSuccess(event.data.context)
+            : event.data.operation === "onFail"
+            ? await this._invokeOnFail(event.data.context)
+            : await this._invokeOnRun(event.data.context);
 
-        const difference = diff(prevStorage, ctxData.storage);
-        for (const key in difference) {
-          if (difference[key] === undefined) {
-            difference[key] = null;
-          }
-        }
-
-        const state = Object.keys(difference).length === 0 ? "last" : "updated";
+        const { difference, state } = this._compareStorage(
+          prevStorage,
+          ctxData.storage
+        );
 
         return {
           action: "result",
@@ -60,6 +65,10 @@ export class Web3Function {
               state,
               storage: ctxData.storage,
               diff: difference,
+            },
+            callbacks: {
+              onFail: this._onFail !== undefined,
+              onSuccess: this._onSuccess !== undefined,
             },
           },
         };
@@ -76,6 +85,10 @@ export class Web3Function {
               storage: prevStorage,
               diff: {},
             },
+            callbacks: {
+              onFail: this._onFail !== undefined,
+              onSuccess: this._onSuccess !== undefined,
+            },
           },
         };
       } finally {
@@ -87,10 +100,66 @@ export class Web3Function {
     }
   }
 
-  private async _run(ctxData: Web3FunctionContextData) {
+  private async _invokeOnRun(ctxData: Web3FunctionOnRunContextData) {
+    const context = this._context(ctxData);
+
     if (!this._onRun)
       throw new Error("Web3Function.onRun function is not registered");
 
+    const result = ctxData.log
+      ? await (this._onRun as EventRunHandler)({
+          ...context,
+          log: ctxData.log,
+        })
+      : await (this._onRun as BaseRunHandler)(context);
+
+    return { result, ctxData };
+  }
+
+  private async _invokeOnFail(ctxData: Web3FunctionOnFailContextData) {
+    const context = this._context(ctxData);
+
+    if (!this._onFail)
+      throw new Error("Web3Function.onFail function is not registered");
+
+    if (ctxData.onFailReason === "SimulationFailed") {
+      await this._onFail({
+        ...context,
+        reason: ctxData.onFailReason,
+        callData: ctxData.callData as Web3FunctionResultCallData[],
+      });
+    } else if (ctxData.onFailReason === "ExecutionReverted") {
+      await this._onFail({
+        ...context,
+        reason: ctxData.onFailReason,
+        transactionHash: ctxData.transactionHash as string,
+      });
+    }
+
+    return {
+      result: undefined,
+      ctxData,
+    };
+  }
+
+  private async _invokeOnSuccess(ctxData: Web3FunctionOnSuccessContextData) {
+    const context = this._context(ctxData);
+
+    if (!this._onSuccess)
+      throw new Error("Web3Function.onSuccess function is not registered");
+
+    await this._onSuccess({
+      ...context,
+      transactionHash: ctxData.transactionHash,
+    });
+
+    return {
+      result: undefined,
+      ctxData,
+    };
+  }
+
+  private _context(ctxData: Web3FunctionContextDataBase) {
     const context: Web3FunctionContext = {
       gelatoArgs: {
         ...ctxData.gelatoArgs,
@@ -126,11 +195,26 @@ export class Web3Function {
       },
     };
 
-    const result = ctxData.log
-      ? await (this._onRun as eventRunHandler)({ ...context, log: ctxData.log })
-      : await (this._onRun as baseRunHandler)(context);
+    return context;
+  }
 
-    return { result, ctxData };
+  private _compareStorage(
+    prevStorage: object,
+    afterStorage: object
+  ): {
+    difference: object;
+    state: "last" | "updated";
+  } {
+    const difference = diff(prevStorage, afterStorage);
+    for (const key in difference) {
+      if (difference[key] === undefined) {
+        difference[key] = null;
+      }
+    }
+
+    const state = Object.keys(difference).length === 0 ? "last" : "updated";
+
+    return { difference, state };
   }
 
   private _exit(code = 0, force = false) {
@@ -151,11 +235,23 @@ export class Web3Function {
     return Web3Function.Instance;
   }
 
-  static onRun(onRun: baseRunHandler): void;
-  static onRun(onRun: eventRunHandler): void;
+  static onRun(onRun: BaseRunHandler): void;
+  static onRun(onRun: EventRunHandler): void;
   static onRun(onRun: any): void {
     Web3Function._log("Registering onRun function");
     Web3Function.getInstance()._onRun = onRun;
+  }
+
+  static onSuccess(onSuccess: SuccessHandler): void;
+  static onSuccess(onSuccess: any): void {
+    Web3Function._log("Registering onSuccess function");
+    Web3Function.getInstance()._onSuccess = onSuccess;
+  }
+
+  static onFail(onFail: FailHandler): void;
+  static onFail(onFail: any): void {
+    Web3Function._log("Registering onFail function");
+    Web3Function.getInstance()._onFail = onFail;
   }
 
   static setDebug(debug: boolean) {

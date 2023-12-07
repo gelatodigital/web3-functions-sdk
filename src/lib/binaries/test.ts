@@ -7,7 +7,9 @@ import { MultiChainProviderConfig } from "../provider";
 import { Web3FunctionRunner } from "../runtime";
 import {
   Web3FunctionContextData,
-  Web3FunctionExec,
+  Web3FunctionContextDataBase,
+  Web3FunctionExecAny,
+  Web3FunctionOperation,
   Web3FunctionStorageWithSize,
   Web3FunctionUserArgs,
 } from "../types";
@@ -26,6 +28,7 @@ const KO = colors.red("✗");
 const WARN = colors.yellow("⚠");
 
 export interface CallConfig {
+  operation: Web3FunctionOperation;
   w3fPath: string;
   debug: boolean;
   showLogs: boolean;
@@ -56,7 +59,7 @@ function logStorage(storage: Web3FunctionStorageWithSize) {
   }
 }
 
-function logDurationStats(res: Web3FunctionExec) {
+function logDurationStats(res: Web3FunctionExecAny) {
   if (res.throttled.duration) {
     logWithStatus(KO, `Duration: ${res.duration.toFixed(2)}s`, 1);
   } else if (res.duration > STD_TIMEOUT) {
@@ -72,7 +75,7 @@ function logDurationStats(res: Web3FunctionExec) {
   }
 }
 
-function logMemoryStats(res: Web3FunctionExec) {
+function logMemoryStats(res: Web3FunctionExecAny) {
   logWithStatus(
     res.throttled.memory ? KO : OK,
     `Memory: ${res.memory.toFixed(2)}mb`,
@@ -80,7 +83,7 @@ function logMemoryStats(res: Web3FunctionExec) {
   );
 }
 
-function logStorageStats(res: Web3FunctionExec) {
+function logStorageStats(res: Web3FunctionExecAny) {
   if (res.success && res.throttled.storage) {
     logWithStatus(
       KO,
@@ -102,7 +105,7 @@ function logStorageStats(res: Web3FunctionExec) {
   }
 }
 
-function logNetworkStats(res: Web3FunctionExec) {
+function logNetworkStats(res: Web3FunctionExecAny) {
   let networkMessage = `Network: ${res.network.nbRequests} req [${
     res.throttled.download ? KO : ""
   } DL: ${res.network.download.toFixed(2)}kb / UL: ${
@@ -115,7 +118,7 @@ function logNetworkStats(res: Web3FunctionExec) {
   logWithStatus(res.throttled.networkRequest ? KO : OK, networkMessage, 1);
 }
 
-function logRPCStats(res: Web3FunctionExec) {
+function logRPCStats(res: Web3FunctionExecAny) {
   if (res.throttled.rpcRequest) {
     logWithStatus(
       KO,
@@ -133,11 +136,16 @@ function logRPCStats(res: Web3FunctionExec) {
   }
 }
 
-function logResult(res: Web3FunctionExec) {
+function logResult(operation: Web3FunctionOperation, res: Web3FunctionExecAny) {
   // Show Web3Function result
-  console.log(`\nWeb3Function Result:`);
+  console.log(`\nWeb3Function ${operation} result:`);
+
   if (res.success) {
-    logWithStatus(OK, `Return value: ${JSON.stringify(res.result)}`, 1);
+    if (operation === "onRun") {
+      logWithStatus(OK, `Return value: ${JSON.stringify(res.result)}`, 1);
+    } else {
+      logWithStatus(OK, `Success`, 1);
+    }
     logStorage(res.storage);
   } else {
     logWithStatus(KO, `Error: ${res.error.message}`, 1);
@@ -154,6 +162,7 @@ function logResult(res: Web3FunctionExec) {
 
 export default async function test(callConfig?: Partial<CallConfig>) {
   const defaultCallConfig: CallConfig = {
+    operation: "onRun",
     userArgs: {},
     chainId: 5,
     multiChainProviderConfig: {
@@ -195,6 +204,10 @@ export default async function test(callConfig?: Partial<CallConfig>) {
         callConfig.runtime = type === "docker" ? "docker" : "thread";
       } else if (arg.startsWith("--chain-id")) {
         callConfig.chainId = parseInt(arg.split("=")[1]);
+      } else if (arg.startsWith("--onFail")) {
+        callConfig.operation = "onFail";
+      } else if (arg.startsWith("--onSuccess")) {
+        callConfig.operation = "onSuccess";
       }
     }
 
@@ -222,6 +235,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   console.log(`Web3Function building...`);
 
   const {
+    operation,
     w3fPath,
     debug,
     secrets,
@@ -248,7 +262,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   logWithStatus(OK, `Build time: ${buildRes.buildTime.toFixed(2)}ms`, 1);
 
   // Prepare mock content for test
-  const context: Web3FunctionContextData = {
+  const baseContext: Web3FunctionContextDataBase = {
     secrets,
     storage,
     gelatoArgs: {
@@ -258,6 +272,29 @@ export default async function test(callConfig?: Partial<CallConfig>) {
     userArgs,
     log,
   };
+
+  let context: Web3FunctionContextData<typeof operation>;
+  if (operation === "onFail") {
+    //Todo: accept arguments
+    context = {
+      ...baseContext,
+      onFailReason: "SimulationFailed",
+      callData: [
+        {
+          to: "0x0000000000000000000000000000000000000000",
+          data: "0x00000000",
+        },
+      ],
+    };
+  } else if (operation === "onSuccess") {
+    context = {
+      ...baseContext,
+    };
+  } else {
+    context = {
+      ...baseContext,
+    };
+  }
 
   // Configure Web3Function runner
   const runner = new Web3FunctionRunner(debug);
@@ -294,7 +331,7 @@ export default async function test(callConfig?: Partial<CallConfig>) {
 
   // Run Web3Function
   console.log(`\nWeb3Function running${showLogs ? " logs:" : "..."}`);
-  const res = await runner.run({
+  const res = await runner.run(operation, {
     script,
     version,
     context,
@@ -302,5 +339,5 @@ export default async function test(callConfig?: Partial<CallConfig>) {
     multiChainProviderConfig,
   });
 
-  logResult(res);
+  logResult(operation, res);
 }

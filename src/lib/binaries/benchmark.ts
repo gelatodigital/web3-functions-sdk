@@ -18,7 +18,11 @@ import {
   Web3FunctionRunner,
   Web3FunctionRunnerPool,
 } from "../runtime";
-import { Web3FunctionContextData } from "../types";
+import {
+  Web3FunctionContextData,
+  Web3FunctionContextDataBase,
+  Web3FunctionOperation,
+} from "../types";
 
 const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
 
@@ -31,6 +35,7 @@ const providerUrls = (process.env.PROVIDER_URLS as string).split(",");
 const web3FunctionPath =
   process.argv[3] ??
   path.join(process.cwd(), "src", "web3-functions", "index.ts");
+let operation: Web3FunctionOperation = "onRun";
 let chainId = 5;
 let runtime: "docker" | "thread" = "thread";
 let debug = false;
@@ -52,6 +57,10 @@ if (process.argv.length > 2) {
       load = parseInt(arg.split("=")[1]) ?? load;
     } else if (arg.startsWith("--pool")) {
       pool = parseInt(arg.split("=")[1]) ?? pool;
+    } else if (arg.startsWith("--onFail")) {
+      operation = "onFail";
+    } else if (arg.startsWith("--onSuccess")) {
+      operation = "onSuccess";
     }
   });
 }
@@ -79,7 +88,7 @@ export default async function benchmark() {
   const log = w3fDetails.log;
 
   // Prepare mock content for test
-  const context: Web3FunctionContextData = {
+  const baseContext: Web3FunctionContextDataBase = {
     secrets,
     storage,
     gelatoArgs: {
@@ -89,6 +98,29 @@ export default async function benchmark() {
     userArgs,
     log,
   };
+
+  let context: Web3FunctionContextData<typeof operation>;
+  if (operation === "onFail") {
+    //Todo: accept arguments
+    context = {
+      ...baseContext,
+      onFailReason: "SimulationFailed",
+      callData: [
+        {
+          to: "0x0000000000000000000000000000000000000000",
+          data: "0x00000000",
+        },
+      ],
+    };
+  } else if (operation === "onSuccess") {
+    context = {
+      ...baseContext,
+    };
+  } else {
+    context = {
+      ...baseContext,
+    };
+  }
 
   // Validate user args against schema
   if (Object.keys(buildRes.schema.userArgs).length > 0) {
@@ -133,12 +165,12 @@ export default async function benchmark() {
   const script = buildRes.filePath;
   const runner = new Web3FunctionRunnerPool(pool, debug);
   await runner.init();
-  const promises: Promise<Web3FunctionExec>[] = [];
+  const promises: Promise<Web3FunctionExec<typeof operation>>[] = [];
 
   for (let i = 0; i < load; i++) {
     console.log(`#${i} Queuing Web3Function`);
     promises.push(
-      runner.run({
+      runner.run(operation, {
         script,
         version,
         context,

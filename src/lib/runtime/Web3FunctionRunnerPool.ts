@@ -1,4 +1,5 @@
 import { Web3FunctionNetHelper } from "../net/Web3FunctionNetHelper";
+import { Web3FunctionOperation } from "../types";
 import { Web3FunctionExec, Web3FunctionRunnerPayload } from "./types";
 import { Web3FunctionRunner } from "./Web3FunctionRunner";
 
@@ -20,15 +21,17 @@ export class Web3FunctionRunnerPool {
     );
   }
 
-  public async run(
-    payload: Web3FunctionRunnerPayload
-  ): Promise<Web3FunctionExec> {
-    return this._enqueueAndWait(payload);
+  public async run<T extends Web3FunctionOperation>(
+    operation: T,
+    payload: Web3FunctionRunnerPayload<T>
+  ): Promise<Web3FunctionExec<T>> {
+    return this._enqueueAndWait(operation, payload);
   }
 
-  private async _enqueueAndWait(
-    payload: Web3FunctionRunnerPayload
-  ): Promise<Web3FunctionExec> {
+  private async _enqueueAndWait<T extends Web3FunctionOperation>(
+    operation: T,
+    payload: Web3FunctionRunnerPayload<T>
+  ): Promise<Web3FunctionExec<T>> {
     return new Promise((resolve, reject) => {
       this._queuedRunners.push(async (): Promise<void> => {
         this._activeRunners = this._activeRunners + 1;
@@ -39,7 +42,7 @@ export class Web3FunctionRunnerPool {
           );
           const runner = new Web3FunctionRunner(this._debug);
           payload.options.serverPort = port;
-          const exec = await runner.run(payload);
+          const exec = await runner.run(operation, payload);
           resolve(exec);
         } catch (err) {
           reject(err);

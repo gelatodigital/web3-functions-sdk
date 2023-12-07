@@ -1,6 +1,11 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 
-import { Web3FunctionContextData, Web3FunctionUserArgs } from "../../lib";
+import {
+  Web3FunctionContextData,
+  Web3FunctionContextDataBase,
+  Web3FunctionOperation,
+  Web3FunctionUserArgs,
+} from "../../lib";
 import { Web3FunctionBuilder } from "../../lib/builder";
 import { W3fDetails, Web3FunctionLoader } from "../../lib/loader";
 import { Web3FunctionExecSuccess, Web3FunctionRunner } from "../../lib/runtime";
@@ -41,10 +46,13 @@ export class Web3FunctionHardhat {
     this.provider = new EthersProviderWrapper(_hre.network.provider);
   }
 
-  public async run(override?: {
-    storage?: { [key: string]: string };
-    userArgs?: Web3FunctionUserArgs;
-  }): Promise<Web3FunctionExecSuccess> {
+  public async run<T extends Web3FunctionOperation>(
+    operation: T,
+    override?: {
+      storage?: { [key: string]: string };
+      userArgs?: Web3FunctionUserArgs;
+    }
+  ): Promise<Web3FunctionExecSuccess<T>> {
     const userArgs = override?.userArgs ?? this.w3f.userArgs;
     const storage = override?.storage ?? this.w3f.storage;
     const secrets = this.w3f.secrets;
@@ -80,19 +88,41 @@ export class Web3FunctionHardhat {
     const script = buildRes.filePath;
 
     const gelatoArgs = await this.getGelatoArgs();
-    const context: Web3FunctionContextData = {
+    const baseContext: Web3FunctionContextDataBase = {
       gelatoArgs,
       userArgs,
       secrets,
       storage,
       log,
     };
+    let context: Web3FunctionContextData<T>;
+    if (operation === "onFail") {
+      //Todo: accept arguments
+      context = {
+        ...baseContext,
+        onFailReason: "SimulationFailed",
+        callData: [
+          {
+            to: "0x0000000000000000000000000000000000000000",
+            data: "0x00000000",
+          },
+        ],
+      } as Web3FunctionContextData<T>;
+    } else if (operation === "onSuccess") {
+      context = {
+        ...baseContext,
+      } as Web3FunctionContextData<T>;
+    } else {
+      context = {
+        ...baseContext,
+      } as Web3FunctionContextData<T>;
+    }
 
     const multiChainProviderConfig = await getMultiChainProviderConfigs(
       this.hre
     );
 
-    const res = await runner.run({
+    const res = await runner.run(operation, {
       script,
       context,
       options,

@@ -5,9 +5,11 @@ import onExit from "signal-exit";
 import { Web3FunctionHttpClient } from "../net/Web3FunctionHttpClient";
 import { Web3FunctionHttpProxy } from "../net/Web3FunctionHttpProxy";
 import { Web3FunctionNetHelper } from "../net/Web3FunctionNetHelper";
-import { MultiChainProviderConfig } from "../provider";
 import { Web3FunctionProxyProvider } from "../provider/Web3FunctionProxyProvider";
 import {
+  MultiChainProviderConfig,
+  Web3FunctionContextDataBase,
+  Web3FunctionOperation,
   Web3FunctionResult,
   Web3FunctionResultV1,
   Web3FunctionResultV2,
@@ -15,8 +17,8 @@ import {
   Web3FunctionUserArgsSchema,
   Web3FunctionVersion,
 } from "../types";
-import { Web3FunctionContextData } from "../types/Web3FunctionContext";
 import {
+  Web3FunctionCallbackStatus,
   Web3FunctionEvent,
   Web3FunctionStorage,
   Web3FunctionStorageWithSize,
@@ -26,6 +28,7 @@ import { Web3FunctionDockerSandbox } from "./sandbox/Web3FunctionDockerSandbox";
 import { Web3FunctionThreadSandbox } from "./sandbox/Web3FunctionThreadSandbox";
 import {
   Web3FunctionExec,
+  Web3FunctionExecSuccessBase,
   Web3FunctionRunnerOptions,
   Web3FunctionRunnerPayload,
   Web3FunctionRuntimeError,
@@ -153,27 +156,41 @@ export class Web3FunctionRunner {
     return typedUserArgs;
   }
 
-  public async run(
-    payload: Web3FunctionRunnerPayload
-  ): Promise<Web3FunctionExec> {
+  public async run<T extends Web3FunctionOperation>(
+    operation: T,
+    payload: Web3FunctionRunnerPayload<T>
+  ): Promise<Web3FunctionExec<T>> {
     const start = performance.now();
     const throttled: Web3FunctionThrottled = {};
     let result: Web3FunctionResult | undefined = undefined;
+    let callbacks: Web3FunctionCallbackStatus = {
+      onSuccess: false,
+      onFail: false,
+    };
     let storage: Web3FunctionStorageWithSize | undefined = undefined;
     let error: Error | undefined = undefined;
+
     const { script, context, options, version, multiChainProviderConfig } =
       payload;
+
     try {
-      const data = await this._runInSandbox(
+      const { data } = await this._runInSandbox(
         script,
         version,
+        operation,
         context,
         options,
         multiChainProviderConfig
       );
-      this._validateResult(version, data.result);
+
+      if (operation === "onRun") {
+        this._validateResult(version, data.result as Web3FunctionResult);
+      }
 
       result = data.result;
+      if (data.callbacks) {
+        callbacks = data.callbacks;
+      }
       storage = {
         ...data.storage,
         size: Buffer.byteLength(JSON.stringify(data.storage), "utf-8") / 1024,
@@ -217,37 +234,43 @@ export class Web3FunctionRunner {
       throttled.upload = networkStats.upload >= options.uploadLimit / 1024;
     }
 
-    if (storage && result) {
-      if (storage?.state === "updated") {
-        throttled.storage = storage.size > options.storageLimit;
-      }
+    if (storage && storage?.state === "updated") {
+      throttled.storage = storage.size > options.storageLimit;
+    }
 
-      if (version === Web3FunctionVersion.V1_0_0) {
-        return {
-          success: true,
-          version,
-          result: result as Web3FunctionResultV1,
-          storage,
-          logs,
-          duration,
-          memory,
-          rpcCalls,
-          network: networkStats,
-          throttled,
-        };
+    if (storage) {
+      const web3FunctionExec: Web3FunctionExecSuccessBase = {
+        success: true,
+        version,
+        callbacks,
+        storage,
+        logs,
+        duration,
+        memory,
+        rpcCalls,
+        network: networkStats,
+        throttled,
+      };
+
+      if (operation === "onRun") {
+        if (version == Web3FunctionVersion.V1_0_0) {
+          return {
+            ...web3FunctionExec,
+            version: Web3FunctionVersion.V1_0_0,
+            result: result,
+          } as Web3FunctionExec<T>;
+        } else {
+          return {
+            ...web3FunctionExec,
+            version: Web3FunctionVersion.V2_0_0,
+            result: result as Web3FunctionResultV2,
+          } as Web3FunctionExec<T>;
+        }
       } else {
         return {
-          success: true,
-          version,
-          result: result as Web3FunctionResultV2,
-          storage,
-          logs,
-          duration,
-          memory,
-          rpcCalls,
-          network: networkStats,
-          throttled,
-        };
+          ...web3FunctionExec,
+          result: undefined,
+        } as Web3FunctionExec<T>;
       }
     } else {
       if (
@@ -262,6 +285,7 @@ export class Web3FunctionRunner {
         success: false,
         version,
         error: error as Web3FunctionRuntimeError,
+        callbacks,
         logs,
         duration,
         memory,
@@ -316,13 +340,20 @@ export class Web3FunctionRunner {
     }
   }
 
-  private async _runInSandbox(
+  private async _runInSandbox<T extends Web3FunctionOperation>(
     script: string,
     version: Web3FunctionVersion,
-    context: Web3FunctionContextData,
+    operation: T,
+    context: Web3FunctionContextDataBase,
     options: Web3FunctionRunnerOptions,
     multiChainProviderConfig: MultiChainProviderConfig
-  ): Promise<{ result: Web3FunctionResult; storage: Web3FunctionStorage }> {
+  ): Promise<{
+    data: {
+      result: Web3FunctionResult | undefined;
+      storage: Web3FunctionStorage;
+      callbacks: Web3FunctionCallbackStatus;
+    };
+  }> {
     this._sandbox = this._createSandbox(
       options.runtime,
       options.memory,
@@ -404,7 +435,10 @@ export class Web3FunctionRunner {
 
     return new Promise((resolve, reject) => {
       let isResolved = false;
-      this._client?.emit("input_event", { action: "start", data: { context } });
+      this._client?.emit("input_event", {
+        action: "start",
+        data: { operation, context },
+      });
       this._client?.on("error", async (error: Error) => {
         this._log(`Client error: ${error.message}`);
         try {
@@ -418,7 +452,7 @@ export class Web3FunctionRunner {
         switch (event.action) {
           case "result":
             isResolved = true;
-            resolve(event.data);
+            resolve({ data: event.data });
             break;
           case "error":
             isResolved = true;
