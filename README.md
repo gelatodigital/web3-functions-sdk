@@ -114,6 +114,8 @@ Web3Function.onRun(async (context: Web3FunctionEventContext) => {
   - `--runtime=thread|docker` Use `thread` if you don't have `docker`set up locally (default: `thread`)
   - `--debug` Show Runtime debug messages
   - `--chain-id=[number]` Specify the chainId to be used for your Web3Function (default: `5`)
+  - `--onFail` Run `onFail` callback of the function
+  - `--onSuccess` Run `onSuccess` callback of the function
 
 - Example: `yarn test src/web3-functions/index.ts --logs --runtime=thread`
 - Output:
@@ -351,4 +353,92 @@ if (result.canExec) {
   const calldata = result.callData[0];
   await owner.sendTransaction({ to: calldata.to, data: calldata.data });
 }
+```
+
+In certain scenarios during function execution, user intervention might be necessary. For instance, if a user updates task storage during its run, expecting successful Transaction execution, it may not always be guaranteed. Currently, there are no specific tools available to assist users in managing such cases effectively. One proposed solution is the use of callbacks. These callbacks allow users to wait for the Transaction status before updating the task storage. There are two types of callbacks: onFail, triggered when the transaction fails, and onSuccess, triggered when the transaction is successfully mined.
+
+## Callbacks
+
+Callbacks allow functions to handle status of on-chain executions, so that function state can be managed accordingly. For instance, an update on the storage update might depend on successful on-chain execution, storage object can be updated when on-chain execution succeeds with callbacks. There are two callbacks that can be provided,
+
+> [!NOTE]
+> Callbacks are optional and their runs are accounted as normal runs, which run within plan limits.
+
+1. `onSuccess` callback invoked when on-chain execution successful
+
+   ```typescript
+   Web3Function.onSuccess(async (context: Web3FunctionSuccessContext) => {
+     const { userArgs, transactionHash } = context;
+     console.log("userArgs: ", userArgs.canExec);
+     console.log("onSuccess: txHash: ", transactionHash);
+   });
+   ```
+
+   `Web3FunctionSuccessContext` provides the transaction hash of the on-chain execution with `transactionHash`.
+
+2. `onFail` callback invoked when
+
+   - not enough funds
+   - simulation failed
+   - on-chain execution reverted
+
+   ```typescript
+   Web3Function.onFail(async (context: Web3FunctionFailContext) => {
+     const { userArgs, reason } = context;
+
+     console.log("userArgs: ", userArgs.canExec);
+
+     if (reason === "ExecutionReverted") {
+       console.log(`onFail: ${reason} txHash: ${context.transactionHash}`);
+     } else if (reason === "SimulationFailed") {
+       console.log(
+         `onFail: ${reason} callData: ${JSON.stringify(context.callData)}`
+       );
+     } else {
+       console.log(`onFail: ${reason}`);
+     }
+   });
+   ```
+
+   `Web3FunctionFailContext` provides reason of the failure with `reason` and additional data;
+
+   - `SimulationFailed`
+
+     Call data provided during function run with `callData`
+
+   - `ExecutionReverted`
+
+     transaction hash of the reverted on-chain execution with `transactionHash`
+
+### Testing callbacks
+
+Provide `--onFail` or `--onSuccess` flags to test command to test `onFail` or `onSuccess` callbacks respectively, example;
+
+```sh
+$> yarn test src/web3-functions/callbacks/index.ts --logs --runtime=thread --onFail
+
+$>
+    Web3Function Build result:
+    ✓ Schema: src/web3-functions/callbacks/schema.json
+    ✓ Built file: ./.tmp/index.js
+    ✓ File size: 0.58mb
+    ✓ Build time: 75.25ms
+
+    Web3Function user args validation:
+    ✓ canExec: false
+
+    Web3Function running logs:
+    > userArgs:  false
+    > onFail: SimulationFailed callData: [{"to":"0x0000000000000000000000000000000000000000","data":"0x00000000"}]
+
+    Web3Function onFail result:
+    ✓ Success
+
+    Web3Function Runtime stats:
+    ✓ Duration: 0.23s
+    ✓ Memory: 61.06mb
+    ✓ Storage: 0.04kb
+    ✓ Network: 0 req [ DL: 0.00kb / UL:  0.00kb]
+    ✓ Rpc calls: 0
+    ✨  Done in 2.03s.
 ```
