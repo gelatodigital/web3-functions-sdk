@@ -50,7 +50,7 @@ describe("Web3FunctionRunnerPool", () => {
         blacklistedHosts: ["testblacklistedhost.com"],
       };
 
-      const context: Web3FunctionContextData = {
+      const context: Web3FunctionContextData<"onRun"> = {
         secrets: {},
         storage: {},
         gelatoArgs: {
@@ -60,7 +60,7 @@ describe("Web3FunctionRunnerPool", () => {
         userArgs: {},
       };
 
-      await runner.run({
+      await runner.run("onRun", {
         script: buildRes.filePath,
         version: Web3FunctionVersion.V2_0_0,
         context,
