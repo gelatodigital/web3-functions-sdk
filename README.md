@@ -355,11 +355,9 @@ if (result.canExec) {
 }
 ```
 
-In certain scenarios during function execution, user intervention might be necessary. For instance, if a user updates task storage during its run, expecting successful Transaction execution, it may not always be guaranteed. Currently, there are no specific tools available to assist users in managing such cases effectively. One proposed solution is the use of callbacks. These callbacks allow users to wait for the Transaction status before updating the task storage. There are two types of callbacks: onFail, triggered when the transaction fails, and onSuccess, triggered when the transaction is successfully mined.
-
 ## Callbacks
 
-Callbacks allow functions to handle status of on-chain executions, so that function state can be managed accordingly. For instance, an update on the storage update might depend on successful on-chain execution, storage object can be updated when on-chain execution succeeds with callbacks. There are two callbacks that can be provided,
+Callbacks allow functions to handle status of on-chain executions, so that function state can be managed accordingly. There are two callbacks that can be provided,
 
 > [!NOTE]
 > Callbacks are optional and their runs are accounted as normal runs, which run within plan limits.
@@ -368,8 +366,7 @@ Callbacks allow functions to handle status of on-chain executions, so that funct
 
    ```typescript
    Web3Function.onSuccess(async (context: Web3FunctionSuccessContext) => {
-     const { userArgs, transactionHash } = context;
-     console.log("userArgs: ", userArgs.canExec);
+     const { transactionHash } = context;
      console.log("onSuccess: txHash: ", transactionHash);
    });
    ```
@@ -378,15 +375,13 @@ Callbacks allow functions to handle status of on-chain executions, so that funct
 
 2. `onFail` callback invoked when
 
-   - not enough funds
-   - simulation failed
-   - on-chain execution reverted
+   - `InsufficientFunds`
+   - `SimulationFailed`
+   - `ExecutionReverted`
 
    ```typescript
    Web3Function.onFail(async (context: Web3FunctionFailContext) => {
-     const { userArgs, reason } = context;
-
-     console.log("userArgs: ", userArgs.canExec);
+     const { reason } = context;
 
      if (reason === "ExecutionReverted") {
        console.log(`onFail: ${reason} txHash: ${context.transactionHash}`);
