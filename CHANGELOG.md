@@ -1,5 +1,11 @@
 # @gelatonetwork/web3-functions-sdk
 
+## 2.2.1
+
+### Patch Changes
+
+- 88cef0d: fix: invoke fail callback on insufficient funds
+
 ## 2.2.0
 
 ### Minor Changes
