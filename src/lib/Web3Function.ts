@@ -134,6 +134,11 @@ export class Web3Function {
         reason: ctxData.onFailReason,
         transactionHash: ctxData.transactionHash as string,
       });
+    } else if (ctxData.onFailReason === "InsufficientFunds") {
+      await this._onFail({
+        ...context,
+        reason: ctxData.onFailReason,
+      });
     }
 
     return {
