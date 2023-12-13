@@ -324,7 +324,7 @@ describe("Web3FunctionRunner", () => {
       });
 
       expect(consoleSpy).toHaveBeenCalledWith(
-        expect.stringContaining("Web3Function start-up timeout")
+        expect.stringContaining("Web3Function.onRun function is not registered")
       );
     }, 20_000);
 

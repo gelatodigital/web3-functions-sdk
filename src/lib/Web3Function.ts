@@ -20,7 +20,6 @@ import {
 } from "./types/Web3FunctionHandler";
 
 export class Web3Function {
-  private static Instance?: Web3Function;
   private static _debug = false;
   private _server: Web3FunctionHttpServer;
   private _onRun?: RunHandler;
@@ -234,10 +233,10 @@ export class Web3Function {
   }
 
   static getInstance(): Web3Function {
-    if (!Web3Function.Instance) {
-      Web3Function.Instance = new Web3Function();
+    if (!window.Web3FunctionInstance) {
+      window.Web3FunctionInstance = new Web3Function();
     }
-    return Web3Function.Instance;
+    return window.Web3FunctionInstance;
   }
 
   static onRun(onRun: BaseRunHandler): void;
