@@ -209,6 +209,22 @@ describe("Web3FunctionRunner", () => {
       consoleSpy.mockClear();
     });
 
+    test("should prevent port stealing function to run", async () => {
+      await testRunner({
+        w3fPath: path.join(
+          FUNCTIONS_BASE_PATH,
+          "fails",
+          "escape-port",
+          "index.ts"
+        ),
+        showLogs: true,
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining("exited with code")
+      );
+    });
+
     test("should return canExec false with message", async () => {
       await testRunner({
         w3fPath: path.join(LOCAL_BASE_PATH, "simple.ts"),
