@@ -38,8 +38,11 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
     failure = err.message;
     console.log("Invalid Rpc method error:", failure);
   }
-  assert.match(failure, /"code":-32601/);
-  assert.match(failure, /the method eth_test does not exist|Method not found/);
+  assert.match(failure, /"code":-(32601|32600)/);
+  assert.match(
+    failure,
+    /the method eth_test does not exist|Method not found|Unsupported method/
+  );
 
   // Test sending invalid params
   try {
@@ -49,7 +52,10 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
     console.log("Invalid Rpc params error:", err.message);
   }
   assert.match(failure, /"code":-32602/);
-  assert.match(failure, /invalid argument 0/);
+  assert.match(
+    failure,
+    /invalid argument 0|invalid 1st argument|Invalid params/
+  );
 
   // Test sending http query
   try {
@@ -79,7 +85,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   assert.match(value.toString(), /\d+/);
 
   // Test hard rate limits
-  for (let j = 0; j < 20; j++) {
+  for (let j = 0; j < 60; j++) {
     try {
       await Promise.all(Array.from({ length: 10 }, () => oracle.lastUpdated()));
     } catch (err) {

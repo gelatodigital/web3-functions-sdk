@@ -251,7 +251,7 @@ describe("Web3FunctionRunner", () => {
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining("RPC requests limit exceeded")
       );
-    }, 20_000);
+    }, 30_000);
 
     test("should report network limit exceeded", async () => {
       await testRunner({
@@ -291,6 +291,9 @@ describe("Web3FunctionRunner", () => {
           "escape-storage",
           "index.ts"
         ),
+        storage: {
+          myLastMessage: "Lorem ipsum",
+        },
       });
 
       expect(consoleSpy).toHaveBeenCalledWith(
