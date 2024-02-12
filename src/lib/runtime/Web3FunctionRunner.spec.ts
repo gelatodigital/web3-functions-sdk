@@ -320,6 +320,21 @@ describe("Web3FunctionRunner", () => {
       );
     }, 20_000);
 
+    test("should report unhandled promise rejection", async () => {
+      await testRunner({
+        w3fPath: path.join(
+          FUNCTIONS_BASE_PATH,
+          "fails",
+          "unhandled-exception",
+          "index.ts"
+        ),
+      });
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        expect.stringContaining("Unhandled promise rejection")
+      );
+    }, 20_000);
+
     test("should not start function with no run handler", async () => {
       await testRunner({
         w3fPath: path.join(
