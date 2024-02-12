@@ -15,6 +15,9 @@ declare global {
   class Response {
     constructor(s: string, options?: { status: number });
   }
+  class TextEncoder {
+    encode(s: string): Uint8Array;
+  }
   class Request {
     constructor(e: string, o: any);
     method: string;
