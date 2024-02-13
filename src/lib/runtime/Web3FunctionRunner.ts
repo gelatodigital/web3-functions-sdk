@@ -337,6 +337,7 @@ export class Web3FunctionRunner {
       );
     } else if (
       (runtime === "docker" && signal === 137) ||
+      (runtime === "thread" && signal === 133) ||
       (runtime === "thread" && this._memory / 1024 / 1024 >= memoryLimit)
     ) {
       return new Web3FunctionRuntimeError(
