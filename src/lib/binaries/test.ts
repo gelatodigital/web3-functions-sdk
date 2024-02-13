@@ -17,11 +17,11 @@ import {
 const STD_TIMEOUT = 10;
 const STD_RPC_LIMIT = 10;
 const STD_STORAGE_LIMIT = 1024;
-const MAX_RPC_LIMIT = 100;
+const MAX_RPC_LIMIT = 500;
 const MAX_DOWNLOAD_LIMIT = 10 * 1024 * 1024;
 const MAX_UPLOAD_LIMIT = 5 * 1024 * 1024;
-const MAX_REQUEST_LIMIT = 110;
-const MAX_STORAGE_LIMIT = 1024; // kb
+const MAX_REQUEST_LIMIT = 510;
+const MAX_STORAGE_LIMIT = 10024; // 10 mb
 
 const OK = colors.green("✓");
 const KO = colors.red("✗");
@@ -39,6 +39,11 @@ export interface CallConfig {
   multiChainProviderConfig: MultiChainProviderConfig;
   chainId: number;
   log?: Log;
+  rpcLimit: number;
+  requestLimit: number;
+  downloadLimit: number;
+  uploadLimit: number;
+  storageLimit: number;
 }
 
 export type RunTime = "docker" | "thread";
@@ -176,6 +181,11 @@ export default async function test(callConfig?: Partial<CallConfig>) {
     w3fPath:
       process.argv[3] ??
       path.join(process.cwd(), "src", "web3-functions", "index.ts"),
+    rpcLimit: MAX_RPC_LIMIT,
+    requestLimit: MAX_REQUEST_LIMIT,
+    downloadLimit: MAX_DOWNLOAD_LIMIT,
+    uploadLimit: MAX_UPLOAD_LIMIT,
+    storageLimit: MAX_STORAGE_LIMIT,
   };
 
   if (!callConfig) {
@@ -301,17 +311,17 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   const memory = buildRes.schema.memory;
   const timeout = buildRes.schema.timeout * 1000;
   const version = buildRes.schema.web3FunctionVersion;
-  const rpcLimit = MAX_RPC_LIMIT;
+  const rpcLimit = defaultCallConfig.rpcLimit;
   const options = {
     runtime,
     showLogs,
     memory,
     rpcLimit,
     timeout,
-    downloadLimit: MAX_DOWNLOAD_LIMIT,
-    uploadLimit: MAX_UPLOAD_LIMIT,
-    requestLimit: MAX_REQUEST_LIMIT,
-    storageLimit: MAX_STORAGE_LIMIT,
+    downloadLimit: defaultCallConfig.downloadLimit,
+    uploadLimit: defaultCallConfig.uploadLimit,
+    requestLimit: defaultCallConfig.requestLimit,
+    storageLimit: defaultCallConfig.storageLimit,
     blacklistedHosts: ["testblacklistedhost.com"],
   };
   const script = buildRes.filePath;

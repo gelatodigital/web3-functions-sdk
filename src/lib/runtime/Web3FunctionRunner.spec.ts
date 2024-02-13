@@ -246,12 +246,13 @@ describe("Web3FunctionRunner", () => {
           "rpc-provider-limit",
           "index.ts"
         ),
+        rpcLimit: 20,
       });
 
       expect(consoleSpy).toHaveBeenCalledWith(
         expect.stringContaining("RPC requests limit exceeded")
       );
-    }, 20_000);
+    }, 30_000);
 
     test("should report network limit exceeded", async () => {
       await testRunner({
@@ -261,6 +262,7 @@ describe("Web3FunctionRunner", () => {
           "request-limit",
           "index.ts"
         ),
+        requestLimit: 20,
       });
 
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -276,6 +278,7 @@ describe("Web3FunctionRunner", () => {
           "download-limit",
           "index.ts"
         ),
+        downloadLimit: 20,
       });
 
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -291,6 +294,10 @@ describe("Web3FunctionRunner", () => {
           "escape-storage",
           "index.ts"
         ),
+        storage: {
+          myLastMessage: "Lorem ipsum",
+        },
+        storageLimit: 1, // 1 kb
       });
 
       expect(consoleSpy).toHaveBeenCalledWith(

@@ -4,6 +4,7 @@ import {
 } from "@gelatonetwork/web3-functions-sdk";
 
 function generateByteString(n: number): string {
+  console.log("Generating byte string...", n);
   const encoder = new TextEncoder();
   const byteBuffer = new Uint8Array(n);
   byteBuffer.fill(encoder.encode("x"));
@@ -13,7 +14,7 @@ function generateByteString(n: number): string {
 Web3Function.onRun(async (context: Web3FunctionContext) => {
   const { storage } = context;
 
-  const randomMessage = generateByteString(1025 * 1024);
+  const randomMessage = generateByteString(10 * 1024);
 
   await storage.set("myLastMessage", randomMessage);
 
