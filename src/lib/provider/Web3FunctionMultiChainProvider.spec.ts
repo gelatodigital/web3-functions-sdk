@@ -29,14 +29,13 @@ describe("Web3FunctionMultiChainProvider", () => {
 
     proxyProvider = new Web3FunctionProxyProvider(
       proxyProviderHost,
-      proxyProviderPort,
       rpcLimit,
       TestChainIds.Goerli,
       multiChainProviderConfig,
       false
     );
 
-    await proxyProvider.start();
+    await proxyProvider.start(proxyProviderPort);
 
     multichainProvider = new Web3FunctionMultiChainProvider(
       proxyProvider.getProxyUrl(),

@@ -1,15 +1,33 @@
 import net from "net";
 
 export class Web3FunctionNetHelper {
-  public static getAvailablePort(): Promise<number> {
-    return new Promise((res, rej) => {
+  public static getAvailablePort(
+    occupiedPorts: number[] = []
+  ): Promise<number> {
+    return new Promise((resolve, reject) => {
       const srv = net.createServer();
-      srv.listen(0, () => {
+      srv.listen(0, async () => {
         const address = srv.address();
         const port = address && typeof address === "object" ? address.port : -1;
-        srv.close(() =>
-          port ? res(port) : rej(new Error("Could not get port"))
-        );
+        srv.close(async () => {
+          if (port === -1) {
+            reject(new Error("Failed to get a port."));
+            return;
+          }
+
+          if (occupiedPorts.includes(port)) {
+            try {
+              const newPort = await Web3FunctionNetHelper.getAvailablePort(
+                occupiedPorts
+              );
+              resolve(newPort);
+            } catch (error) {
+              reject(error);
+            }
+          } else {
+            resolve(port);
+          }
+        });
       });
     });
   }
