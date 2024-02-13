@@ -50,7 +50,7 @@ export class Web3FunctionHttpServer {
       case "GET":
         return new Response("ok");
       case "POST": {
-        const event = await req.json();
+        const event = (await req.json()) as Web3FunctionEvent;
         const res = await this._eventHandler(event);
         return new Response(JSON.stringify(res));
       }

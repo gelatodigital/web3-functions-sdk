@@ -97,7 +97,7 @@ describe("Web3FunctionHttpProxy", () => {
     try {
       await axios.get("http://localhost:8001/limit");
     } catch (error) {
-      expect(error.message).toEqual("socket hang up");
+      expect(error.code).toEqual("ECONNRESET");
 
       return;
     }
@@ -109,7 +109,7 @@ describe("Web3FunctionHttpProxy", () => {
     try {
       await axios.post("http://localhost:8001", limitPayload);
     } catch (error) {
-      expect(error.message).toEqual("socket hang up");
+      expect(error.code).toEqual("ECONNRESET");
 
       return;
     }

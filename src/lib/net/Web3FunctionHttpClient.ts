@@ -1,6 +1,4 @@
-import AggregateError from "aggregate-error";
-
-// Use unidici client as node@20.http has keepAlive errors
+// Use undici client as node@20.http has keepAlive errors
 // See github issue: https://github.com/nodejs/node/issues/47130
 import { Agent, request } from "undici";
 
@@ -91,10 +89,7 @@ export class Web3FunctionHttpClient extends EventEmitter {
       );
       res = body;
     } catch (err) {
-      let errMsg = err.toString();
-      if (err instanceof AggregateError) {
-        errMsg = err.errors.map((e) => e).join(", ");
-      }
+      const errMsg = err.toString();
       throw new Error(`Web3FunctionHttpClient request error: ${errMsg}`);
     }
     try {

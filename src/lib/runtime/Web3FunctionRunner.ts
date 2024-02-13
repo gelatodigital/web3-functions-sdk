@@ -47,7 +47,7 @@ export class Web3FunctionRunner {
   private _client?: Web3FunctionHttpClient;
   private _sandbox?: Web3FunctionAbstractSandbox;
   private _execTimeoutId?: NodeJS.Timeout;
-  private _memoryIntervalId?: NodeJS.Timer;
+  private _memoryIntervalId?: NodeJS.Timeout;
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private _exitRemover: () => void = () => {};
 
