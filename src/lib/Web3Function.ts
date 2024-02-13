@@ -28,6 +28,12 @@ export class Web3Function {
   private _onFail?: FailHandler;
 
   constructor() {
+    // Register global Unhandled Promise rejection catching
+    globalThis.addEventListener("unhandledrejection", (e) => {
+      console.log("Unhandled promise rejection at:", e.promise);
+      this._exit(251, true);
+    });
+
     const port = Number(Deno.env.get("WEB3_FUNCTION_SERVER_PORT") ?? 80);
     const mountPath = Deno.env.get("WEB3_FUNCTION_MOUNT_PATH");
     this._server = new Web3FunctionHttpServer(
@@ -196,6 +202,15 @@ export class Web3Function {
         delete: async (key: string) => {
           Web3Function._log(`storage.delete(${key})`);
           ctxData.storage[key] = undefined;
+        },
+        getKeys: async () => {
+          Web3Function._log(`storage.getKeys()`);
+          return Object.keys(ctxData.storage);
+        },
+        getSize: async () => {
+          Web3Function._log(`storage.getSize()`);
+          var enc = new TextEncoder();
+          return enc.encode(JSON.stringify(ctxData.storage)).length;
         },
       },
     };

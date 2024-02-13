@@ -1,5 +1,13 @@
 # @gelatonetwork/web3-functions-sdk
 
+## 2.2.3
+
+### Patch Changes
+
+- 19d6d0c: chore: add storage helper functions
+- f58f375: chore: increase resource limits
+- 19d6d0c: chore: improve unhandled promise rejection
+
 ## 2.2.1
 
 ### Patch Changes

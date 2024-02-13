@@ -22,6 +22,9 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
     await storage.set("lastBlockNumber", newBlock.toString());
   }
 
+  console.log(`Storage Keys: ${await storage.getKeys()}`);
+  console.log(`Storage Size: ${await storage.getSize()}`);
+
   return {
     canExec: false,
     message: `Updated block number: ${newBlock.toString()}`,
