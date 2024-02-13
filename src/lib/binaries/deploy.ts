@@ -1,7 +1,7 @@
-import "dotenv/config";
 import colors from "colors/safe";
-import { Web3FunctionBuilder } from "../builder";
+import "dotenv/config";
 import path from "path";
+import { Web3FunctionBuilder } from "../builder";
 
 const OK = colors.green("✓");
 const web3FunctionSrcPath =
@@ -15,5 +15,5 @@ export default async function deploy(w3fPath?: string) {
   console.log(
     `\nTo create a task that runs your Web3 Function every minute, visit:`
   );
-  console.log(`> https://beta.app.gelato.network/new-task?cid=${cid}`);
+  console.log(`> https://app.gelato.network/new-task?cid=${cid}`);
 }
