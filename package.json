@@ -119,6 +119,7 @@
     "@ethersproject/providers": "^5.7.2",
     "@ethersproject/units": "^5.7.0",
     "@types/dockerode": "^3.3.11",
+    "aggregate-error": "^5.0.0",
     "ajv": "^8.11.0",
     "axios": "1.1.2",
     "body-parser": "^1.20.1",
@@ -135,6 +136,7 @@
     "pidusage": "^3.0.1",
     "semver": "^7.5.0",
     "signal-exit": "^3.0.7",
-    "tar": "^6.1.12"
+    "tar": "^6.1.12",
+    "undici": "^6.6.2"
   }
 }
