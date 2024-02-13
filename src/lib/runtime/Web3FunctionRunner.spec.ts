@@ -246,6 +246,7 @@ describe("Web3FunctionRunner", () => {
           "rpc-provider-limit",
           "index.ts"
         ),
+        rpcLimit: 20,
       });
 
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -261,6 +262,7 @@ describe("Web3FunctionRunner", () => {
           "request-limit",
           "index.ts"
         ),
+        requestLimit: 20,
       });
 
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -276,6 +278,7 @@ describe("Web3FunctionRunner", () => {
           "download-limit",
           "index.ts"
         ),
+        downloadLimit: 20,
       });
 
       expect(consoleSpy).toHaveBeenCalledWith(
@@ -294,6 +297,7 @@ describe("Web3FunctionRunner", () => {
         storage: {
           myLastMessage: "Lorem ipsum",
         },
+        storageLimit: 1, // 1 kb
       });
 
       expect(consoleSpy).toHaveBeenCalledWith(

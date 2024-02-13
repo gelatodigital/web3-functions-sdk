@@ -31,7 +31,7 @@ task("w3f-run", "Runs Gelato Web3 Function")
 
     const multiChainProviderConfig = await getMultiChainProviderConfigs(hre);
 
-    const callConfig: CallConfig = {
+    const callConfig: Partial<CallConfig> = {
       operation,
       w3fPath: w3f.path,
       debug,

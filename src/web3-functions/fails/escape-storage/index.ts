@@ -14,13 +14,9 @@ function generateByteString(n: number): string {
 Web3Function.onRun(async (context: Web3FunctionContext) => {
   const { storage } = context;
 
-  const randomMessage = generateByteString(5 * 1024 * 1024);
-
-  console.log("Writing to storage...");
+  const randomMessage = generateByteString(10 * 1024);
 
   await storage.set("myLastMessage", randomMessage);
-
-  console.log("Returning...");
 
   return {
     canExec: false,

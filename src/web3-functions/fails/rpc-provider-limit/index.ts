@@ -85,7 +85,7 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
   assert.match(value.toString(), /\d+/);
 
   // Test hard rate limits
-  for (let j = 0; j < 60; j++) {
+  for (let j = 0; j < 20; j++) {
     try {
       await Promise.all(Array.from({ length: 10 }, () => oracle.lastUpdated()));
     } catch (err) {
