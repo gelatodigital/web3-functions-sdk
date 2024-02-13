@@ -1,9 +1,10 @@
 import axios from "axios";
 import { EventEmitter } from "events";
+import http from "http";
 import { performance } from "perf_hooks";
 import { Web3FunctionEvent } from "../types/Web3FunctionEvent";
-
 const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
+const httpAgent = new http.Agent({ keepAlive: false });
 
 export class Web3FunctionHttpClient extends EventEmitter {
   private _debug: boolean;
@@ -68,10 +69,16 @@ export class Web3FunctionHttpClient extends EventEmitter {
 
   private async _send(event: Web3FunctionEvent) {
     let res;
+
     try {
       res = await axios.post(
         `${this._host}:${this._port}/${this._mountPath}`,
-        event
+        event,
+        {
+          // Force disabling KeepAlive to avoid timeout when running with node 20
+          // See github issue: https://github.com/nodejs/node/issues/47130
+          httpAgent,
+        }
       );
     } catch (err) {
       throw new Error(`Web3FunctionHttpClient request error: ${err.message}`);
