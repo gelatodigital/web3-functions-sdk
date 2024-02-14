@@ -31,7 +31,9 @@ export class Web3FunctionHttpClient extends EventEmitter {
     while (!statusOk && !this._isStopped && performance.now() < end) {
       try {
         const status = await new Promise<number>(async (resolve, reject) => {
-          setTimeout(() => {
+          const requestAbortController = new AbortController();
+          const timeoutId = setTimeout(() => {
+            requestAbortController.abort();
             reject(new Error("Timeout"));
           }, 100);
           try {
@@ -39,11 +41,14 @@ export class Web3FunctionHttpClient extends EventEmitter {
               `${this._host}:${this._port}/${this._mountPath}`,
               {
                 dispatcher: new Agent({ pipelining: 0 }),
+                signal: requestAbortController.signal,
               }
             );
             resolve(statusCode);
           } catch (err) {
             reject(err);
+          } finally {
+            clearTimeout(timeoutId);
           }
         });
         statusOk = status === 200;
