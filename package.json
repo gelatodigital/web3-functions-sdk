@@ -1,6 +1,6 @@
 {
   "name": "@gelatonetwork/web3-functions-sdk",
-  "version": "2.2.3",
+  "version": "2.3.1",
   "description": "Gelato Automate Web3 Functions sdk",
   "repository": {
     "type": "git",
@@ -88,7 +88,7 @@
     "schema": "ts-node src/bin/index.ts schema"
   },
   "engines": {
-    "node": ">=16.0.0"
+    "node": ">=18.0.0"
   },
   "devDependencies": {
     "@changesets/cli": "^2.26.2",
@@ -96,7 +96,7 @@
     "@jest/globals": "^29.7.0",
     "@tsconfig/recommended": "^1.0.1",
     "@types/jest": "^29.5.5",
-    "@types/node": "^16.11.12",
+    "@types/node": "^18",
     "@types/object-hash": "^3.0.2",
     "@types/signal-exit": "^3.0.1",
     "@typescript-eslint/eslint-plugin": "^5.40.0",
@@ -135,6 +135,7 @@
     "pidusage": "^3.0.1",
     "semver": "^7.5.0",
     "signal-exit": "^3.0.7",
-    "tar": "^6.1.12"
+    "tar": "^6.1.12",
+    "undici": "^6.6.2"
   }
 }

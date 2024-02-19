@@ -79,9 +79,7 @@ describe("Web3FunctionHttpClient", () => {
     expressServer.close();
 
     const errorHandler = (error) => {
-      expect(error.message).toMatch(
-        "Web3FunctionHttpClient request error: connect ECONNREFUSED"
-      );
+      expect(error.message).toMatch("Web3FunctionHttpClient request error");
 
       startListening();
 

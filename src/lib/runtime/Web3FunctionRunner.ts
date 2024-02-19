@@ -47,7 +47,7 @@ export class Web3FunctionRunner {
   private _client?: Web3FunctionHttpClient;
   private _sandbox?: Web3FunctionAbstractSandbox;
   private _execTimeoutId?: NodeJS.Timeout;
-  private _memoryIntervalId?: NodeJS.Timer;
+  private _memoryIntervalId?: NodeJS.Timeout;
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private _exitRemover: () => void = () => {};
 
@@ -337,6 +337,7 @@ export class Web3FunctionRunner {
       );
     } else if (
       (runtime === "docker" && signal === 137) ||
+      (runtime === "thread" && signal === 133) ||
       (runtime === "thread" && this._memory / 1024 / 1024 >= memoryLimit)
     ) {
       return new Web3FunctionRuntimeError(

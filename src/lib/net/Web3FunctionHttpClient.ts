@@ -1,8 +1,10 @@
-import axios from "axios";
+// Use undici client as node@20.http has keepAlive errors
+// See github issue: https://github.com/nodejs/node/issues/47130
+import { Agent, request } from "undici";
+
 import { EventEmitter } from "events";
 import { performance } from "perf_hooks";
 import { Web3FunctionEvent } from "../types/Web3FunctionEvent";
-
 const delay = (t: number) => new Promise((resolve) => setTimeout(resolve, t));
 
 export class Web3FunctionHttpClient extends EventEmitter {
@@ -28,20 +30,31 @@ export class Web3FunctionHttpClient extends EventEmitter {
     let lastErrMsg = "";
     while (!statusOk && !this._isStopped && performance.now() < end) {
       try {
-        const res = await axios.get(
-          `${this._host}:${this._port}/${this._mountPath}`,
-          {
-            timeout: 100,
+        const status = await new Promise<number>(async (resolve, reject) => {
+          const requestAbortController = new AbortController();
+          const timeoutId = setTimeout(() => {
+            requestAbortController.abort();
+            reject(new Error("Timeout"));
+          }, 100);
+          try {
+            const { statusCode } = await request(
+              `${this._host}:${this._port}/${this._mountPath}`,
+              {
+                dispatcher: new Agent({ pipelining: 0 }),
+                signal: requestAbortController.signal,
+              }
+            );
+            resolve(statusCode);
+          } catch (err) {
+            reject(err);
+          } finally {
+            clearTimeout(timeoutId);
           }
-        );
-        statusOk = res.status === 200;
+        });
+        statusOk = status === 200;
         this._log(`Connected to Web3FunctionHttpServer socket!`);
       } catch (err) {
         let errMsg = `${err.message} `;
-        if (axios.isAxiosError(err)) {
-          const d = err.response?.data;
-          if (d && typeof d === "string") errMsg += d;
-        }
 
         lastErrMsg = errMsg;
         await delay(retryInterval);
@@ -68,16 +81,24 @@ export class Web3FunctionHttpClient extends EventEmitter {
 
   private async _send(event: Web3FunctionEvent) {
     let res;
+
     try {
-      res = await axios.post(
+      const { body } = await request(
         `${this._host}:${this._port}/${this._mountPath}`,
-        event
+        {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(event),
+          dispatcher: new Agent({ pipelining: 0 }),
+        }
       );
+      res = body;
     } catch (err) {
-      throw new Error(`Web3FunctionHttpClient request error: ${err.message}`);
+      const errMsg = err.toString();
+      throw new Error(`Web3FunctionHttpClient request error: ${errMsg}`);
     }
     try {
-      const event = res.data as Web3FunctionEvent;
+      const event = (await res.json()) as Web3FunctionEvent;
       this._log(`Received Web3FunctionEvent: ${event.action}`);
       this.emit("output_event", event);
     } catch (err) {

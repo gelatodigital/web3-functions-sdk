@@ -2,7 +2,7 @@ import { Web3FunctionProxyProvider } from "./Web3FunctionProxyProvider";
 import { MultiChainProviderConfig } from "./types";
 
 import { StaticJsonRpcProvider } from "@ethersproject/providers";
-import axios from "axios";
+import { Agent, request } from "undici";
 
 describe("Web3FunctionProxyProvider", () => {
   enum TestChainIds {
@@ -54,16 +54,22 @@ describe("Web3FunctionProxyProvider", () => {
   });
 
   test("should reject invalid request", async () => {
-    const response = await axios.post(proxyProvider.getProxyUrl(), {
-      id: 0,
-      jsonrpc: "2.0",
+    const { body } = await request(proxyProvider.getProxyUrl(), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: 0,
+        jsonrpc: "2.0",
+      }),
+      dispatcher: new Agent({ pipelining: 0 }),
     });
 
-    expect(response.data.error).toBeDefined();
-    expect(response.data.error.message).toBeDefined();
+    const response = (await body.json()) as any;
+    expect(response.error).toBeDefined();
+    expect(response.error.message).toBeDefined();
 
     expect(
-      response.data.error.message.includes("not a valid Request object.")
+      response.error.message.includes("not a valid Request object.")
     ).toBeTruthy();
   });
 
@@ -71,22 +77,31 @@ describe("Web3FunctionProxyProvider", () => {
     const numRequests = rpcLimit * 2;
 
     const limitingRequests = Array.from({ length: rpcLimit * 2 }, () =>
-      axios
-        .post(proxyProvider.getProxyUrl(), {
+      request(proxyProvider.getProxyUrl(), {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
           id: 0,
           jsonrpc: "2.0",
           method: "eth_getBlockByNumber",
           params: ["latest", false],
-        })
-        .then((response) => {
+        }),
+        dispatcher: new Agent({ pipelining: 0 }),
+      })
+        .then(({ body }) => body.json())
+        .then((response: any) => {
           let fulfilled = true;
           if (
-            response.data.error &&
-            response.data.error.message.includes("Request limit exceeded")
+            response.error &&
+            response.error.message.includes("Request limit exceeded")
           ) {
             fulfilled = false;
           }
 
+          return { fulfilled };
+        })
+        .catch(() => {
+          const fulfilled = false;
           return { fulfilled };
         })
     );
@@ -103,22 +118,31 @@ describe("Web3FunctionProxyProvider", () => {
     const numRequests = rpcLimit * 2;
 
     const limitingRequests = Array.from({ length: rpcLimit * 2 }, () =>
-      axios
-        .post(proxyProvider.getProxyUrl(), {
+      request(proxyProvider.getProxyUrl(), {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
           id: 0,
           jsonrpc: "2.0",
           method: "eth_chainId",
           params: [],
-        })
-        .then((response) => {
+        }),
+        dispatcher: new Agent({ pipelining: 0 }),
+      })
+        .then(({ body }) => body.json())
+        .then((response: any) => {
           let fulfilled = true;
           if (
-            response.data.error &&
-            response.data.error.message.includes("Request limit exceeded")
+            response.error &&
+            response.error.message.includes("Request limit exceeded")
           ) {
             fulfilled = false;
           }
 
+          return { fulfilled };
+        })
+        .catch(() => {
+          const fulfilled = false;
           return { fulfilled };
         })
     );
@@ -132,45 +156,60 @@ describe("Web3FunctionProxyProvider", () => {
   });
 
   test("should return provider error", async () => {
-    const response = await axios.post(proxyProvider.getProxyUrl(), {
-      id: 0,
-      jsonrpc: "2.0",
-      method: "eth_noRequest",
-      params: [],
+    const { body } = await request(proxyProvider.getProxyUrl(), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        id: 0,
+        jsonrpc: "2.0",
+        method: "eth_noRequest",
+        params: [],
+      }),
+      dispatcher: new Agent({ pipelining: 0 }),
     });
+    const response = (await body.json()) as any;
 
-    expect(response.data.error).toBeDefined();
-    expect(response.data.error.message).toBeDefined();
+    expect(response.error).toBeDefined();
+    expect(response.error.message).toBeDefined();
 
-    expect(response.data.error.message.includes("does not exist")).toBeTruthy();
+    expect(response.error.message.includes("does not exist")).toBeTruthy();
   });
 
   test("should respond with main chain when chainId is not provided", async () => {
-    const mainChainIdResponse = await axios.post(proxyProvider.getProxyUrl(), {
-      id: 0,
-      jsonrpc: "2.0",
-      method: "eth_chainId",
-      params: [],
-    });
-
-    const chainIdResponse = await axios.post(
-      `${proxyProvider.getProxyUrl()}/${TestChainIds.Mumbai}`,
-      {
+    const { body } = await request(proxyProvider.getProxyUrl(), {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
         id: 0,
         jsonrpc: "2.0",
         method: "eth_chainId",
         params: [],
+      }),
+      dispatcher: new Agent({ pipelining: 0 }),
+    });
+    const mainChainIdResponse = (await body.json()) as any;
+
+    const { body: body2 } = await request(
+      `${proxyProvider.getProxyUrl()}/${TestChainIds.Mumbai}`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          id: 0,
+          jsonrpc: "2.0",
+          method: "eth_chainId",
+          params: [],
+        }),
+        dispatcher: new Agent({ pipelining: 0 }),
       }
     );
+    const chainIdResponse = (await body2.json()) as any;
 
     const parsedMainChainId = parseInt(
-      mainChainIdResponse.data.result.substring(2),
+      mainChainIdResponse.result.substring(2),
       16
     );
-    const parsedChainId = parseInt(
-      chainIdResponse.data.result.substring(2),
-      16
-    );
+    const parsedChainId = parseInt(chainIdResponse.result.substring(2), 16);
 
     expect(parsedMainChainId).toEqual(TestChainIds.Goerli);
     expect(parsedChainId).toEqual(TestChainIds.Mumbai);
@@ -180,11 +219,16 @@ describe("Web3FunctionProxyProvider", () => {
     const numRequests = rpcLimit * 2;
 
     const limitingRequests = Array.from({ length: rpcLimit * 2 }, () =>
-      axios.post(proxyProvider.getProxyUrl(), {
-        id: 0,
-        jsonrpc: "2.0",
-        method: "eth_getBlockByNumber",
-        params: ["latest", false],
+      request(proxyProvider.getProxyUrl(), {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          id: 0,
+          jsonrpc: "2.0",
+          method: "eth_getBlockByNumber",
+          params: ["latest", false],
+        }),
+        dispatcher: new Agent({ pipelining: 0 }),
       })
     );
 
