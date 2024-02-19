@@ -98,6 +98,18 @@ describe("Web3FunctionBuilder.build", () => {
     }
   });
 
+  test("should fail when schema eventRetry config is invalid", async () => {
+    const res = await Web3FunctionBuilder.build(
+      buildSchemaPath("invalid-schema-event-retry")
+    );
+
+    expect(res.success).toBeFalsy();
+    if (res.success === false) {
+      expect(res.error.message).toMatch("'eventRetryInterval' must be >= 60");
+      expect(res.error.message).toMatch("'eventRetryTtl' must be <= 259200");
+    }
+  });
+
   test("should fail when schema timeout is invalid", async () => {
     const res = await Web3FunctionBuilder.build(
       buildSchemaPath("invalid-schema-timeout")

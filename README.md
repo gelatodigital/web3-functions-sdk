@@ -290,6 +290,21 @@ To run your web3 function, that will be triggered by Events, with mock event log
 
 ```
 
+### Event Trigger Automatic Retry
+
+If you create an event triggered web3 function, it is recommended to configure event retry in your schema.json:
+
+```json
+{
+  "eventRetryInterval": 60, // in seconds
+  "eventRetryTtl": 3600 // in seconds
+}
+```
+
+In this example, your event will be retried every 60 seconds, and will be retried for 3600 seconds (1 hour) before being discarded.
+
+This mechanism will prevent your event response from being lost if your web3 function is failing due to external conditions like some API downtime or timeout.
+
 ## Speed run DevX with the Web3 Function Hardhat Plugin
 
 The Web3 Function Hardhat Plugin provides built-in hardhat tasks that will speed your development as well as provide a great DevX for end to end testing.
