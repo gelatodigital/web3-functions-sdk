@@ -1,5 +1,11 @@
 # @gelatonetwork/web3-functions-sdk
 
+## 2.3.1
+
+### Patch Changes
+
+- chore: improve startup connection
+
 ## 2.3.0
 
 ### Minor Changes
