@@ -1,5 +1,12 @@
 # @gelatonetwork/web3-functions-sdk
 
+## 2.4.0
+
+### Minor Changes
+
+- d9834fe: chore: add eventRetry schema changes
+- feat: add eventRetry schema
+
 ## 2.3.1
 
 ### Patch Changes
