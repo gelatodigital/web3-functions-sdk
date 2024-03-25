@@ -1,5 +1,13 @@
 # @gelatonetwork/web3-functions-sdk
 
+## 2.4.1
+
+### Patch Changes
+
+- caa853d: chore: use sepolia instead of goerli as default testnet
+- 4375479: chore: bump axios 1.6.8
+- f62dd06: fix: keep proxy provider original error
+
 ## 2.4.0
 
 ### Minor Changes
