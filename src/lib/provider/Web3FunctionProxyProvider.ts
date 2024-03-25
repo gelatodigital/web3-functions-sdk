@@ -90,9 +90,9 @@ export class Web3FunctionProxyProvider {
     } catch (_error) {
       // Standardizing RPC error before returning to the user
       // If the serializer cannot extract a valid error, it will fallback to: { code: -32603, message: 'Internal JSON-RPC error.'}
-      const { code, message } = serializeError(_error);
+      const { code, message, data } = serializeError(_error);
       // Send result as valid JsonRPC error
-      res.send({ id, jsonrpc, error: { code, message } });
+      res.send({ id, jsonrpc, error: { code, message, data } });
     }
   }
 
