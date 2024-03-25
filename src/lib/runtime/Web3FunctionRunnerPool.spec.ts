@@ -33,7 +33,7 @@ describe("Web3FunctionRunnerPool", () => {
 
     if (buildRes.success) {
       const multiChainProviderConfig = {
-        5: new StaticJsonRpcProvider("https://eth-goerli.public.blastapi.io"),
+        11155111: new StaticJsonRpcProvider("https://rpc.ankr.com/eth_sepolia"),
       };
 
       const runner = new Web3FunctionRunnerPool(2, true);
@@ -54,7 +54,7 @@ describe("Web3FunctionRunnerPool", () => {
         secrets: {},
         storage: {},
         gelatoArgs: {
-          chainId: 5,
+          chainId: 11155111,
           gasPrice: "10",
         },
         userArgs: {},

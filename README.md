@@ -26,6 +26,12 @@ cp .env.example .env
 
 - Complete your `.env` file with your private settings
 
+3. Build project locally
+
+```
+yarn build
+```
+
 ### Write a Web3Function
 
 - Create a new file in `src/web3-functions`
@@ -113,7 +119,7 @@ Web3Function.onRun(async (context: Web3FunctionEventContext) => {
   - `--logs` Show internal Web3Function logs
   - `--runtime=thread|docker` Use `thread` if you don't have `docker`set up locally (default: `thread`)
   - `--debug` Show Runtime debug messages
-  - `--chain-id=[number]` Specify the chainId to be used for your Web3Function (default: `5`)
+  - `--chain-id=[number]` Specify the chainId to be used for your Web3Function (default: `11155111` sepolia)
   - `--onFail` Run `onFail` callback of the function
   - `--onSuccess` Run `onSuccess` callback of the function
 
@@ -127,7 +133,7 @@ Web3Function.onRun(async (context: Web3FunctionEventContext) => {
   ✓ Build time: 109.93ms
 
   Web3Function running logs:
-  > ChainId: 5
+  > ChainId: 11155111
   > Last oracle update: 1665512172
   > Next oracle update: 1665512472
   > Updating price: 1586
@@ -307,7 +313,7 @@ const config: HardhatUserConfig = {
   w3f: {
     rootDir: "./web3-functions", //where your Web3 Function is located
     debug: false,
-    networks: ["mumbai", "goerli", "baseGoerli"], //(multiChainProvider) injects provider for these networks
+    networks: ["sepolia", "baseSepolia"], //(multiChainProvider) injects provider for these networks
   },
 };
 ```

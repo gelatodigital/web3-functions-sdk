@@ -4,12 +4,12 @@ import { Web3FunctionProxyProvider } from "./Web3FunctionProxyProvider";
 
 describe("Web3FunctionMultiChainProvider", () => {
   enum TestChainIds {
-    Goerli = 5,
-    Mumbai = 80001,
+    Sepolia = 11155111,
+    Amoy = 80002,
   }
   enum TestChainProviders {
-    Goerli = "https://rpc.ankr.com/eth_goerli",
-    Mumbai = "https://rpc.ankr.com/polygon_mumbai",
+    Sepolia = "https://rpc.ankr.com/eth_sepolia",
+    Amoy = "https://rpc.ankr.com/polygon_amoy",
   }
 
   let proxyProvider: Web3FunctionProxyProvider;
@@ -23,14 +23,16 @@ describe("Web3FunctionMultiChainProvider", () => {
     const proxyProviderPort = 3000;
 
     const multiChainProviderConfig = {
-      5: new StaticJsonRpcProvider(TestChainProviders.Goerli),
-      80001: new StaticJsonRpcProvider(TestChainProviders.Mumbai),
+      [TestChainIds.Sepolia]: new StaticJsonRpcProvider(
+        TestChainProviders.Sepolia
+      ),
+      [TestChainIds.Amoy]: new StaticJsonRpcProvider(TestChainProviders.Amoy),
     };
 
     proxyProvider = new Web3FunctionProxyProvider(
       proxyProviderHost,
       rpcLimit,
-      TestChainIds.Goerli,
+      TestChainIds.Sepolia,
       multiChainProviderConfig,
       false
     );
@@ -39,7 +41,7 @@ describe("Web3FunctionMultiChainProvider", () => {
 
     multichainProvider = new Web3FunctionMultiChainProvider(
       proxyProvider.getProxyUrl(),
-      5,
+      TestChainIds.Sepolia,
       () => {
         rateLimitInvoked = true;
       }
@@ -51,7 +53,9 @@ describe("Web3FunctionMultiChainProvider", () => {
   });
 
   test("should get default provider with chainId", async () => {
-    const chainNetwork = await multichainProvider.chainId(5).getNetwork();
+    const chainNetwork = await multichainProvider
+      .chainId(11155111)
+      .getNetwork();
     const mainChainNetwork = await multichainProvider.default().getNetwork();
 
     expect(chainNetwork.chainId).toEqual(mainChainNetwork.chainId);
