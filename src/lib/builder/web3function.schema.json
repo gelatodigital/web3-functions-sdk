@@ -20,6 +20,16 @@
     "executionMode": {
       "enum": ["sequential", "parallel"]
     },
+    "eventRetryInterval": {
+      "type": "number",
+      "minimum": 60,
+      "maximum": 60
+    },
+    "eventRetryTtl": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 259200
+    },
     "userArgs": {
       "type": "object",
       "patternProperties": {

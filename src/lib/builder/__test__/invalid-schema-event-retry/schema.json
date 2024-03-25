@@ -1,0 +1,9 @@
+{
+  "web3FunctionVersion": "2.0.0",
+  "runtime": "js-1.0",
+  "memory": 256,
+  "timeout": 30,
+  "eventRetryInterval": 10,
+  "eventRetryTtl": 1000000,
+  "userArgs": {}
+}

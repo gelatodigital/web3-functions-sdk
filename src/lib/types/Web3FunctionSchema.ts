@@ -15,6 +15,8 @@ export interface Web3FunctionSchema {
   timeout: number;
   userArgs: Web3FunctionUserArgsSchema;
   executionMode?: Web3FunctionExecutionMode;
+  eventRetryInterval?: number;
+  eventRetryTtl?: number;
 }
 
 export interface Web3FunctionUserArgsSchema {
