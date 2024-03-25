@@ -8,10 +8,12 @@ describe("Web3FunctionProxyProvider", () => {
   enum TestChainIds {
     Sepolia = 11155111,
     Amoy = 80002,
+    ArbSepolia = 421614,
   }
   enum TestChainProviders {
     Sepolia = "https://rpc.ankr.com/eth_sepolia",
     Amoy = "https://rpc.ankr.com/polygon_amoy",
+    ArbSepolia = "https://sepolia-rollup.arbitrum.io/rpc",
   }
 
   let proxyProvider: Web3FunctionProxyProvider;
@@ -30,6 +32,9 @@ describe("Web3FunctionProxyProvider", () => {
         TestChainProviders.Sepolia
       ),
       [TestChainIds.Amoy]: new StaticJsonRpcProvider(TestChainProviders.Amoy),
+      [TestChainIds.ArbSepolia]: new StaticJsonRpcProvider(
+        TestChainProviders.ArbSepolia
+      ),
     };
   });
 
@@ -175,6 +180,38 @@ describe("Web3FunctionProxyProvider", () => {
     expect(response.error.message).toBeDefined();
 
     expect(response.error.message.includes("does not exist")).toBeTruthy();
+  });
+
+  test("should return original error data", async () => {
+    const { body } = await request(
+      `${proxyProvider.getProxyUrl()}/${TestChainIds.ArbSepolia}`,
+      {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          id: 0,
+          jsonrpc: "2.0",
+          method: "eth_call",
+          params: [
+            {
+              to: "0xac9f91277ccbb5d270e27246b203b221023a0e06",
+              data: "0x7894e0b0000000000000000000000000000000000000000000000000000000000000000a",
+            },
+            "latest",
+          ],
+        }),
+        dispatcher: new Agent({ pipelining: 0 }),
+      }
+    );
+    const response = (await body.json()) as any;
+
+    expect(response.error).toBeDefined();
+    expect(response.error.message).toBeDefined();
+    expect(response.error.data).toBeDefined();
+
+    expect(response.error.data.originalError.data).toEqual(
+      "0x110b3655000000000000000000000000000000000000000000000000000000000000000a"
+    );
   });
 
   test("should respond with main chain when chainId is not provided", async () => {
