@@ -6,12 +6,12 @@ import { Agent, request } from "undici";
 
 describe("Web3FunctionProxyProvider", () => {
   enum TestChainIds {
-    Goerli = 5,
-    Mumbai = 80001,
+    Sepolia = 11155111,
+    Amoy = 80002,
   }
   enum TestChainProviders {
-    Goerli = "https://rpc.ankr.com/eth_goerli",
-    Mumbai = "https://rpc.ankr.com/polygon_mumbai",
+    Sepolia = "https://rpc.ankr.com/eth_sepolia",
+    Amoy = "https://rpc.ankr.com/polygon_amoy",
   }
 
   let proxyProvider: Web3FunctionProxyProvider;
@@ -26,8 +26,10 @@ describe("Web3FunctionProxyProvider", () => {
     proxyProviderPort = 3000;
 
     multiChainProviderConfig = {
-      5: new StaticJsonRpcProvider(TestChainProviders.Goerli),
-      80001: new StaticJsonRpcProvider(TestChainProviders.Mumbai),
+      [TestChainIds.Sepolia]: new StaticJsonRpcProvider(
+        TestChainProviders.Sepolia
+      ),
+      [TestChainIds.Amoy]: new StaticJsonRpcProvider(TestChainProviders.Amoy),
     };
   });
 
@@ -35,7 +37,7 @@ describe("Web3FunctionProxyProvider", () => {
     proxyProvider = new Web3FunctionProxyProvider(
       proxyProviderHost,
       rpcLimit,
-      TestChainIds.Goerli,
+      TestChainIds.Sepolia,
       multiChainProviderConfig,
       false
     );
@@ -190,7 +192,7 @@ describe("Web3FunctionProxyProvider", () => {
     const mainChainIdResponse = (await body.json()) as any;
 
     const { body: body2 } = await request(
-      `${proxyProvider.getProxyUrl()}/${TestChainIds.Mumbai}`,
+      `${proxyProvider.getProxyUrl()}/${TestChainIds.Amoy}`,
       {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -211,8 +213,8 @@ describe("Web3FunctionProxyProvider", () => {
     );
     const parsedChainId = parseInt(chainIdResponse.result.substring(2), 16);
 
-    expect(parsedMainChainId).toEqual(TestChainIds.Goerli);
-    expect(parsedChainId).toEqual(TestChainIds.Mumbai);
+    expect(parsedMainChainId).toEqual(TestChainIds.Sepolia);
+    expect(parsedChainId).toEqual(TestChainIds.Amoy);
   });
 
   test("should report RPC calls correctly", async () => {

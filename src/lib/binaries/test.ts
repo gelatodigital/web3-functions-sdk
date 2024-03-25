@@ -169,9 +169,9 @@ export default async function test(callConfig?: Partial<CallConfig>) {
   const defaultCallConfig: CallConfig = {
     operation: "onRun",
     userArgs: {},
-    chainId: 5,
+    chainId: 11155111,
     multiChainProviderConfig: {
-      5: new StaticJsonRpcProvider("https://eth-goerli.public.blastapi.io"),
+      11155111: new StaticJsonRpcProvider("https://rpc.ankr.com/eth_sepolia"),
     },
     runtime: "thread",
     debug: false,
