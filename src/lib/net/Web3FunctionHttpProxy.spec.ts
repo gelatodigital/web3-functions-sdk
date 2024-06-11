@@ -48,6 +48,8 @@ describe("Web3FunctionHttpProxy", () => {
 
       if (req.url?.includes("limit")) {
         res.end(limitPayload);
+      } else if (req.url?.includes("query")) {
+        res.end("Query parameters received");
       } else {
         // Write the response body
         res.end("Hello, World!\n");
@@ -91,6 +93,16 @@ describe("Web3FunctionHttpProxy", () => {
     }
 
     throw new Error(`HTTP: Request limit exceeded`);
+  });
+
+  test("should forward requests", async () => {
+    const res = await axios.get("http://localhost:8001/hello");
+    expect(res.data).toEqual("Hello, World!\n");
+  });
+
+  test("should forward query parameters", async () => {
+    const res = await axios.get("http://localhost:8001/test?query=true");
+    expect(res.data).toEqual("Query parameters received");
   });
 
   test("should break connection on download limit exceeded", async () => {
