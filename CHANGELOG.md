@@ -1,5 +1,11 @@
 # @gelatonetwork/web3-functions-sdk
 
+## 2.4.2
+
+### Patch Changes
+
+- b7f608b: fix: http proxy query parameters
+
 ## 2.4.1
 
 ### Patch Changes
