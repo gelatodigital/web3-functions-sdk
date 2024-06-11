@@ -67,7 +67,7 @@ export class Web3FunctionHttpProxy {
       const options = {
         hostname: reqUrl.hostname,
         port: reqUrl.port,
-        path: reqUrl.pathname,
+        path: reqUrl.pathname + reqUrl.search,
         method: req.method,
         headers: req.headers,
       };
