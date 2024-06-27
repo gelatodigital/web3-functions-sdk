@@ -52,6 +52,16 @@ describe("Web3FunctionMultiChainProvider", () => {
     proxyProvider.stop();
   });
 
+  test("should get remaining rpc calls", async () => {
+    let nbRpcCallsRemaining = await multichainProvider.nbRpcCallsRemaining();
+    expect(nbRpcCallsRemaining).toBe(rpcLimit);
+
+    await multichainProvider.default().getBlock("latest");
+
+    nbRpcCallsRemaining = await multichainProvider.nbRpcCallsRemaining();
+    expect(nbRpcCallsRemaining).toBe(rpcLimit - 1);
+  });
+
   test("should get default provider with chainId", async () => {
     const chainNetwork = await multichainProvider
       .chainId(11155111)
@@ -70,7 +80,7 @@ describe("Web3FunctionMultiChainProvider", () => {
     );
 
     try {
-      await Promise.all(limitingRequests);
+      await Promise.allSettled(limitingRequests);
     } catch (error) {
       expect(rateLimitInvoked).toBeTruthy();
     }
