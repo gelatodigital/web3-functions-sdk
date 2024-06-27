@@ -57,6 +57,15 @@ export class Web3FunctionProxyProvider {
       // Reject invalid JsonRPC requests
       if (!method || !params) throw ethErrors.rpc.invalidRequest();
 
+      if (method == "nbRpcCallsRemaining") {
+        const nbRpcCallsRemaining = Math.max(
+          0,
+          this._limit - this.getNbRpcCalls().total
+        );
+        res.send({ result: { nbRpcCallsRemaining }, id, jsonrpc });
+        return;
+      }
+
       this._nbRpcCalls++;
 
       // Apply rate limiting for non whitelisted methods

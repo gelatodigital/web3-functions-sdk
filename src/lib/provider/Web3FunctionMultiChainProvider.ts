@@ -30,6 +30,14 @@ export class Web3FunctionMultiChainProvider {
     return this._getProviderOfChainId(chainId);
   }
 
+  public async nbRpcCallsRemaining() {
+    const { nbRpcCallsRemaining } = await this._defaultProvider.send(
+      "nbRpcCallsRemaining",
+      []
+    );
+    return nbRpcCallsRemaining;
+  }
+
   private _getProviderOfChainId(chainId: number) {
     let provider = this._providers.get(chainId);
 
