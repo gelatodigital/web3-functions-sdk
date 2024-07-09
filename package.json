@@ -124,7 +124,7 @@
     "body-parser": "^1.20.1",
     "colors": "^1.4.0",
     "deep-object-diff": "^1.1.9",
-    "deno-bin": "^1.36.0",
+    "deno-bin": "^1.44.4",
     "dockerode": "^3.3.4",
     "dotenv": "^16.0.3",
     "esbuild": "^0.17.4",

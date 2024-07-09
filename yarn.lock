@@ -2956,13 +2956,12 @@ delayed-stream@~1.0.0:
   resolved "https://registry.yarnpkg.com/delayed-stream/-/delayed-stream-1.0.0.tgz#df3ae199acadfb7d440aaae0b29e2272b24ec619"
   integrity sha512-ZySD7Nf91aLB0RxL4KGrKHBXl7Eds1DAmEdcoVawXnLD7SDhpNgtuII2aAkg7a7QS41jxPSZ17p4VdGnMHk3MQ==
 
-deno-bin@^1.36.0:
-  version "1.36.0"
-  resolved "https://registry.yarnpkg.com/deno-bin/-/deno-bin-1.36.0.tgz#35f61891438ef5d012dde04fc342032ecc9c56f7"
-  integrity sha512-gJlrpILuliLlBTxM1Fo/304KI2lU/Nr/g0KZw6T7xhfG01BKTwUA+1amTg/m+8/4y2QnKwQC5tdHSuA9UllJJw==
+deno-bin@^1.44.4:
+  version "1.44.4"
+  resolved "https://registry.yarnpkg.com/deno-bin/-/deno-bin-1.44.4.tgz#065cdb214790def562d63898e45df26519a23da4"
+  integrity sha512-IJWKr7o4Qh7iB9yhNfvJURPsfifPqTcrmg45J95oS2vvDv3OdRCf8SNramL3cqcsYyLeQeTRzNj2QgmjH14oyw==
   dependencies:
     adm-zip "^0.5.4"
-    follow-redirects "^1.10.0"
 
 depd@2.0.0:
   version "2.0.0"
@@ -3666,7 +3665,7 @@ flatted@^3.1.0:
   resolved "https://registry.yarnpkg.com/flatted/-/flatted-3.2.7.tgz#609f39207cb614b89d0765b477cb2d437fbf9787"
   integrity sha512-5nqDSxl8nn5BSNxyR3n4I6eDmbolI6WT+QqR547RwxQapgjQBmtktdP+HTBb/a/zLsbzERTONyUB5pefh5TtjQ==
 
-follow-redirects@^1.10.0, follow-redirects@^1.12.1:
+follow-redirects@^1.12.1:
   version "1.15.2"
   resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.15.2.tgz#b460864144ba63f2681096f274c4e57026da2c13"
   integrity sha512-VQLG33o04KaQ8uYi2tVNbdrWp1QWxNNea+nmIB4EVM28v0hmP17z7aG1+wAkNzVq4KeXTq3221ye5qTJP91JwA==
