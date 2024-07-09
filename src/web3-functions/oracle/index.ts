@@ -1,8 +1,8 @@
+import { Contract } from "@ethersproject/contracts";
 import {
   Web3Function,
   Web3FunctionContext,
 } from "@gelatonetwork/web3-functions-sdk";
-import { Contract } from "@ethersproject/contracts";
 import ky from "ky"; // we recommend using ky as axios doesn't support fetch by default
 
 const ORACLE_ABI = [
@@ -25,16 +25,17 @@ Web3Function.onRun(async (context: Web3FunctionContext) => {
     oracle = new Contract(oracleAddress, ORACLE_ABI, provider);
     lastUpdated = parseInt(await oracle.lastUpdated());
     console.log(`Last oracle update: ${lastUpdated}`);
-  } catch (err) {
-    return { canExec: false, message: `Rpc call failed` };
-  }
 
-  // Check if it's ready for a new update
-  const nextUpdateTime = lastUpdated + 300; // 5 min
-  const timestamp = (await provider.getBlock("latest")).timestamp;
-  console.log(`Next oracle update: ${nextUpdateTime}`);
-  if (timestamp < nextUpdateTime) {
-    return { canExec: false, message: `Time not elapsed` };
+    // Check if it's ready for a new update
+    const nextUpdateTime = lastUpdated + 300; // 5 min
+    const timestamp = (await provider.getBlock("latest")).timestamp;
+    console.log(`Next oracle update: ${nextUpdateTime}`);
+    if (timestamp < nextUpdateTime) {
+      return { canExec: false, message: `Time not elapsed` };
+    }
+  } catch (err) {
+    console.log(`Error: ${err.message}`);
+    return { canExec: false, message: `Rpc call failed` };
   }
 
   // Get current price on coingecko
