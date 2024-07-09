@@ -12,6 +12,8 @@ export interface Web3FunctionRunnerOptions {
   storageLimit: number;
   runtime: "thread" | "docker";
   showLogs: boolean;
+  httpProxyPort?: number;
+  rpcProxyPort?: number;
   serverPort?: number;
   blacklistedHosts?: string[];
 }

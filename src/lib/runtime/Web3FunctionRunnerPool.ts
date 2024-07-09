@@ -17,7 +17,7 @@ export class Web3FunctionRunnerPool {
 
   public async init() {
     this._tcpPortsAvailable = await Web3FunctionNetHelper.getAvailablePorts(
-      this._poolSize + 10
+      (this._poolSize + 5) * 3 // 3 ports per concurrent runner + 5 extra
     );
   }
 
@@ -35,22 +35,28 @@ export class Web3FunctionRunnerPool {
     return new Promise((resolve, reject) => {
       this._queuedRunners.push(async (): Promise<void> => {
         this._activeRunners = this._activeRunners + 1;
-        const port = this._tcpPortsAvailable.shift();
+        const port1 = this._tcpPortsAvailable.shift();
+        const port2 = this._tcpPortsAvailable.shift();
+        const port3 = this._tcpPortsAvailable.shift();
         try {
           this._log(
-            `Starting Web3FunctionRunner, active=${this._activeRunners} port=${port}`
+            `Starting Web3FunctionRunner, active=${this._activeRunners} ports=${port1},${port2},${port3}`
           );
           const runner = new Web3FunctionRunner(
             this._debug,
             this._tcpPortsAvailable
           );
-          payload.options.serverPort = port;
+          payload.options.serverPort = port1;
+          payload.options.httpProxyPort = port2;
+          payload.options.rpcProxyPort = port3;
           const exec = await runner.run(operation, payload);
           resolve(exec);
         } catch (err) {
           reject(err);
         } finally {
-          if (port) this._tcpPortsAvailable.push(port);
+          if (port1) this._tcpPortsAvailable.push(port1);
+          if (port2) this._tcpPortsAvailable.push(port2);
+          if (port3) this._tcpPortsAvailable.push(port3);
           this._activeRunners = this._activeRunners - 1;
         }
       });
