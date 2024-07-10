@@ -1,5 +1,11 @@
 # @gelatonetwork/web3-functions-sdk
 
+## 2.4.4
+
+### Patch Changes
+
+- a0f32bf: fix: start failures edge cases
+
 ## 2.4.2
 
 ### Patch Changes

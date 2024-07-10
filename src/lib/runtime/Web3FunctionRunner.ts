@@ -46,6 +46,7 @@ export class Web3FunctionRunner {
   private _httpProxy?: Web3FunctionHttpProxy;
   private _client?: Web3FunctionHttpClient;
   private _sandbox?: Web3FunctionAbstractSandbox;
+  private _startupTime = 0;
   private _execTimeoutId?: NodeJS.Timeout;
   private _memoryIntervalId?: NodeJS.Timeout;
   // eslint-disable-next-line @typescript-eslint/no-empty-function
@@ -208,6 +209,7 @@ export class Web3FunctionRunner {
     const logs: string[] = this._sandbox?.getLogs() ?? [];
     const duration = (performance.now() - start) / 1000;
     const memory = this._memory / 1024 / 1024;
+    const startup = Number(this._startupTime.toFixed());
     const rpcCalls = this._proxyProvider?.getNbRpcCalls() ?? {
       total: 0,
       throttled: 0,
@@ -219,6 +221,7 @@ export class Web3FunctionRunner {
       upload: 0,
     };
 
+    this._log(`Startup time=${startup}ms ${startup > 1000 ? "(SLOW)" : ""}`);
     this._log(`Runtime duration=${duration.toFixed(2)}s`);
     this._log(`Runtime memory=${memory.toFixed(2)}mb`);
     this._log(`Runtime rpc calls=${JSON.stringify(rpcCalls)}`);
@@ -375,9 +378,9 @@ export class Web3FunctionRunner {
       options.requestLimit,
       this._debug
     );
-    const httpProxyPort = await Web3FunctionNetHelper.getAvailablePort(
-      this._portsOccupied
-    );
+    const httpProxyPort =
+      options.httpProxyPort ??
+      (await Web3FunctionNetHelper.getAvailablePort(this._portsOccupied));
     this._httpProxy.start(httpProxyPort);
 
     const mountPath = randomUUID();
@@ -385,6 +388,7 @@ export class Web3FunctionRunner {
       options.serverPort ??
       (await Web3FunctionNetHelper.getAvailablePort(this._portsOccupied));
 
+    const start = performance.now();
     try {
       this._log(`Starting sandbox: ${script}`);
       await this._sandbox.start(
@@ -411,10 +415,11 @@ export class Web3FunctionRunner {
       multiChainProviderConfig,
       this._debug
     );
-    const proxyProviderPort = await Web3FunctionNetHelper.getAvailablePort(
-      this._portsOccupied
-    );
-    await this._proxyProvider.start(proxyProviderPort);
+
+    const rpcProxyPort =
+      options.rpcProxyPort ??
+      (await Web3FunctionNetHelper.getAvailablePort(this._portsOccupied));
+    await this._proxyProvider.start(rpcProxyPort);
     context.rpcProviderUrl = this._proxyProvider.getProxyUrl();
 
     // Override gelatoArgs according to schema version
@@ -436,6 +441,7 @@ export class Web3FunctionRunner {
         this._client.connect(START_TIMEOUT),
         this._sandbox?.waitForProcessEnd(), // Early exit if sandbox is crashed
       ]);
+      this._startupTime = performance.now() - start;
     } catch (err) {
       this._log(`Fail to connect to Web3Function ${err.message}`);
       throw new Error(

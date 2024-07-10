@@ -36,7 +36,7 @@ const web3FunctionPath =
   process.argv[3] ??
   path.join(process.cwd(), "src", "web3-functions", "index.ts");
 let operation: Web3FunctionOperation = "onRun";
-let chainId = 5;
+let chainId = 11155111;
 let runtime: "docker" | "thread" = "thread";
 let debug = false;
 let showLogs = false;

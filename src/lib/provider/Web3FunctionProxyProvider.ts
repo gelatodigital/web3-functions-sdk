@@ -123,6 +123,7 @@ export class Web3FunctionProxyProvider {
   }
 
   public async start(port = 3000): Promise<void> {
+    this._proxyUrl = `${this._host}:${port}/${this._mountPath}`;
     await new Promise<void>((resolve) => {
       this._server = this._app.listen(port, () => {
         this._log(`Listening on: ${this._proxyUrl}`);
@@ -136,8 +137,6 @@ export class Web3FunctionProxyProvider {
       `/${this._mountPath}/:chainId`,
       this._requestHandler.bind(this)
     );
-
-    this._proxyUrl = `${this._host}:${port}/${this._mountPath}`;
   }
 
   public getNbRpcCalls(): { total: number; throttled: number } {

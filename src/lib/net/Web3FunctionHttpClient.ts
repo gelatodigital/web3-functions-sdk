@@ -28,14 +28,18 @@ export class Web3FunctionHttpClient extends EventEmitter {
     const end = performance.now() + timeout;
     let statusOk = false;
     let lastErrMsg = "";
+    let nbTries = 0;
+    let connectTimeout = 1000;
     while (!statusOk && !this._isStopped && performance.now() < end) {
+      nbTries++;
       try {
         const status = await new Promise<number>(async (resolve, reject) => {
           const requestAbortController = new AbortController();
           const timeoutId = setTimeout(() => {
+            connectTimeout += 100; // gradually increase the timeout for each retry
             requestAbortController.abort();
-            reject(new Error("Timeout"));
-          }, 100);
+            reject(new Error(`Timeout after ${nbTries} tries`));
+          }, connectTimeout);
           try {
             const { statusCode } = await request(
               `${this._host}:${this._port}/${this._mountPath}`,
@@ -54,7 +58,7 @@ export class Web3FunctionHttpClient extends EventEmitter {
         statusOk = status === 200;
         this._log(`Connected to Web3FunctionHttpServer socket!`);
       } catch (err) {
-        let errMsg = `${err.message} `;
+        const errMsg = `${err.message} `;
 
         lastErrMsg = errMsg;
         await delay(retryInterval);
@@ -81,22 +85,34 @@ export class Web3FunctionHttpClient extends EventEmitter {
 
   private async _send(event: Web3FunctionEvent) {
     let res;
-
-    try {
-      const { body } = await request(
-        `${this._host}:${this._port}/${this._mountPath}`,
-        {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify(event),
-          dispatcher: new Agent({ pipelining: 0 }),
+    let retry = 0;
+    const maxRetry = 2;
+    do {
+      try {
+        const { body } = await request(
+          `${this._host}:${this._port}/${this._mountPath}`,
+          {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify(event),
+            dispatcher: new Agent({ pipelining: 0 }),
+          }
+        );
+        res = body;
+      } catch (err) {
+        const errMsg = err.toString();
+        if (retry >= maxRetry) {
+          throw new Error(`Web3FunctionHttpClient request error: ${errMsg}`);
+        } else {
+          retry++;
+          this._log(
+            `Web3FunctionHttpClient _send retry#${retry} request error: ${errMsg}`
+          );
+          await delay(100);
         }
-      );
-      res = body;
-    } catch (err) {
-      const errMsg = err.toString();
-      throw new Error(`Web3FunctionHttpClient request error: ${errMsg}`);
-    }
+      }
+    } while (!res);
+
     try {
       const event = (await res.json()) as Web3FunctionEvent;
       this._log(`Received Web3FunctionEvent: ${event.action}`);

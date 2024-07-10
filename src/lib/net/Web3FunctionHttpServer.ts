@@ -23,21 +23,32 @@ export class Web3FunctionHttpServer {
     this._log(`Listening on http://${conns.addr.hostname}:${conns.addr.port}`);
 
     for await (const conn of conns) {
-      // eslint-disable-next-line @typescript-eslint/no-empty-function
-      let connectionReleaseResolver = () => {
-        // Intentionally left empty to use as variable
-      };
-      this._waitConnectionReleased = new Promise((resolve) => {
-        connectionReleaseResolver = () => {
-          resolve();
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
+        let connectionReleaseResolver = () => {
+          // Intentionally left empty to use as variable
         };
-      });
+        this._waitConnectionReleased = new Promise((resolve) => {
+          connectionReleaseResolver = () => {
+            resolve();
+          };
+        });
 
-      for await (const e of Deno.serveHttp(conn)) {
-        const res = await this._onRequest(e.request, mountPath);
-        await e.respondWith(res);
+        for await (const e of Deno.serveHttp(conn)) {
+          try {
+            const res = await this._onRequest(e.request, mountPath);
+            await e.respondWith(res);
+          } catch (err) {
+            this._log(`Request Error: ${err.message}`);
+            await e.respondWith(
+              new Response(`Internal error: ${err.message}`, { status: 500 })
+            );
+          }
+        }
+        connectionReleaseResolver();
+      } catch (err) {
+        this._log(`Connection Error: ${err.message}`);
       }
-      connectionReleaseResolver();
     }
   }
 
