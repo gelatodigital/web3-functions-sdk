@@ -1,4 +1,5 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
+import { Log } from "@ethersproject/providers";
 
 import {
   Web3FunctionContextData,
@@ -51,13 +52,14 @@ export class Web3FunctionHardhat {
     override?: {
       storage?: { [key: string]: string };
       userArgs?: Web3FunctionUserArgs;
+      log?: Log
     }
   ): Promise<Web3FunctionExecSuccess<T>> {
     const userArgs = override?.userArgs ?? this.w3f.userArgs;
     const storage = override?.storage ?? this.w3f.storage;
     const secrets = this.w3f.secrets;
     const debug = this.hre.config.w3f.debug;
-    const log = this.w3f.log;
+    const log = override?.log ?? this.w3f.log;
 
     const buildRes = await Web3FunctionBuilder.build(this.w3f.path, { debug });
 
