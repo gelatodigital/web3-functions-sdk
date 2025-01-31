@@ -9,7 +9,7 @@ the following command within your CLI;
 $ yarn changeset
 ```
 
-according to your code changes specifc either patch, minor or major. This selection will effect the versioning;
+according to your code changes specific either patch, minor or major. This selection will effect the versioning;
 
 ```
 major.minor.patch --> 0.0.2
