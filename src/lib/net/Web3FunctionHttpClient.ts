@@ -13,6 +13,7 @@ export class Web3FunctionHttpClient extends EventEmitter {
   private _port: number;
   private _mountPath: string;
   private _isStopped = false;
+  private _agent: Agent;
 
   constructor(host: string, port: number, mountPath: string, debug = true) {
     super();
@@ -21,6 +22,11 @@ export class Web3FunctionHttpClient extends EventEmitter {
     this._debug = debug;
     this._mountPath = mountPath;
     this.on("input_event", this._safeSend.bind(this));
+    this._agent = new Agent({
+      pipelining: 0,
+      connections: 128,
+      keepAliveTimeout: 30_000,
+    });
   }
 
   public async connect(timeout: number) {
@@ -44,7 +50,7 @@ export class Web3FunctionHttpClient extends EventEmitter {
             const { statusCode } = await request(
               `${this._host}:${this._port}/${this._mountPath}`,
               {
-                dispatcher: new Agent({ pipelining: 0 }),
+                dispatcher: this._agent,
                 signal: requestAbortController.signal,
               }
             );
@@ -95,7 +101,7 @@ export class Web3FunctionHttpClient extends EventEmitter {
             method: "POST",
             headers: { "content-type": "application/json" },
             body: JSON.stringify(event),
-            dispatcher: new Agent({ pipelining: 0 }),
+            dispatcher: this._agent,
           }
         );
         res = body;
